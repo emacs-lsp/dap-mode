@@ -19,6 +19,10 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+;; Author: Ivan <kyoncho@myoncho>
+;; URL: https://github.com/yyoncho/dap-mode
+;; Package-Requires: ((emacs "25.1"))
+;; Version: 0.1
 
 ;; Debug Adapter Protocol
 
@@ -209,10 +213,11 @@ ADAPTER-ID the id of the adapter."
 (defun dap-start-debugging (adapter-id create-session)
   "ADAPTER-ID CREATE-SESSION."
   (let ((debug-session (funcall create-session)))
-    (dap--send-message (dap--initialize-message adapter-id)
-                       (lambda (res)
-                         (message "XXXX %s" res))
-                       debug-session)))
+    (dap--send-message
+     (dap--initialize-message adapter-id)
+     (lambda (res)
+       (message "XXXX %s" res))
+     debug-session)))
 
 (provide 'dap-mode)
 ;;; dap-mode.el ends here

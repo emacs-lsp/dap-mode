@@ -44,8 +44,6 @@
 
     (dap--create-session "localhost" debug-port "name")))
 
-
-
 (with-current-buffer "App.java"
   (dap-start-debugging "java" 'dap-java-create-session))
 
