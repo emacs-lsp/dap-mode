@@ -27,6 +27,12 @@
 (require 'lsp-mode)
 (require 'json)
 
+
+(defcustom dap-print-io nil
+  "If non-nil, print all messages to and from the DAP to messages."
+  :group 'lsp-mode
+  :type 'boolean)
+
 (defun dap--make-message (params)
   "Create a LSP message from PARAMS, after encoding it to a JSON string."
   (let* ((json-encoding-pretty-print lsp-print-io)
@@ -36,6 +42,9 @@
 
 
 (cl-defstruct dap--debug-session
+  ;; ‘last-id’ is the last JSON-RPC identifier used.
+  (last-id 0)
+
   (proc nil :read-only t)
   ;; ‘response-handlers’ is a hash table mapping integral JSON-RPC request
   ;; identifiers for pending asynchronous requests to functions handling the
@@ -43,6 +52,103 @@
   ;; ‘lsp-mode’ will call the associated response handler function with a
   ;; single argument, the deserialized response parameters.
   (response-handlers (make-hash-table :test 'eql) :read-only t))
+
+(cl-defstruct dap--parser
+  (waiting-for-response nil)
+  (response-result nil)
+
+  ;; alist of headers
+  (headers '())
+
+  ;; message body
+  (body nil)
+
+  ;; If non-nil, reading body
+  (reading-body nil)
+
+  ;; length of current message body
+  (body-length nil)
+
+  ;; amount of current message body currently stored in 'body'
+  (body-received 0)
+
+  ;; Leftover data from previous chunk; to be processed
+  (leftovers nil))
+
+(defun dap--parse-header (s)
+  "Parse string S as a DAP (KEY . VAL) header."
+  (let ((pos (string-match "\:" s))
+        key val)
+    (unless pos
+      (signal 'lsp-invalid-header-name (list s)))
+    (setq key (substring s 0 pos)
+          val (substring s (+ 2 pos)))
+    (when (string-equal key "Content-Length")
+      (cl-assert (cl-loop for c being the elements of val
+                          when (or (> c ?9) (< c ?0)) return nil
+                          finally return t)
+                 nil (format "Invalid Content-Length value: %s" val)))
+    (cons key val)))
+
+(defun dap--get-body-length (headers)
+  "Get body length from HEADERS."
+  (let ((content-length (cdr (assoc "Content-Length" headers))))
+    (if content-length
+        (string-to-number content-length)
+
+      ;; This usually means either the server our our parser is
+      ;; screwed up with a previous Content-Length
+      (error "No Content-Length header"))))
+
+(defun dap--parser-read (p output)
+  "Parser OUTPUT using parser P."
+  (let ((messages '())
+        (chunk (concat (dap--parser-leftovers p) output)))
+    (while (not (string-empty-p chunk))
+      (if (not (dap--parser-reading-body p))
+          ;; Read headers
+          (let* ((body-sep-pos (string-match-p "\r\n\r\n" chunk)))
+            (if body-sep-pos
+                ;; We've got all the headers, handle them all at once:
+                (let* ((header-raw (substring chunk 0 body-sep-pos))
+                       (content (substring chunk (+ body-sep-pos 4)))
+                       (headers
+                        (mapcar 'dap--parse-header
+                                (split-string header-raw "\r\n")))
+                       (body-length (dap--get-body-length headers)))
+                  (setf
+                   (dap--parser-headers p) headers
+                   (dap--parser-reading-body p) t
+                   (dap--parser-body-length p) body-length
+                   (dap--parser-body-received p) 0
+                   (dap--parser-body p) (make-string body-length ?\0)
+                   (dap--parser-leftovers p) nil)
+                  (setq chunk content))
+
+              ;; Haven't found the end of the headers yet. Save everything
+              ;; for when the next chunk arrives and await further input.
+              (setf (dap--parser-leftovers p) chunk)
+              (setq chunk "")))
+
+        ;; Read body
+        (let* ((total-body-length (dap--parser-body-length p))
+               (received-body-length (dap--parser-body-received p))
+               (chunk-length (string-bytes chunk))
+               (left-to-receive (- total-body-length received-body-length))
+               (this-body (substring chunk 0 (min left-to-receive chunk-length)))
+               (leftovers (substring chunk (string-bytes this-body))))
+          (store-substring (dap--parser-body p) received-body-length this-body)
+          (setf (dap--parser-body-received p) (+ (dap--parser-body-received p)
+                                                 (string-bytes this-body)))
+          (when (>= chunk-length left-to-receive)
+            ;; TODO: keep track of the Content-Type header, if
+            ;; present, and use its value instead of just defaulting
+            ;; to utf-8
+            (push (decode-coding-string (dap--parser-body p) 'utf-8) messages)
+            (dap--parser-reset p))
+
+          (setq chunk leftovers))))
+    (mapcar  (nreverse messages))))
 
 (defun dap--initialize-message (adapter-id)
   "Create initialize message.
@@ -60,15 +166,21 @@ ADAPTER-ID the id of the adapter."
                          :locale "en-us")
         :type "request"))
 
-(defun dap--create-session (host port session-name)
-  ""
-  (make-dap--debug-session
-   :proc (open-network-stream session-name nil host port :type 'plain)))
+(defun dap--send-message (message callback debug-session)
+  "MESSAGE DEBUG-SESSION CALLBACK."
+  (let ((request-id (number-to-string (cl-incf (dap--debug-session-last-id debug-session)))))
+    (puthash request-id callback (dap--debug-session-response-handlers debug-session))
+    (process-send-string
+     (dap--debug-session-proc debug-session)
+     (dap--make-message (plist-put message :req request-id)))))
 
-(defun dap-start-debugging (adapter-id create-connection)
-  ""
-  (let ((session (funcall create-connection))))
-  (dap--send-message (dap--initialize-message adapter-id)))
+(defun dap-start-debugging (adapter-id create-session)
+  "ADAPTER-ID CREATE-SESSION."
+  (let ((debug-session (funcall create-session)))
+    (dap--send-message (dap--initialize-message adapter-id)
+                       (lambda (res)
+                         (message "XXXX %s" res))
+                       debug-session)))
 
 (provide 'dap-mode)
 ;;; dap-mode.el ends here
