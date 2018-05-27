@@ -28,29 +28,38 @@
 (require 'lsp-mode)
 (require 'dap-mode)
 
-(defun dap--create-session (host port session-name)
-  "HOST PORT SESSION-NAME ."
-  (let* ((proc (open-network-stream session-name nil host port :type 'plain))
-         (debug-session (make-dap--debug-session
-                         :proc proc)))
-    (set-process-filter proc (dap--create-filter-function debug-session))
-    debug-session))
-
 (defun dap-java-create-session ()
   "DD."
-  (let* (;;(classpath (lsp-send-execute-command "vscode.java.resolveClasspath" (list "some.App" nil)))
-         (debug-port (lsp-send-execute-command "vscode.java.startDebugSession" ))
-         (mainclass (lsp-send-execute-command "vscode.java.resolveMainClass" ))
-         ;; (classpath (lsp-send-execute-command "vscode.java.resolveClasspath" ))
-         )
-
-    (dap--create-session "localhost" debug-port "name")))
+  (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession" )))
+    (dap--create-session "localhost"
+                         debug-port
+                         "name")))
 
 (defun dap-java-debug ()
   "XX."
   (interactive)
-  (dap-start-debugging "java" 'dap-java-create-session))
-;; (setq dap-print-io t)
+  (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession" ))
+         (mainClass (first (lsp-send-execute-command "vscode.java.resolveMainClass" )))
+         (classpath (second
+                     (lsp-send-execute-command "vscode.java.resolveClasspath"
+                                               (list (gethash "mainClass" mainClass)
+                                                     (gethash "projectName" mainClass))))))
+
+    (dap-start-debugging
+     "java"
+     'dap-java-create-session
+     (list :args ""
+           :name "Debug (Launch)"
+           :request "launch"
+           :type "java"
+           :cwd (lsp-java--get-root)
+           :stopOnEntry :json-false
+           :mainClass (gethash "mainClass" mainClass)
+           :classPaths classpath
+           :modulePaths (vector)
+           :debugServer debug-port
+           :__sessionId "123123"))))
+
 ;; (with-current-buffer "App.java"
 ;;   (dap-java-debug ))
 

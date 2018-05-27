@@ -231,14 +231,26 @@ ADAPTER-ID the id of the adapter."
     (process-send-string (dap--debug-session-proc debug-session)
                          (dap--make-message message))))
 
-(defun dap-start-debugging (adapter-id create-session)
-  "ADAPTER-ID CREATE-SESSION."
+(defun dap--create-session (host port session-name)
+  "HOST PORT SESSION-NAME ."
+  (let* ((proc (open-network-stream session-name nil host port :type 'plain))
+         (debug-session (make-dap--debug-session
+                         :proc proc)))
+    (set-process-filter proc (dap--create-filter-function debug-session))
+    debug-session))
+
+(defun dap-start-debugging (adapter-id create-session launch-args)
+  "ADAPTER-ID CREATE-SESSION LAUNCH-ARGS."
   (let ((debug-session (funcall create-session)))
     (dap--send-message
      (dap--initialize-message adapter-id)
-     (lambda (res)
-       )
+     (lambda (_initialize-result)
+       (dap--send-message (dap--make-request "launch" launch-args)
+                          (lambda (_launc-result)
+                            (message "XXXX" ))
+                          debug-session))
      debug-session)))
+
 
 (provide 'dap-mode)
 ;;; dap-mode.el ends here
