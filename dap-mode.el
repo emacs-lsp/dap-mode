@@ -196,9 +196,12 @@
 
 (defun dap--make-request (command &optional args)
   "Make request for COMMAND with arguments ARGS."
-  (list :command command
-        :arguments args
-        :type "request"))
+  (if args
+      (list :command command
+         :arguments args
+         :type "request")
+    (list :command command
+         :type "request")))
 
 (defun dap--initialize-message (adapter-id)
   "Create initialize message.
@@ -247,7 +250,10 @@ ADAPTER-ID the id of the adapter."
      (lambda (_initialize-result)
        (dap--send-message (dap--make-request "launch" launch-args)
                           (lambda (_launc-result)
-                            (message "XXXX" ))
+                            (dap--send-message (dap--make-request "configurationDone")
+                                               (lambda (configuration-done)
+                                                 (message "XXXX %s" configuration-done))
+                                               debug-session))
                           debug-session))
      debug-session)))
 
