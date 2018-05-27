@@ -44,7 +44,6 @@
                      (lsp-send-execute-command "vscode.java.resolveClasspath"
                                                (list (gethash "mainClass" mainClass)
                                                      (gethash "projectName" mainClass))))))
-
     (dap-start-debugging
      "java"
      'dap-java-create-session
