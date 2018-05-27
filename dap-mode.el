@@ -27,7 +27,6 @@
 (require 'lsp-mode)
 (require 'json)
 
-
 (defcustom dap-print-io nil
   "If non-nil, print all messages to and from the DAP to messages."
   :group 'lsp-mode
@@ -51,7 +50,10 @@
   ;; respective responses.  Upon receiving a response from the language server,
   ;; ‘lsp-mode’ will call the associated response handler function with a
   ;; single argument, the deserialized response parameters.
-  (response-handlers (make-hash-table :test 'eql) :read-only t))
+  (response-handlers (make-hash-table :test 'eql) :read-only t)
+
+  ;; DAP parser.
+  (parser (make-dap--parser) :read-only t))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -99,6 +101,16 @@
       ;; This usually means either the server our our parser is
       ;; screwed up with a previous Content-Length
       (error "No Content-Length header"))))
+
+(defun dap--parser-reset (p)
+  "Reset `dap--parser' P."
+  (setf
+   (dap--parser-leftovers p) ""
+   (dap--parser-body-length p) nil
+   (dap--parser-body-received p) nil
+   (dap--parser-headers p) '()
+   (dap--parser-body p) nil
+   (dap--parser-reading-body p) nil))
 
 (defun dap--parser-read (p output)
   "Parser OUTPUT using parser P."
@@ -148,7 +160,27 @@
             (dap--parser-reset p))
 
           (setq chunk leftovers))))
-    (mapcar  (nreverse messages))))
+    (nreverse messages)))
+
+(defun dap--read-json (str)
+  "Read the JSON object contained in STR and return it."
+  (let* ((json-array-type 'list)
+         (json-object-type 'hash-table)
+         (json-false nil))
+    (json-read-from-string str)))
+
+(defun dap--create-filter-function (debug-session)
+  "Create filter function for DEBUG-SESSION."
+  (let ((parser (dap--debug-session-parser debug-session))
+        (handlers (dap--debug-session-response-handlers debug-session)))
+    (lambda (_ msg)
+      (mapc (lambda (m)
+              (let* ((parsed-msg (dap--read-json m)))
+                (if-let (callback (gethash (gethash "seq" parsed-msg nil) handlers nil))
+                    (funcall callback m)
+                  (message "Unable to find handler for %s." (pp parsed-msg)))))
+            (dap--parser-read parser msg)))))
+
 
 (defun dap--initialize-message (adapter-id)
   "Create initialize message.
