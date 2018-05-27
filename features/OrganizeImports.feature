@@ -18,4 +18,4 @@ Feature: Organize imports
     And I call "save-buffer"
     And I start lsp-java
     And The server status must become "LSP::Started"
-    When I call "dap-debug-java"
+    When I call "dap-java-debug"

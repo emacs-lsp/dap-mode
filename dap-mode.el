@@ -31,18 +31,21 @@
 (require 'lsp-mode)
 (require 'json)
 
-(defcustom dap-print-io nil
+(defcustom dap-print-io t
   "If non-nil, print all messages to and from the DAP to messages."
-  :group 'lsp-mode
+  :group 'dap-mode
   :type 'boolean)
+
+(defun dap--json-encode (params)
+  "Create a LSP message from PARAMS, after encoding it to a JSON string."
+  (let* ((json-encoding-pretty-print dap-print-io)
+         (json-false :json-false))
+    (json-encode params)))
 
 (defun dap--make-message (params)
   "Create a LSP message from PARAMS, after encoding it to a JSON string."
-  (let* ((json-encoding-pretty-print lsp-print-io)
-         (json-false :json-false)
-         (body (json-encode params)))
+  (let* ((body (dap--json-encode params)))
     (format "Content-Length: %d\r\n\r\n%s" (string-bytes body) body)))
-
 
 (cl-defstruct dap--debug-session
   ;; ‘last-id’ is the last JSON-RPC identifier used.
@@ -181,6 +184,9 @@
       (mapc (lambda (m)
               (let* ((parsed-msg (dap--read-json m))
                      (key (gethash "request_seq" parsed-msg nil)))
+                (when dap-print-io
+                  (message "Sending the following message: \n%s"
+                           (dap--json-encode parsed-msg)))
                 (if-let (callback (gethash key handlers nil))
                     (progn
                       (funcall callback m)
@@ -210,13 +216,20 @@ ADAPTER-ID the id of the adapter."
                          :locale "en-us")
         :type "request"))
 
+(defun dap--json-pretty-print (msg)
+  "Convert json MSG string to pretty printed json string."
+  (let ((json-encoding-pretty-print t))
+    (json-encode (json-read-from-string msg))))
+
 (defun dap--send-message (message callback debug-session)
   "MESSAGE DEBUG-SESSION CALLBACK."
-  (let ((request-id (cl-incf (dap--debug-session-last-id debug-session))))
+  (let* ((request-id (cl-incf (dap--debug-session-last-id debug-session)))
+         (message (plist-put message :seq request-id)))
     (puthash request-id callback (dap--debug-session-response-handlers debug-session))
-    (process-send-string
-     (dap--debug-session-proc debug-session)
-     (dap--make-message (plist-put message :seq request-id)))))
+    (when dap-print-io
+      (message "Sending the following message: \n%s" (dap--json-encode message)))
+    (process-send-string (dap--debug-session-proc debug-session)
+                         (dap--make-message message))))
 
 (defun dap-start-debugging (adapter-id create-session)
   "ADAPTER-ID CREATE-SESSION."

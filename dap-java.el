@@ -36,7 +36,6 @@
     (set-process-filter proc (dap--create-filter-function debug-session))
     debug-session))
 
-
 (defun dap-java-create-session ()
   "DD."
   (let* (;;(classpath (lsp-send-execute-command "vscode.java.resolveClasspath" (list "some.App" nil)))
@@ -44,8 +43,13 @@
 
     (dap--create-session "localhost" debug-port "name")))
 
+(defun dap-java-debug ()
+  "XX."
+  (interactive)
+  (dap-start-debugging "java" 'dap-java-create-session))
+;; (setq dap-print-io t)
 ;; (with-current-buffer "App.java"
-;;   (dap-start-debugging "java" 'dap-java-create-session))
+;;   (dap-java-debug ))
 
 (provide 'dap-java)
 ;;; dap-java.el ends here
