@@ -176,7 +176,7 @@
     (lambda (_ msg)
       (mapc (lambda (m)
               (let* ((parsed-msg (dap--read-json m)))
-                (if-let (callback (gethash (gethash "seq" parsed-msg nil) handlers nil))
+                (if-let (callback (gethash (gethash "request_seq" parsed-msg nil) handlers nil))
                     (funcall callback m)
                   (message "Unable to find handler for %s." (pp parsed-msg)))))
             (dap--parser-read parser msg)))))
@@ -200,11 +200,11 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--send-message (message callback debug-session)
   "MESSAGE DEBUG-SESSION CALLBACK."
-  (let ((request-id (number-to-string (cl-incf (dap--debug-session-last-id debug-session)))))
+  (let ((request-id (cl-incf (dap--debug-session-last-id debug-session))))
     (puthash request-id callback (dap--debug-session-response-handlers debug-session))
     (process-send-string
      (dap--debug-session-proc debug-session)
-     (dap--make-message (plist-put message :req request-id)))))
+     (dap--make-message (plist-put message :seq request-id)))))
 
 (defun dap-start-debugging (adapter-id create-session)
   "ADAPTER-ID CREATE-SESSION."
