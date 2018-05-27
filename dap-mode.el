@@ -52,7 +52,7 @@
   ;; ‘response-handlers’ is a hash table mapping integral JSON-RPC request
   ;; identifiers for pending asynchronous requests to functions handling the
   ;; respective responses.  Upon receiving a response from the language server,
-  ;; ‘lsp-mode’ will call the associated response handler function with a
+  ;; ‘dap-mode’ will call the associated response handler function with a
   ;; single argument, the deserialized response parameters.
   (response-handlers (make-hash-table :test 'eql) :read-only t)
 
@@ -179,12 +179,20 @@
         (handlers (dap--debug-session-response-handlers debug-session)))
     (lambda (_ msg)
       (mapc (lambda (m)
-              (let* ((parsed-msg (dap--read-json m)))
-                (if-let (callback (gethash (gethash "request_seq" parsed-msg nil) handlers nil))
-                    (funcall callback m)
+              (let* ((parsed-msg (dap--read-json m))
+                     (key (gethash "request_seq" parsed-msg nil)))
+                (if-let (callback (gethash key handlers nil))
+                    (progn
+                      (funcall callback m)
+                      (remhash key handlers))
                   (message "Unable to find handler for %s." (pp parsed-msg)))))
             (dap--parser-read parser msg)))))
 
+(defun dap--make-request (command &optional args)
+  "Make request for COMMAND with arguments ARGS."
+  (list :command command
+        :arguments args
+        :type "request"))
 
 (defun dap--initialize-message (adapter-id)
   "Create initialize message.
@@ -216,7 +224,7 @@ ADAPTER-ID the id of the adapter."
     (dap--send-message
      (dap--initialize-message adapter-id)
      (lambda (res)
-       (message "XXXX %s" res))
+       )
      debug-session)))
 
 (provide 'dap-mode)
