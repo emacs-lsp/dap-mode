@@ -105,7 +105,7 @@
   (lambda (buffer-name buffer-content callback)
     (dap-java-steps-async-wait
      (lambda ()
-       (when-let (buffer (get-buffer "buffer-name"))
+       (when-let (buffer (get-buffer buffer-name))
          (with-current-buffer buffer
            (string= (buffer-string) buffer-content))))
      callback)))

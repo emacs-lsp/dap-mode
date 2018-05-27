@@ -60,7 +60,9 @@
   (response-handlers (make-hash-table :test 'eql) :read-only t)
 
   ;; DAP parser.
-  (parser (make-dap--parser) :read-only t))
+  (parser (make-dap--parser) :read-only t)
+
+  (output-buffer (generate-new-buffer "*out*")))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -176,6 +178,13 @@
          (json-false nil))
     (json-read-from-string str)))
 
+(defun dap--on-event (debug-session event)
+  (let ((event-type (gethash "event" event)))
+    (pcase event-type
+      ("output" (with-current-buffer (dap--debug-session-output-buffer debug-session)
+                  (insert (gethash "output" (gethash "body" event)))))
+      (_ (message (format "No messages handler for %s" event-type))))))
+
 (defun dap--create-filter-function (debug-session)
   "Create filter function for DEBUG-SESSION."
   (let ((parser (dap--debug-session-parser debug-session))
@@ -187,21 +196,23 @@
                 (when dap-print-io
                   (message "Received:\n%s"
                            (dap--json-encode parsed-msg)))
-                (if-let (callback (gethash key handlers nil))
-                    (progn
-                      (funcall callback m)
-                      (remhash key handlers))
-                  (message "Unable to find handler for %s." (pp parsed-msg)))))
+                (pcase (gethash "type" parsed-msg)
+                  ("event" (dap--on-event debug-session parsed-msg))
+                  ("response" (if-let (callback (gethash key handlers nil))
+                                  (progn
+                                    (funcall callback m)
+                                    (remhash key handlers))
+                                (message "Unable to find handler for %s." (pp parsed-msg)))))))
             (dap--parser-read parser msg)))))
 
 (defun dap--make-request (command &optional args)
   "Make request for COMMAND with arguments ARGS."
   (if args
       (list :command command
-         :arguments args
-         :type "request")
+            :arguments args
+            :type "request")
     (list :command command
-         :type "request")))
+          :type "request")))
 
 (defun dap--initialize-message (adapter-id)
   "Create initialize message.
