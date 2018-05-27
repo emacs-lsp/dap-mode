@@ -39,7 +39,10 @@
 (defun dap-java-create-session ()
   "DD."
   (let* (;;(classpath (lsp-send-execute-command "vscode.java.resolveClasspath" (list "some.App" nil)))
-         (debug-port (lsp-send-execute-command "vscode.java.startDebugSession" )))
+         (debug-port (lsp-send-execute-command "vscode.java.startDebugSession" ))
+         (mainclass (lsp-send-execute-command "vscode.java.resolveMainClass" ))
+         ;; (classpath (lsp-send-execute-command "vscode.java.resolveClasspath" ))
+         )
 
     (dap--create-session "localhost" debug-port "name")))
 

@@ -101,5 +101,14 @@
         (funcall (intern command))
       (error (cl-assert (string= message (error-message-string err)) t (error-message-string err))))))
 
+(Then "^I should see buffer \"\\([^\"]+\\)\" with content \"\\([^\"]+\\)\"$"
+  (lambda (buffer-name buffer-content callback)
+    (dap-java-steps-async-wait
+     (lambda ()
+       (when-let (buffer (get-buffer "buffer-name"))
+         (with-current-buffer buffer
+           (string= (buffer-string) buffer-content))))
+     callback)))
+
 (provide 'dap-java-steps)
 ;;; dap-java-steps.el ends here

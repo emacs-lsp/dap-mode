@@ -185,7 +185,7 @@
               (let* ((parsed-msg (dap--read-json m))
                      (key (gethash "request_seq" parsed-msg nil)))
                 (when dap-print-io
-                  (message "Sending the following message: \n%s"
+                  (message "Received:\n%s"
                            (dap--json-encode parsed-msg)))
                 (if-let (callback (gethash key handlers nil))
                     (progn
@@ -227,7 +227,7 @@ ADAPTER-ID the id of the adapter."
          (message (plist-put message :seq request-id)))
     (puthash request-id callback (dap--debug-session-response-handlers debug-session))
     (when dap-print-io
-      (message "Sending the following message: \n%s" (dap--json-encode message)))
+      (message "Sending: \n%s" (dap--json-encode message)))
     (process-send-string (dap--debug-session-proc debug-session)
                          (dap--make-message message))))
 

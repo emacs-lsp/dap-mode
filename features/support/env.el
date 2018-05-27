@@ -34,7 +34,8 @@
  (setq lsp-java-workspace-dir (f-join dap-java-test-root "workspace")
        lsp-java-workspace-cache-dir (f-join dap-java-test-root "workspace-cache")
        lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
-       dap-print-io t)
+       dap-print-io t
+       lsp-print-io t)
  (when (file-exists-p dap-java-test-root)
    (delete-directory dap-java-test-root t)))
 
