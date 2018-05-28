@@ -80,7 +80,8 @@ has been terminated."
   ;; DAP parser.
   (parser (make-dap--parser) :read-only t)
   (output-buffer (generate-new-buffer "*out*"))
-  (thread-id nil))
+  (thread-id nil)
+  (workspace nil))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -221,6 +222,14 @@ has been terminated."
                      (lambda (resp))
                      dap--cur-session))
 
+(defun dap--go-to-stack-frame (stack-frame debug-session)
+  "TODO."
+  (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
+    (find-file (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame))))
+    (goto-char (point-min))
+    (forward-line (1- (gethash "line" stack-frame)))
+    (forward-char (gethash "column" stack-frame))))
+
 (defun dap--on-event (debug-session event)
   "TODO DEBUG-SESSION EVENT."
   (let ((event-type (gethash "event" event)))
@@ -236,7 +245,8 @@ has been terminated."
          (dap--send-message
           (dap--make-request "stackTrace" (list :threadId thread-id))
           (lambda (stack-frames)
-            ())
+            (let ((stack-frame (car (gethash "stackFrames" (gethash "body" stack-frames)))))
+              (dap--go-to-stack-frame stack-frame debug-session)))
           debug-session)
          (run-hook-with-args 'dap-stopped-hook debug-session)))
 
@@ -259,7 +269,7 @@ has been terminated."
                   ("event" (dap--on-event debug-session parsed-msg))
                   ("response" (if-let (callback (gethash key handlers nil))
                                   (progn
-                                    (funcall callback m)
+                                    (funcall callback parsed-msg)
                                     (remhash key handlers))
                                 (message "Unable to find handler for %s." (pp parsed-msg)))))))
             (dap--parser-read parser msg)))))
@@ -308,7 +318,8 @@ ADAPTER-ID the id of the adapter."
   "HOST PORT SESSION-NAME ."
   (let* ((proc (open-network-stream session-name nil host port :type 'plain))
          (debug-session (make-dap--debug-session
-                         :proc proc)))
+                         :proc proc
+                         :workspace lsp--cur-workspace)))
     (set-process-filter proc (dap--create-filter-function debug-session))
     debug-session))
 
