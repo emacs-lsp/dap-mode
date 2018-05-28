@@ -10,9 +10,9 @@ Feature: Running without debug
     package temp;
 
     class App {
-      public static void main(String[] args) {
-        System.out.print(123);
-      }
+    public static void main(String[] args) {
+    System.out.print(123);
+    }
     }
     """
     And I call "save-buffer"
@@ -25,5 +25,9 @@ Feature: Running without debug
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
     And I go to beginning of buffer
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
     And I call "dap-java-debug"
-    Then I should see buffer "*out*" with content "123"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "System"
+    And I call "dap-continue"
+    And I should see buffer "*out*" with content "123"

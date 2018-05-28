@@ -45,6 +45,14 @@ has been terminated."
   :type 'hook
   :group 'dap-mode)
 
+(defcustom dap-stopped-hook nil
+  "List of functions to be called after a breakpoint has been hit."
+  :type 'hook
+  :group 'dap-mode)
+
+
+(defvar dap--cur-session nil)
+
 (defun dap--json-encode (params)
   "Create a LSP message from PARAMS, after encoding it to a JSON string."
   (let* ((json-encoding-pretty-print dap-print-io)
@@ -71,8 +79,8 @@ has been terminated."
 
   ;; DAP parser.
   (parser (make-dap--parser) :read-only t)
-
-  (output-buffer (generate-new-buffer "*out*")))
+  (output-buffer (generate-new-buffer "*out*"))
+  (thread-id nil))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -191,9 +199,6 @@ has been terminated."
           (setf (dap--parser-body-received p) (+ (dap--parser-body-received p)
                                                  (string-bytes this-body)))
           (when (>= chunk-length left-to-receive)
-            ;; TODO: keep track of the Content-Type header, if
-            ;; present, and use its value instead of just defaulting
-            ;; to utf-8
             (push (decode-coding-string (dap--parser-body p) 'utf-8) messages)
             (dap--parser-reset p))
 
@@ -207,6 +212,15 @@ has been terminated."
          (json-false nil))
     (json-read-from-string str)))
 
+(defun dap-continue ()
+  "."
+  (interactive)
+  (dap--send-message (dap--make-request
+                      "continue"
+                      (list :threadId (dap--debug-session-thread-id dap--cur-session)))
+                     (lambda (resp))
+                     dap--cur-session))
+
 (defun dap--on-event (debug-session event)
   "TODO DEBUG-SESSION EVENT."
   (let ((event-type (gethash "event" event)))
@@ -216,6 +230,16 @@ has been terminated."
       ("exited" (with-current-buffer (dap--debug-session-output-buffer debug-session)
                   ;; (insert (gethash "body" (gethash "body" event)))
                   ))
+      ("stopped"
+       (let ((thread-id (gethash "threadId" (gethash "body" event))))
+         (setf (dap--debug-session-thread-id dap--cur-session) thread-id)
+         (dap--send-message
+          (dap--make-request "stackTrace" (list :threadId thread-id))
+          (lambda (stack-frames)
+            ())
+          debug-session)
+         (run-hook-with-args 'dap-stopped-hook debug-session)))
+
       ("terminated"
        (run-hook-with-args 'dap-terminated-hook debug-session))
       (_ (message (format "No messages handler for %s" event-type))))))
@@ -331,7 +355,8 @@ ADAPTER-ID the id of the adapter."
                          (apply-partially #'dap--send-configuration-done
                                           debug-session))
         debug-session))
-     debug-session)))
+     debug-session)
+    (setq dap--cur-session debug-session)))
 
 (provide 'dap-mode)
 ;;; dap-mode.el ends here
