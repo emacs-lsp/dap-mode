@@ -222,6 +222,15 @@ has been terminated."
                      (lambda (resp))
                      dap--cur-session))
 
+(defun dap-next ()
+  "."
+  (interactive)
+  (dap--send-message (dap--make-request
+                      "next"
+                      (list :threadId (dap--debug-session-thread-id dap--cur-session)))
+                     (lambda (resp))
+                     dap--cur-session))
+
 (defun dap--go-to-stack-frame (stack-frame debug-session)
   "TODO."
   (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))

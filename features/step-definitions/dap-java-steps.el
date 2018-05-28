@@ -116,13 +116,17 @@
     (add-hook
      (intern hook-name)
      (lambda (_)
+       (message "XXXX")
        (puthash handler-name 'called dap-handlers-called)))))
 
 (Then "^The hook handler \"\\([^\"]+\\)\" would be called$"
   (lambda (handler-name callback)
     (dap-java-steps-async-wait
      (lambda ()
-       (eql 'called (gethash handler-name dap-handlers-called)))
+       (let ((result (eql 'called (gethash handler-name dap-handlers-called))))
+         ;; clear the hash
+         (remhash handler-name dap-handlers-called)
+         result))
      callback)))
 ;; (add-hook (intern ""))
 

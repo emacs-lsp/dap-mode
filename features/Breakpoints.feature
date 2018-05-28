@@ -12,6 +12,10 @@ Feature: Running without debug
     class App {
     public static void main(String[] args) {
     System.out.print(123);
+    foo();
+    }
+
+    static void foo() {
     }
     }
     """
@@ -21,7 +25,7 @@ Feature: Running without debug
 
 
   @Breakpoints
-  Scenario: Add breakpoint
+  Scenario: Breakpoint navigation/cursor position
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
     And I go to beginning of buffer
@@ -30,4 +34,18 @@ Feature: Running without debug
     Then The hook handler "breakpoint" would be called
     And the cursor should be before "System"
     And I call "dap-continue"
+    And I should see buffer "*out*" with content "123"
+
+  @Breakpoints
+  Scenario: Step in
+    When I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I go to beginning of buffer
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "System"
+    And I call "dap-next"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "foo"
     And I should see buffer "*out*" with content "123"
