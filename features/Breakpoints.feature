@@ -37,7 +37,7 @@ Feature: Running without debug
     And I should see buffer "*out*" with content "123"
 
   @Breakpoints
-  Scenario: Step in
+  Scenario: Next
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
     And I go to beginning of buffer
@@ -48,4 +48,18 @@ Feature: Running without debug
     And I call "dap-next"
     Then The hook handler "breakpoint" would be called
     And the cursor should be before "foo"
+    And I should see buffer "*out*" with content "123"
+
+  @WIP
+  Scenario: Step in
+    When I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I go to beginning of buffer
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "System"
+    And I call "dap-step-in"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "foo10101010101010101010"
     And I should see buffer "*out*" with content "123"

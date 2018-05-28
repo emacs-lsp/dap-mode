@@ -116,7 +116,6 @@
     (add-hook
      (intern hook-name)
      (lambda (_)
-       (message "XXXX")
        (puthash handler-name 'called dap-handlers-called)))))
 
 (Then "^The hook handler \"\\([^\"]+\\)\" would be called$"

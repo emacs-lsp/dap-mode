@@ -231,10 +231,21 @@ has been terminated."
                      (lambda (resp))
                      dap--cur-session))
 
+(defun dap-step-in ()
+  "."
+  (interactive)
+  (dap--send-message (dap--make-request
+                      "stepIn"
+                      (list :threadId (dap--debug-session-thread-id dap--cur-session)))
+                     (lambda (resp))
+                     dap--cur-session))
+
 (defun dap--go-to-stack-frame (stack-frame debug-session)
   "TODO."
-  (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
-    (find-file (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame))))
+  (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session))
+        (sss (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame)))))
+    (message "XXXX %s" sss)
+    (find-file sss)
     (goto-char (point-min))
     (forward-line (1- (gethash "line" stack-frame)))
     (forward-char (gethash "column" stack-frame))))
