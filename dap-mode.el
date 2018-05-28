@@ -30,6 +30,7 @@
 
 (require 'lsp-mode)
 (require 'json)
+(require 'f)
 
 (defcustom dap-print-io t
   "If non-nil, print all messages to and from the DAP to messages."
@@ -110,18 +111,24 @@ has been terminated."
                  nil (format "Invalid Content-Length value: %s" val)))
     (cons key val)))
 
+(defun dap--get-breakpoints (workspace)
+  "Get breakpoints in WORKSPACE."
+  (or (lsp-workspace-get-metadata "Breakpoints" workspace)
+      (let ((it (make-hash-table :test 'equal)))
+        (lsp-workspace-set-metadata "Breakpoints" it)
+        it)))
+
 (defun dap-toggle-breakpoint ()
   "TODO ."
   (interactive)
-
-  (let ((breakpoints (or (lsp-workspace-get-metadata "Breakpoints")
-                         (let (($ (make-hash-table :test "equal")))
-                           (lsp-workspace-set-metadata "Breakpoints" $)
-                           $))))
-    )
-
-
-  )
+  (lsp--cur-workspace-check)
+  (let* ((file-path (buffer-file-name))
+         (breakpoints (dap--get-breakpoints lsp--cur-workspace))
+         (file-breakpoints (gethash file-path breakpoints)))
+    (puthash file-path
+             (cons (list :point (point-marker))
+                   file-breakpoints)
+             breakpoints)))
 
 (defun dap--get-body-length (headers)
   "Get body length from HEADERS."
@@ -201,6 +208,7 @@ has been terminated."
     (json-read-from-string str)))
 
 (defun dap--on-event (debug-session event)
+  "TODO DEBUG-SESSION EVENT."
   (let ((event-type (gethash "event" event)))
     (pcase event-type
       ("output" (with-current-buffer (dap--debug-session-output-buffer debug-session)
@@ -280,19 +288,49 @@ ADAPTER-ID the id of the adapter."
     (set-process-filter proc (dap--create-filter-function debug-session))
     debug-session))
 
+(defun dap--send-configuration-done (debug-session _)
+  "Send 'configurationDone' message for DEBUG-SESSION."
+  (dap--send-message (dap--make-request "configurationDone")
+                     (lambda (configuration-done)
+                       (message "%s" configuration-done))
+                     debug-session))
+
+(defun dap--configure-breakpoints (debug-session breakpoints callback _)
+  "TODO doc."
+  (maphash
+   (lambda (file-name file-breakpoints)
+     (message "Handling breakpoints.")
+     (dap--send-message
+      (dap--make-request "setBreakpoints"
+                         (list :source (list :name (f-filename file-name)
+                                             :path file-name)
+                               :breakpoints (cl-map
+                                             'vector
+                                             (lambda (br)
+                                               (message "%s" br)
+                                               (list :line (line-number-at-pos
+                                                            (marker-position (plist-get br :point)))))
+                                             file-breakpoints)
+                               :sourceModified :json-false))
+      callback
+      debug-session))
+   breakpoints))
+
 (defun dap-start-debugging (adapter-id create-session launch-args)
   "ADAPTER-ID CREATE-SESSION LAUNCH-ARGS."
-  (let ((debug-session (funcall create-session)))
+  (let ((debug-session (funcall create-session))
+        (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
     (dap--send-message
      (dap--initialize-message adapter-id)
      (lambda (_initialize-result)
-       (dap--send-message (dap--make-request "launch" launch-args)
-                          (lambda (_launc-result)
-                            (dap--send-message (dap--make-request "configurationDone")
-                                               (lambda (configuration-done)
-                                                 (message "%s" configuration-done))
-                                               debug-session))
-                          debug-session))
+       (dap--send-message
+        (dap--make-request "launch" launch-args)
+        (apply-partially #'dap--configure-breakpoints
+                         debug-session
+                         breakpoints
+                         (apply-partially #'dap--send-configuration-done
+                                          debug-session))
+        debug-session))
      debug-session)))
 
 (provide 'dap-mode)
