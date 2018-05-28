@@ -48,6 +48,7 @@
     (format "Content-Length: %d\r\n\r\n%s" (string-bytes body) body)))
 
 (cl-defstruct dap--debug-session
+  (name)
   ;; ‘last-id’ is the last JSON-RPC identifier used.
   (last-id 0)
 
@@ -100,6 +101,19 @@
                           finally return t)
                  nil (format "Invalid Content-Length value: %s" val)))
     (cons key val)))
+
+(defun dap-toggle-breakpoint ()
+  "TODO ."
+  (interactive)
+
+  (let ((breakpoints (or (lsp-workspace-get-metadata "Breakpoints")
+                         (let (($ (make-hash-table :test "equal")))
+                           (lsp-workspace-set-metadata "Breakpoints" $)
+                           $))))
+    )
+
+
+  )
 
 (defun dap--get-body-length (headers)
   "Get body length from HEADERS."
@@ -263,7 +277,7 @@ ADAPTER-ID the id of the adapter."
                           (lambda (_launc-result)
                             (dap--send-message (dap--make-request "configurationDone")
                                                (lambda (configuration-done)
-                                                 (message "XXXX %s" configuration-done))
+                                                 (message "%s" configuration-done))
                                                debug-session))
                           debug-session))
      debug-session)))

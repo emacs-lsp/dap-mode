@@ -1,7 +1,6 @@
 Feature: Running without debug
 
-  @Running
-  Scenario: Run without breakpoints
+  Background:
     Given I have maven project "m" in "tmp"
     And I add project "m" folder "tmp" to the list of workspace folders
     And I have a java file "tmp/m/src/main/java/temp/App.java"
@@ -19,5 +18,12 @@ Feature: Running without debug
     And I call "save-buffer"
     And I start lsp-java
     And The server status must become "LSP::Started"
-    When I call "dap-java-debug"
+
+
+  @Breakpoints
+  Scenario: Add breakpoint
+    When I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I go to beginning of buffer
+    And I call "dap-java-debug"
     Then I should see buffer "*out*" with content "123"
