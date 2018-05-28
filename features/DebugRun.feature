@@ -19,5 +19,7 @@ Feature: Running without debug
     And I call "save-buffer"
     And I start lsp-java
     And The server status must become "LSP::Started"
+    And I attach handler "terminated" to hook "dap-terminated-hook"
     When I call "dap-java-debug"
-    Then I should see buffer "*out*" with content "123"
+    Then The hook handler "terminated" would be called
+    And I should see buffer "*out*" with content "123"

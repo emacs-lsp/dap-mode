@@ -110,5 +110,21 @@
            (string= (buffer-string) buffer-content))))
      callback)))
 
+
+(And "^I attach handler \"\\([^\"]+\\)\" to hook \"\\([^\"]+\\)\"$"
+  (lambda (handler-name hook-name)
+    (add-hook
+     (intern hook-name)
+     (lambda (_)
+       (puthash handler-name 'called dap-handlers-called)))))
+
+(Then "^The hook handler \"\\([^\"]+\\)\" would be called$"
+  (lambda (handler-name callback)
+    (dap-java-steps-async-wait
+     (lambda ()
+       (eql 'called (gethash handler-name dap-handlers-called)))
+     callback)))
+;; (add-hook (intern ""))
+
 (provide 'dap-java-steps)
 ;;; dap-java-steps.el ends here

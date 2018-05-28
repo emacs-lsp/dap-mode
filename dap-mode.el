@@ -36,6 +36,14 @@
   :group 'dap-mode
   :type 'boolean)
 
+(defcustom dap-terminated-hook nil
+  "List of functions to be called after a debug session has been terminated.
+
+The functions will received the debug dession that
+has been terminated."
+  :type 'hook
+  :group 'dap-mode)
+
 (defun dap--json-encode (params)
   "Create a LSP message from PARAMS, after encoding it to a JSON string."
   (let* ((json-encoding-pretty-print dap-print-io)
@@ -197,6 +205,11 @@
     (pcase event-type
       ("output" (with-current-buffer (dap--debug-session-output-buffer debug-session)
                   (insert (gethash "output" (gethash "body" event)))))
+      ("exited" (with-current-buffer (dap--debug-session-output-buffer debug-session)
+                  ;; (insert (gethash "body" (gethash "body" event)))
+                  ))
+      ("terminated"
+       (run-hook-with-args 'dap-terminated-hook debug-session))
       (_ (message (format "No messages handler for %s" event-type))))))
 
 (defun dap--create-filter-function (debug-session)
@@ -281,7 +294,6 @@ ADAPTER-ID the id of the adapter."
                                                debug-session))
                           debug-session))
      debug-session)))
-
 
 (provide 'dap-mode)
 ;;; dap-mode.el ends here

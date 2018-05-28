@@ -15,6 +15,8 @@
 (defvar dap-java-features-path
   (f-parent dap-java-support-path))
 
+(defvar dap-handlers-called (make-hash-table :test 'equal))
+
 (defvar dap-java-root-path
   (f-parent dap-java-features-path))
 
