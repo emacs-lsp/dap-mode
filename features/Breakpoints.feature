@@ -13,11 +13,19 @@ Feature: Running without debug
     public static void main(String[] args) {
     System.out.print(123);
     foo();
+    bar();
     }
 
-    static void foo() {
+    static int foo() {
     new App();
+    return 10;
     }
+
+    static int bar() {
+    new App();
+    return 10;
+    }
+
     }
     """
     And I call "save-buffer"
@@ -81,18 +89,16 @@ Feature: Running without debug
     Then The hook handler "terminated" would be called
 
   @WIP
-  Scenario: Step in
-    When I place the cursor before "new"
+  Scenario: Step out
+    When I place the cursor before "new App"
     And I call "dap-toggle-breakpoint"
     And I go to beginning of buffer
     And I attach handler "stopped" to hook "dap-stopped-hook"
     And I call "dap-java-debug"
-    Then The hook handler "breakpoint" would be called
-    And the cursor should be before "new"
+    Then The hook handler "stopped" would be called
+    And the cursor should be before "new App"
     And I call "dap-step-out"
     Then The hook handler "stopped" would be called
-    When I go in active window
-    Then I should be in buffer "java.io.PrintStream.java"
-    And the cursor should be before "        write(String.valueOf(i));"
+    And the cursor should be before "foo()"
     And I call "dap-continue"
     And I should see buffer "*out*" with content "123"
