@@ -133,11 +133,18 @@ has been terminated."
   (lsp--cur-workspace-check)
   (let* ((file-path (buffer-file-name))
          (breakpoints (dap--get-breakpoints lsp--cur-workspace))
-         (file-breakpoints (gethash file-path breakpoints)))
-    (puthash file-path
-             (cons (list :point (point-marker))
-                   file-breakpoints)
-             breakpoints)))
+         (file-breakpoints (gethash file-path breakpoints))
+         (updated-file-breakpoints (if-let (existing-breakpoint (cl-find-if (lambda (existing)
+                                                                              (= (line-number-at-pos (plist-get existing :point))
+                                                                                 (line-number-at-pos (point))))
+                                                                            file-breakpoints))
+                                       ;; delete if already exists
+                                       (cl-remove existing-breakpoint file-breakpoints)
+                                     ;; add if does not exist
+                                     (push (list :point (point-marker)) file-breakpoints))))
+    (if updated-file-breakpoints
+        (puthash file-path updated-file-breakpoints breakpoints)
+      (remhash file-path breakpoints))))
 
 (defun dap--get-body-length (headers)
   "Get body length from HEADERS."
@@ -368,28 +375,29 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--configure-breakpoints (debug-session breakpoints callback _)
   "TODO doc."
-
   (let ((breakpoint-count (hash-table-count breakpoints))
         (finished 0))
-    (maphash
-     (lambda (file-name file-breakpoints)
-       (dap--send-message
-        (dap--make-request "setBreakpoints"
-                           (list :source (list :name (f-filename file-name)
-                                               :path file-name)
-                                 :breakpoints (cl-map
-                                               'vector
-                                               (lambda (br)
-                                                 (list :line (line-number-at-pos
-                                                              (marker-position (plist-get br :point)))))
-                                               file-breakpoints)
-                                 :sourceModified :json-false))
-        (lambda (_resp)
-          (setf finished (1+ finished))
-          (when (= finished breakpoint-count)
-            (funcall callback '_)))
-        debug-session))
-     breakpoints)))
+    (if (zerop breakpoint-count)
+        (funcall callback _)
+      (maphash
+       (lambda (file-name file-breakpoints)
+         (dap--send-message
+          (dap--make-request "setBreakpoints"
+                             (list :source (list :name (f-filename file-name)
+                                                 :path file-name)
+                                   :breakpoints (cl-map
+                                                 'vector
+                                                 (lambda (br)
+                                                   (list :line (line-number-at-pos
+                                                                (marker-position (plist-get br :point)))))
+                                                 file-breakpoints)
+                                   :sourceModified :json-false))
+          (lambda (_resp)
+            (setf finished (1+ finished))
+            (when (= finished breakpoint-count)
+              (funcall callback '_)))
+          debug-session))
+       breakpoints))))
 
 (defun dap-start-debugging (adapter-id create-session launch-args)
   "ADAPTER-ID CREATE-SESSION LAUNCH-ARGS."

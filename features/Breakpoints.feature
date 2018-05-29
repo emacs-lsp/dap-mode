@@ -120,7 +120,7 @@ Feature: Breakpoint tests
     When I call "dap-continue"
     And I should see buffer "*out*" with content "123"
 
-  @WIP
+  @Breakpoints
   Scenario: Toggle(disable) breakpoint
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"

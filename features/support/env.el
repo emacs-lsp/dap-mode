@@ -48,7 +48,8 @@
           (with-current-buffer b
             (equal 'java-mode major-mode)))
         (buffer-list)))
- (kill-buffer "*out*"))
+ (when (get-buffer "*out*")
+   (kill-buffer "*out*")))
 
 (Teardown
  ;; After when everything has been run
