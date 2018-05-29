@@ -222,6 +222,13 @@ has been terminated."
                      (lambda (resp))
                      dap--cur-session))
 
+(defun dap-disconnect ()
+  "."
+  (interactive)
+  (dap--send-message (dap--make-request "disconnect" (list :restart :json-false))
+                     (lambda (resp))
+                     dap--cur-session))
+
 (defun dap-next ()
   "."
   (interactive)

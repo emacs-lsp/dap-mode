@@ -16,6 +16,7 @@ Feature: Running without debug
     }
 
     static void foo() {
+    new App();
     }
     }
     """
@@ -50,7 +51,7 @@ Feature: Running without debug
     And the cursor should be before "foo"
     And I should see buffer "*out*" with content "123"
 
-  @WIP
+  @Breakpoints
   Scenario: Step in
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
@@ -61,6 +62,36 @@ Feature: Running without debug
     And the cursor should be before "System"
     And I call "dap-step-in"
     Then The hook handler "breakpoint" would be called
+    When I go in active window
+    Then I should be in buffer "java.io.PrintStream.java"
+    And the cursor should be before "        write(String.valueOf(i));"
+    And I call "dap-continue"
+    And I should see buffer "*out*" with content "123"
+
+  @Breakpoints
+  Scenario: Terminate
+    When I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I go to beginning of buffer
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I attach handler "terminated" to hook "dap-terminated-hook"
+    And I call "dap-java-debug"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "System"
+    And I call "dap-disconnect"
+    Then The hook handler "terminated" would be called
+
+  @WIP
+  Scenario: Step in
+    When I place the cursor before "new"
+    And I call "dap-toggle-breakpoint"
+    And I go to beginning of buffer
+    And I attach handler "stopped" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "new"
+    And I call "dap-step-out"
+    Then The hook handler "stopped" would be called
     When I go in active window
     Then I should be in buffer "java.io.PrintStream.java"
     And the cursor should be before "        write(String.valueOf(i));"
