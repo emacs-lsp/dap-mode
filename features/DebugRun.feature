@@ -1,4 +1,4 @@
-Feature: Running without debug
+Feature: Running without breakpoints
 
   @Running
   Scenario: Run without breakpoints

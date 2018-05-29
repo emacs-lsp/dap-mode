@@ -38,6 +38,6 @@ Feature: Running without debug
     And I press "<return>"
     And I execute the action chain
 
-    And I insert "i\n"
-    And I press
-    And I should see buffer "*out*" with content "123"
+    # And I insert "i\n"
+    # And I press
+    # And I should see buffer "*out*" with content "123"

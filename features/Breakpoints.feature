@@ -1,4 +1,4 @@
-Feature: Running without debug
+Feature: Breakpoint tests
 
   Background:
     Given I have maven project "m" in "tmp"
@@ -88,7 +88,7 @@ Feature: Running without debug
     And I call "dap-disconnect"
     Then The hook handler "terminated" would be called
 
-  @WIP
+  @Breakpoints
   Scenario: Step out
     When I place the cursor before "new App"
     And I call "dap-toggle-breakpoint"
@@ -101,4 +101,21 @@ Feature: Running without debug
     Then The hook handler "stopped" would be called
     And the cursor should be before "foo()"
     And I call "dap-continue"
+    And I should see buffer "*out*" with content "123"
+
+  @WIP
+  Scenario: Two breakpoints
+    When I place the cursor before "foo()"
+    And I call "dap-toggle-breakpoint"
+    And I place the cursor before "bar()"
+    And I call "dap-toggle-breakpoint"
+    And I go to beginning of buffer
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "foo()"
+    When I call "dap-continue"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "bar()"
+    When I call "dap-continue"
     And I should see buffer "*out*" with content "123"
