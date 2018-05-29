@@ -47,7 +47,8 @@
         (lambda (b)
           (with-current-buffer b
             (equal 'java-mode major-mode)))
-        (buffer-list))))
+        (buffer-list)))
+ (kill-buffer "*out*"))
 
 (Teardown
  ;; After when everything has been run

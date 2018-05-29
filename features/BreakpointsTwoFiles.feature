@@ -1,4 +1,5 @@
 Feature: Breakpoint tests which require multiple files
+
   Background:
     Given I have maven project "m" in "tmp"
     And I add project "m" folder "tmp" to the list of workspace folders
@@ -15,6 +16,7 @@ Feature: Breakpoint tests which require multiple files
     }
     """
     And I call "save-buffer"
+    And I start lsp-java
     And I have a java file "tmp/m/src/main/java/temp/Foo.java"
     And I clear the buffer
     And I insert:
@@ -32,8 +34,8 @@ Feature: Breakpoint tests which require multiple files
     And I start lsp-java
     And The server status must become "LSP::Started"
 
-  @WIP
-  Feature: Breakpoints in two files
+  @Breakpoints
+  Scenario: Breakpoints in two files
     Given I switch to buffer "App.java"
     And I place the cursor before "Foo.bar()"
     And I call "dap-toggle-breakpoint"
@@ -42,8 +44,12 @@ Feature: Breakpoint tests which require multiple files
     And I call "dap-toggle-breakpoint"
     And I attach handler "breakpoint" to hook "dap-stopped-hook"
     And I call "dap-java-debug"
-    And the cursor should be before "foo()"
+    Then The hook handler "breakpoint" would be called
+    When I go in active window
+    And the cursor should be before "Foo.bar()"
     When I call "dap-continue"
+    Then The hook handler "breakpoint" would be called
+    When I go in active window
     Then I should be in buffer "Foo.java"
-    And the cursor should be before "XXdfSystem"
+    And the cursor should be before "System"
     And I call "dap-disconnect"

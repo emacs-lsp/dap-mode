@@ -368,24 +368,28 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--configure-breakpoints (debug-session breakpoints callback _)
   "TODO doc."
-  (maphash
-   (lambda (file-name file-breakpoints)
-     (message "Handling breakpoints.")
-     (dap--send-message
-      (dap--make-request "setBreakpoints"
-                         (list :source (list :name (f-filename file-name)
-                                             :path file-name)
-                               :breakpoints (cl-map
-                                             'vector
-                                             (lambda (br)
-                                               (message "%s" br)
-                                               (list :line (line-number-at-pos
-                                                            (marker-position (plist-get br :point)))))
-                                             file-breakpoints)
-                               :sourceModified :json-false))
-      callback
-      debug-session))
-   breakpoints))
+
+  (let ((breakpoint-count (hash-table-count breakpoints))
+        (finished 0))
+    (maphash
+     (lambda (file-name file-breakpoints)
+       (dap--send-message
+        (dap--make-request "setBreakpoints"
+                           (list :source (list :name (f-filename file-name)
+                                               :path file-name)
+                                 :breakpoints (cl-map
+                                               'vector
+                                               (lambda (br)
+                                                 (list :line (line-number-at-pos
+                                                              (marker-position (plist-get br :point)))))
+                                               file-breakpoints)
+                                 :sourceModified :json-false))
+        (lambda (_resp)
+          (setf finished (1+ finished))
+          (when (= finished breakpoint-count)
+            (funcall callback '_)))
+        debug-session))
+     breakpoints)))
 
 (defun dap-start-debugging (adapter-id create-session launch-args)
   "ADAPTER-ID CREATE-SESSION LAUNCH-ARGS."

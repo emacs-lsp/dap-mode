@@ -33,7 +33,7 @@ Feature: Breakpoint tests
     And The server status must become "LSP::Started"
 
   @Breakpoints
-  Scenario: Breakpoint navigation/cursor position
+  Scenario: Breakpoint + continue
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
     And I go to beginning of buffer
@@ -103,7 +103,7 @@ Feature: Breakpoint tests
     And I call "dap-continue"
     And I should see buffer "*out*" with content "123"
 
-  @WIP
+  @Breakpoints
   Scenario: Two breakpoints
     When I place the cursor before "foo()"
     And I call "dap-toggle-breakpoint"
@@ -118,4 +118,12 @@ Feature: Breakpoint tests
     Then The hook handler "breakpoint" would be called
     And the cursor should be before "bar()"
     When I call "dap-continue"
+    And I should see buffer "*out*" with content "123"
+
+  @WIP
+  Scenario: Toggle(disable) breakpoint
+    When I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I call "dap-toggle-breakpoint"
+    And I call "dap-java-debug"
     And I should see buffer "*out*" with content "123"
