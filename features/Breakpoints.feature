@@ -24,7 +24,6 @@ Feature: Running without debug
     And I start lsp-java
     And The server status must become "LSP::Started"
 
-
   @Breakpoints
   Scenario: Breakpoint navigation/cursor position
     When I place the cursor before "System"
