@@ -61,5 +61,8 @@ Feature: Running without debug
     And the cursor should be before "System"
     And I call "dap-step-in"
     Then The hook handler "breakpoint" would be called
-    And the cursor should be before "foo10101010101010101010"
+    When I go in active window
+    Then I should be in buffer "java.io.PrintStream.java"
+    And the cursor should be before "        write(String.valueOf(i));"
+    And I call "dap-continue"
     And I should see buffer "*out*" with content "123"

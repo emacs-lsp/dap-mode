@@ -127,6 +127,10 @@
          (remhash handler-name dap-handlers-called)
          result))
      callback)))
+
+(When "^I go in active window"
+  (lambda () (select-window (car (window-list )))))
+
 ;; (add-hook (intern ""))
 
 (provide 'dap-java-steps)

@@ -242,10 +242,10 @@ has been terminated."
 
 (defun dap--go-to-stack-frame (stack-frame debug-session)
   "TODO."
-  (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session))
-        (sss (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame)))))
-    (message "XXXX %s" sss)
-    (find-file sss)
+  (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
+    (find-file (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame))))
+    (message (buffer-name (current-buffer)))
+    (switch-to-buffer (current-buffer))
     (goto-char (point-min))
     (forward-line (1- (gethash "line" stack-frame)))
     (forward-char (gethash "column" stack-frame))))
