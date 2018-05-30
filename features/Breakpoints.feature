@@ -128,7 +128,7 @@ Feature: Breakpoint tests
     And I call "dap-java-debug"
     And I should see buffer "*out*" with content "123"
 
-  @WIP
+  @Breakpoints
   Scenario: Toggle(disable) breakpoint when running
     When I place the cursor before "foo()"
     And I call "dap-toggle-breakpoint"
@@ -141,5 +141,21 @@ Feature: Breakpoint tests
     And the cursor should be before "foo()"
     And I place the cursor before "bar()"
     And I call "dap-toggle-breakpoint"
+    When I call "dap-continue"
+    And I should see buffer "*out*" with content "123"
+
+  @Breakpoints
+  Scenario: Two breakpoints (enable second after starting)
+    When I place the cursor before "foo()"
+    And I call "dap-toggle-breakpoint"
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "foo()"
+    And I place the cursor before "bar()"
+    And I call "dap-toggle-breakpoint"
+    When I call "dap-continue"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "bar()"
     When I call "dap-continue"
     And I should see buffer "*out*" with content "123"

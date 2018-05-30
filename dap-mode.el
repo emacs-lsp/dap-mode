@@ -418,7 +418,10 @@ ADAPTER-ID the id of the adapter."
     (dap--send-message
      (dap--initialize-message adapter-id)
      (lambda (_initialize-result)
-       (push debug-session (lsp-workspace-get-metadata "debug-sessions" workspace))
+       (lsp-workspace-set-metadata
+        "debug-sessions"
+        (cons debug-session (lsp-workspace-get-metadata "debug-sessions" workspace))
+        workspace)
 
        (dap--send-message
         (dap--make-request "launch" launch-args)
