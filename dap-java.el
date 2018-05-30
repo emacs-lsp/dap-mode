@@ -44,15 +44,13 @@
                           (list (format "%s (%s)"(gethash "mainClass" it)
                                         (gethash "projectName" it)) it))
                         main-classes))
-         (_ (message "%s" items))
          (mainClass (cadr (assoc
                            (completing-read "Select main class to run: " items nil t)
                            items)))
          (classpath (second
                      (lsp-send-execute-command "vscode.java.resolveClasspath"
                                                (list (gethash "mainClass" mainClass)
-                                                     (gethash "projectName" mainClass)))))
-         )
+                                                     (gethash "projectName" mainClass))))))
     (dap-start-debugging
      "java"
      'dap-java-create-session
@@ -67,9 +65,6 @@
            :modulePaths (vector)
            :debugServer debug-port
            :__sessionId "123123"))))
-
-;; (with-current-buffer "App.java"
-;;   (dap-java-debug ))
 
 (provide 'dap-java)
 ;;; dap-java.el ends here

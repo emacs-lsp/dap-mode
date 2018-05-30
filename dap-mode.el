@@ -376,8 +376,7 @@ ADAPTER-ID the id of the adapter."
 (defun dap--send-configuration-done (debug-session _)
   "Send 'configurationDone' message for DEBUG-SESSION."
   (dap--send-message (dap--make-request "configurationDone")
-                     (lambda (configuration-done)
-                       (message "%s" configuration-done))
+                     (lambda (configuration-done))
                      debug-session))
 
 (defun dap--set-breakpoints-request (file-name file-breakpoints)
