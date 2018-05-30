@@ -144,7 +144,14 @@ has been terminated."
                                      (push (list :point (point-marker)) file-breakpoints))))
     (if updated-file-breakpoints
         (puthash file-path updated-file-breakpoints breakpoints)
-      (remhash file-path breakpoints))))
+      (remhash file-path breakpoints))
+    (let ((set-breakpoints-req (dap--set-breakpoints-request file-path updated-file-breakpoints)))
+      (mapc (lambda (debug-session)
+              (dap--send-message set-breakpoints-req
+                                 (lambda (resp)
+                                   (message "XXX"))
+                                 debug-session))
+            (lsp-workspace-get-metadata "debug-sessions" lsp--cur-workspace)))))
 
 (defun dap--get-body-length (headers)
   "Get body length from HEADERS."
@@ -373,6 +380,19 @@ ADAPTER-ID the id of the adapter."
                        (message "%s" configuration-done))
                      debug-session))
 
+(defun dap--set-breakpoints-request (file-name file-breakpoints)
+  "TODO FILE-BREAKPOINTS FILE-NAME."
+  (dap--make-request "setBreakpoints"
+                     (list :source (list :name (f-filename file-name)
+                                         :path file-name)
+                           :breakpoints (cl-map
+                                         'vector
+                                         (lambda (br)
+                                           (list :line (line-number-at-pos
+                                                        (marker-position (plist-get br :point)))))
+                                         file-breakpoints)
+                           :sourceModified :json-false)))
+
 (defun dap--configure-breakpoints (debug-session breakpoints callback _)
   "TODO doc."
   (let ((breakpoint-count (hash-table-count breakpoints))
@@ -382,16 +402,7 @@ ADAPTER-ID the id of the adapter."
       (maphash
        (lambda (file-name file-breakpoints)
          (dap--send-message
-          (dap--make-request "setBreakpoints"
-                             (list :source (list :name (f-filename file-name)
-                                                 :path file-name)
-                                   :breakpoints (cl-map
-                                                 'vector
-                                                 (lambda (br)
-                                                   (list :line (line-number-at-pos
-                                                                (marker-position (plist-get br :point)))))
-                                                 file-breakpoints)
-                                   :sourceModified :json-false))
+          (dap--set-breakpoints-request file-name file-breakpoints)
           (lambda (_resp)
             (setf finished (1+ finished))
             (when (= finished breakpoint-count)
