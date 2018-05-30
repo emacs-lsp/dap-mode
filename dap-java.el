@@ -39,11 +39,20 @@
   "XX."
   (interactive)
   (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession" ))
-         (mainClass (first (lsp-send-execute-command "vscode.java.resolveMainClass" )))
+         (main-classes (lsp-send-execute-command "vscode.java.resolveMainClass"))
+         (items (mapcar (lambda (it)
+                          (list (format "%s (%s)"(gethash "mainClass" it)
+                                        (gethash "projectName" it)) it))
+                        main-classes))
+         (_ (message "%s" items))
+         (mainClass (cadr (assoc
+                           (completing-read "Select main class to run: " items nil t)
+                           items)))
          (classpath (second
                      (lsp-send-execute-command "vscode.java.resolveClasspath"
                                                (list (gethash "mainClass" mainClass)
-                                                     (gethash "projectName" mainClass))))))
+                                                     (gethash "projectName" mainClass)))))
+         )
     (dap-start-debugging
      "java"
      'dap-java-create-session
