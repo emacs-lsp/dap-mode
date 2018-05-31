@@ -33,6 +33,7 @@
 
 (Before
  (require 'dap-java)
+ (require 'dap-ui)
  (setq lsp-java-workspace-dir (f-join dap-java-test-root "workspace")
        lsp-java-workspace-cache-dir (f-join dap-java-test-root "workspace-cache/")
        lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")

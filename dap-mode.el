@@ -31,6 +31,7 @@
 (require 'lsp-mode)
 (require 'json)
 (require 'f)
+(require 'dash)
 
 (defcustom dap-print-io t
   "If non-nil, print all messages to and from the DAP to messages."
@@ -368,6 +369,7 @@ ADAPTER-ID the id of the adapter."
   "HOST PORT SESSION-NAME ."
   (let* ((proc (open-network-stream session-name nil host port :type 'plain))
          (debug-session (make-dap--debug-session
+                         :name session-name
                          :proc proc
                          :workspace lsp--cur-workspace)))
     (set-process-filter proc (dap--create-filter-function debug-session))

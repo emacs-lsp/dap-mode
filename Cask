@@ -4,7 +4,8 @@
 (files "*.el")
 
 (depends-on "lsp-java")
-(depends-on "lsp-mode")
+(depends-on "lsp-java")
+(depends-on "hierarchy")
 
 (development
  (depends-on "ecukes")
