@@ -25,7 +25,8 @@
 ;;; Code:
 
 (require 'dap-mode)
-(require 'hierarchy)
+(require 'tree-widget)
+(require 'wid-edit)
 
 (defun dap-ui-list-sessions ()
   "Show currently active sessions and it's threads."
@@ -34,7 +35,14 @@
   (let ((sessions (lsp-workspace-get-metadata "debug-sessions"))
         (buf (get-buffer-create "*sessions*")))
     (with-current-buffer buf
-      (--map (insert (dap--debug-session-name it)) sessions))
+      (erase-buffer)
+      ;; (setq header-line-format gdb-breakpoints-header)
+      (--map
+       (widget-create
+        `(tree-widget
+          :node (push-button :format "%[%t%]\n" :tag ,(dap--debug-session-name it))
+          :open nil))
+       sessions))
     (pop-to-buffer buf)))
 
 (provide 'dap-ui)

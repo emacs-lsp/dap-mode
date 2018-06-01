@@ -32,7 +32,7 @@ Feature: Sessions
     Then I should be in buffer "*sessions*"
     Then I should see:
     """
-    Default Debug
+    [+] Default Debug
     """
     And I call "dap-continue"
     And I should see buffer "*out*" with content "123"
