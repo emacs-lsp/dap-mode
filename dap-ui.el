@@ -39,27 +39,22 @@
   "Method for expanding stackframe content.
 
 THREAD-TREE will be widget element holding thread info."
-  (message "Already loaded...")
-
   (let* ((session (widget-get thread-tree :session))
          (thread (widget-get thread-tree :thread))
          (thread-id (gethash "id" thread))
          (stack-frames (gethash thread-id (dap--debug-session-thread-stack-frames session))))
     (if stack-frames
-
         ;; aldready loaded
-        (progn
-          (message "Already loaded...")
-          (mapcar (lambda (stack-frame)
-                   `(tree-widget :tag ,(gethash "name" stack-frame)
-                                 :format "%[%t%]\n"
-                                 :stack-frame ,stack-frame
-                                 :session ,session
-                                 :dynargs dap-ui--stack-frames
-                                 :open nil))
-                 stack-frames))
+        (mapcar (lambda (stack-frame)
+                  `(tree-widget :tag ,(gethash "name" stack-frame)
+                                :format "%[%t%]\n"
+                                :stack-frame ,stack-frame
+                                :session ,session
+                                :dynargs dap-ui--stack-frames
+                                :open nil))
+                stack-frames)
 
-      (dap--send-message (dap--make-request "stackFrames"
+      (dap--send-message (dap--make-request "stackTrace"
                                             (list :threadId thread-id))
                          (lambda (stack-frames-resp)
                            (let ((stack-frames (gethash "stackFrames" (gethash "body" stack-frames-resp))))
@@ -79,12 +74,13 @@ SESSION-TREE will be the root of the threads(session holder)."
   (let ((session (widget-get session-tree :session)))
     (if-let (threads (dap--debug-session-threads session))
         (mapcar (lambda (thread)
-                  `(tree-widget :tag ,(gethash "name" thread)
-                                :format "%[%t%]\n"
-                                :thread ,thread
-                                :session ,session
-                                :dynargs dap-ui--stack-frames
-                                :open nil))
+                  `(tree-widget
+                    :node (push-button :tag ,(gethash "name" thread)
+                                       :format "%[%t%]\n")
+                    :thread ,thread
+                    :session ,session
+                    :dynargs dap-ui--stack-frames
+                    :open nil))
                 threads)
       (dap--send-message (dap--make-request "threads")
                          (lambda (threads-resp)

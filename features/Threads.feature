@@ -50,14 +50,19 @@ Feature: Sessions
     When I place the cursor before "Default"
     And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
     And I call "tree-mode-expand-level"
+    Then I should see:
+    """
+    [-] Default Debug
+     ‘-Loading...
+    """
     And The hook handler "threads-expanded" would be called
     Then I should see:
     """
     [-] Default Debug
-     |-Thread [Signal Dispatcher]
-     |-Thread [Finalizer]
-     |-Thread [Reference Handler]
-     ‘-Thread [main]
+     |-[+] Thread [Signal Dispatcher]
+     |-[+] Thread [Finalizer]
+     |-[+] Thread [Reference Handler]
+     ‘-[+] Thread [main]
     """
 
   @WIP
@@ -75,19 +80,30 @@ Feature: Sessions
     And I should see:
     """
     [-] Default Debug
-     |-Thread [Signal Dispatcher]
-     |-Thread [Finalizer]
-     |-Thread [Reference Handler]
-     ‘-Thread [main]
+     |-[+] Thread [Signal Dispatcher]
+     |-[+] Thread [Finalizer]
+     |-[+] Thread [Reference Handler]
+     ‘-[+] Thread [main]
     """
     When I place the cursor before "main"
     And I call "tree-mode-expand-level"
+    And I should see:
+    """
+    [-] Default Debug
+     |-[+] Thread [Signal Dispatcher]
+     |-[+] Thread [Finalizer]
+     |-[+] Thread [Reference Handler]
+     ‘-[-] Thread [main]
+        ‘-Loading...
+    """
     And The hook handler "threads-expanded" would be called
     And I should see:
     """
     [-] Default Debug
-     |-Thread [Signal Dispatcher]
-     |-Thread [Finalizer]
-     |-read [Reference Handler]
-     ‘-hread [main]
+     |-[+] Thread [Signal Dispatcher]
+     |-[+] Thread [Finalizer]
+     |-[+] Thread [Reference Handler]
+     ‘-[-] Thread [main]
+        |-App.foo()
+        ‘-App.main(String[])
     """
