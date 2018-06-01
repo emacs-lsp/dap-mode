@@ -21,16 +21,17 @@ Feature: Sessions
     And I call "save-buffer"
     And I start lsp-java
     And The server status must become "LSP::Started"
-
-  @ThreadsList
-  Scenario: Listing sessions
-    Given I place the cursor before "System"
+    And I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
     And I go to beginning of buffer
     And I attach handler "breakpoint" to hook "dap-stopped-hook"
     And I call "dap-java-debug"
     And The hook handler "breakpoint" would be called
     And the cursor should be before "System"
+
+
+  @ThreadsList
+  Scenario: Listing sessions
     When I call "dap-ui-list-sessions"
     Then I should be in buffer "*sessions*"
     Then I should see:
@@ -38,15 +39,8 @@ Feature: Sessions
     [+] Default Debug
     """
 
-  @WIP
+  @ThreadList
   Scenario: Listing sessions - listing threads
-    Given I place the cursor before "System"
-    And I call "dap-toggle-breakpoint"
-    And I go to beginning of buffer
-    And I attach handler "breakpoint" to hook "dap-stopped-hook"
-    And I call "dap-java-debug"
-    And The hook handler "breakpoint" would be called
-    And the cursor should be before "System"
     When I call "dap-ui-list-sessions"
     Then I should be in buffer "*sessions*"
     And I should see:
