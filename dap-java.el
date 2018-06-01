@@ -27,6 +27,7 @@
 
 (require 'lsp-mode)
 (require 'dap-mode)
+(require 'tree-mode)
 
 (defun dap-java-create-session ()
   "DD."

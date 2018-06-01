@@ -82,7 +82,8 @@ has been terminated."
   (parser (make-dap--parser) :read-only t)
   (output-buffer (generate-new-buffer "*out*"))
   (thread-id nil)
-  (workspace nil))
+  (workspace nil)
+  (threads nil))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)

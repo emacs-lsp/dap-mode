@@ -28,6 +28,25 @@
 (require 'tree-widget)
 (require 'wid-edit)
 
+(defcustom dap-ui-stack-frames-loaded nil
+  "Stack frames loaded."
+  :type 'hook
+  :group 'dap-ui)
+
+(defun dap-ui--load-threads (tree)
+  (let ((session (widget-get tree :session)))
+    (if-let ((threads (dap--debug-session-threads session)))
+        (list '(tree-widget :tag "Stackframes" :format "%[%t%]\n"))
+      (dap--send-message (dap--make-request "treads")
+                         (lambda (threads)
+                           (let ((stack-frames (gethash "stackFrames" (gethash "body" threads))))
+                             (push (dap--debug-session-threads session) stack-frames)
+                             (tree-mode-reflesh-tree tree)
+                             (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames)))
+                         session)
+      (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
+    ))
+
 (defun dap-ui-list-sessions ()
   "Show currently active sessions and it's threads."
   (interactive)
@@ -37,11 +56,14 @@
     (with-current-buffer buf
       (erase-buffer)
       ;; (setq header-line-format gdb-breakpoints-header)
-      (--map
-       (widget-create
-        `(tree-widget
-          :node (push-button :format "%[%t%]\n" :tag ,(dap--debug-session-name it))
-          :open nil))
+      (mapc
+       (lambda (session)
+         (widget-create
+          `(tree-widget
+            :node (push-button :format "%[%t%]\n" :tag ,(dap--debug-session-name session))
+            :open nil
+            :session ,session
+            :dynargs 'dap-ui--load-threads)))
        sessions))
     (pop-to-buffer buf)))
 

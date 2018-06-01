@@ -11,6 +11,9 @@ Feature: Sessions
 
     class App {
     public static void main(String[] args) {
+    foo();
+    }
+    public static void foo() {
     System.out.print(123);
     }
     }
@@ -19,7 +22,7 @@ Feature: Sessions
     And I start lsp-java
     And The server status must become "LSP::Started"
 
-  @WIP
+  @ThreadsList
   Scenario: Listing sessions
     Given I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
@@ -34,5 +37,26 @@ Feature: Sessions
     """
     [+] Default Debug
     """
-    And I call "dap-continue"
-    And I should see buffer "*out*" with content "123"
+
+  @WIP
+  Scenario: Listing sessions - listing threads
+    Given I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I go to beginning of buffer
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    And The hook handler "breakpoint" would be called
+    And the cursor should be before "System"
+    When I call "dap-ui-list-sessions"
+    Then I should be in buffer "*sessions*"
+    And I should see:
+    """
+    [+] Default Debug
+    """
+    When I place the cursor before "Default"
+    And I call "tree-mode-expand-level"
+    And I should see:
+    """
+    [-] Default Debug
+     ‘-Loading...
+    """
