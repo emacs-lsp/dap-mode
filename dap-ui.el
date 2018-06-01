@@ -57,7 +57,9 @@ THREAD-TREE will be widget element holding thread info."
       (dap--send-message (dap--make-request "stackTrace"
                                             (list :threadId thread-id))
                          (lambda (stack-frames-resp)
-                           (let ((stack-frames (gethash "stackFrames" (gethash "body" stack-frames-resp))))
+                           (let ((stack-frames (or (gethash "stackFrames"
+                                                            (gethash "body" stack-frames-resp))
+                                                   (vector))))
                              (message "Loaded...")
 
                              (puthash thread-id stack-frames (dap--debug-session-thread-stack-frames session))
