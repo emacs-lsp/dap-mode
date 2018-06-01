@@ -413,6 +413,16 @@ ADAPTER-ID the id of the adapter."
           debug-session))
        breakpoints))))
 
+(defun dap-eval (eval)
+  "docstring"
+  (interactive "sEval: ")
+  (dap--send-message (dap--make-request "evaluate"
+                                        (list :expression eval
+                                              :frameId 1))
+                     (lambda (result)
+                       (message "%s" result))
+                     dap--cur-session))
+
 (defun dap-start-debugging (adapter-id create-session launch-args)
   "ADAPTER-ID CREATE-SESSION LAUNCH-ARGS."
   (let ((debug-session (funcall create-session))

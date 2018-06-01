@@ -65,7 +65,7 @@ Feature: Sessions
      ‘-[+] Thread [main]
     """
 
-  @WIP
+  @ThreadsList
   Scenario: Stackframes
     When I call "dap-ui-list-sessions"
     Then I should be in buffer "*sessions*"

@@ -11,8 +11,8 @@ Feature: Running without debug
 
     class App {
     public static void main(String[] args) {
-    int i = 10;
-    System.out.print(i);
+    String toEvaluate = "Evaluated";
+    System.out.print(toEvaluate);
     }
 
     }
@@ -21,7 +21,7 @@ Feature: Running without debug
     And I start lsp-java
     And The server status must become "LSP::Started"
 
-  @Eval
+  @WIP
   Scenario: Eval successfull
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
@@ -34,10 +34,14 @@ Feature: Running without debug
     When I press "M-x"
     When I type "dap-eval"
     And I press "<return>"
-    When I type "i"
+    When I type "toEvaluate"
     And I press "<return>"
     And I execute the action chain
 
+    # And I call "dap-continue"
+    And I should see buffer "*out*" with content "123"
+
+
     # And I insert "i\n"
     # And I press
-    # And I should see buffer "*out*" with content "123"
+    Then I should see message "Evaluated"
