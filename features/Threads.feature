@@ -54,9 +54,19 @@ Feature: Sessions
     [+] Default Debug
     """
     When I place the cursor before "Default"
+    And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
     And I call "tree-mode-expand-level"
     And I should see:
     """
     [-] Default Debug
      ‘-Loading...
+    """
+    And The hook handler "threads-expanded" would be called
+    Then I should see:
+    """
+    [-] Default Debug
+     |-Thread [Signal Dispatcher]
+     |-Thread [Finalizer]
+     |-Thread [Reference Handler]
+     ‘-Thread [main]
     """

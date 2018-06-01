@@ -34,18 +34,24 @@
   :group 'dap-ui)
 
 (defun dap-ui--load-threads (tree)
+
   (let ((session (widget-get tree :session)))
-    (if-let ((threads (dap--debug-session-threads session)))
-        (list '(tree-widget :tag "Stackframes" :format "%[%t%]\n"))
-      (dap--send-message (dap--make-request "treads")
-                         (lambda (threads)
-                           (let ((stack-frames (gethash "stackFrames" (gethash "body" threads))))
-                             (push (dap--debug-session-threads session) stack-frames)
+    (if-let (threads (dap--debug-session-threads session))
+        (mapcar (lambda (thread)
+                  `(tree-widget :tag ,(gethash "name" thread)
+                                :format "%[%t%]\n"
+                                :thread ,thread))
+                threads)
+      (dap--send-message (dap--make-request "threads")
+                         (lambda (threads-resp)
+                           (let ((threads (gethash "threads" (gethash "body" threads-resp))))
+
+                             (setf (dap--debug-session-threads session) threads)
+
                              (tree-mode-reflesh-tree tree)
-                             (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames)))
+                             (run-hook-with-args 'dap-ui-stack-frames-loaded session threads)))
                          session)
-      (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
-    ))
+      (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))))
 
 (defun dap-ui-list-sessions ()
   "Show currently active sessions and it's threads."
@@ -63,7 +69,7 @@
             :node (push-button :format "%[%t%]\n" :tag ,(dap--debug-session-name session))
             :open nil
             :session ,session
-            :dynargs 'dap-ui--load-threads)))
+            :dynargs dap-ui--load-threads)))
        sessions))
     (pop-to-buffer buf)))
 
