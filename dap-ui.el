@@ -39,31 +39,38 @@
   "Method for expanding stackframe content.
 
 THREAD-TREE will be widget element holding thread info."
+  (message "Already loaded...")
+
   (let* ((session (widget-get thread-tree :session))
          (thread (widget-get thread-tree :thread))
          (thread-id (gethash "id" thread))
          (stack-frames (gethash thread-id (dap--debug-session-thread-stack-frames session))))
     (if stack-frames
+
         ;; aldready loaded
-        (mapcar (lambda (stack-frame)
-                  `(tree-widget :tag ,(gethash "name" thread)
-                                :format "%[%t%]\n"
-                                :thread ,thread
-                                :session ,session
-                                :dynargs 'dap-ui--stack-frames))
-                stack-frames)
+        (progn
+          (message "Already loaded...")
+          (mapcar (lambda (stack-frame)
+                   `(tree-widget :tag ,(gethash "name" stack-frame)
+                                 :format "%[%t%]\n"
+                                 :stack-frame ,stack-frame
+                                 :session ,session
+                                 :dynargs dap-ui--stack-frames
+                                 :open nil))
+                 stack-frames))
+
       (dap--send-message (dap--make-request "stackFrames"
                                             (list :threadId thread-id))
                          (lambda (stack-frames-resp)
-                           ;; (let ((threads (gethash "threads" (gethash "body" stack-frames-resp))))
+                           (let ((stack-frames (gethash "stackFrames" (gethash "body" stack-frames-resp))))
+                             (message "Loaded...")
 
-                           ;;   (setf (dap--debug-session-threads session) threads)
+                             (puthash thread-id stack-frames (dap--debug-session-thread-stack-frames session))
 
-                           ;;   (tree-mode-reflesh-tree tree)
-                           ;;   (run-hook-with-args 'dap-ui-stack-frames-loaded session threads))
-                           )
+                             (tree-mode-reflesh-tree thread-tree)
+                             (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames)))
                          session)
-      dap-ui--loading-tree-widget)) )
+      dap-ui--loading-tree-widget)))
 
 (defun dap-ui--load-threads (session-tree)
   "Method for expanding threads.
@@ -76,7 +83,8 @@ SESSION-TREE will be the root of the threads(session holder)."
                                 :format "%[%t%]\n"
                                 :thread ,thread
                                 :session ,session
-                                :dynargs 'dap-ui--stack-frames))
+                                :dynargs dap-ui--stack-frames
+                                :open nil))
                 threads)
       (dap--send-message (dap--make-request "threads")
                          (lambda (threads-resp)

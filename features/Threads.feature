@@ -88,6 +88,6 @@ Feature: Sessions
     [-] Default Debug
      |-Thread [Signal Dispatcher]
      |-Thread [Finalizer]
-     |-Thread [Reference Handler]
+     |-read [Reference Handler]
      ‘-hread [main]
     """
