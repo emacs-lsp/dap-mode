@@ -50,11 +50,6 @@ Feature: Sessions
     When I place the cursor before "Default"
     And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
     And I call "tree-mode-expand-level"
-    And I should see:
-    """
-    [-] Default Debug
-     ‘-Loading...
-    """
     And The hook handler "threads-expanded" would be called
     Then I should see:
     """
@@ -63,4 +58,36 @@ Feature: Sessions
      |-Thread [Finalizer]
      |-Thread [Reference Handler]
      ‘-Thread [main]
+    """
+
+  @WIP
+  Scenario: Stackframes
+    When I call "dap-ui-list-sessions"
+    Then I should be in buffer "*sessions*"
+    And I should see:
+    """
+    [+] Default Debug
+    """
+    When I place the cursor before "Default"
+    And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
+    And I call "tree-mode-expand-level"
+    And The hook handler "threads-expanded" would be called
+    And I should see:
+    """
+    [-] Default Debug
+     |-Thread [Signal Dispatcher]
+     |-Thread [Finalizer]
+     |-Thread [Reference Handler]
+     ‘-Thread [main]
+    """
+    When I place the cursor before "main"
+    And I call "tree-mode-expand-level"
+    And The hook handler "threads-expanded" would be called
+    And I should see:
+    """
+    [-] Default Debug
+     |-Thread [Signal Dispatcher]
+     |-Thread [Finalizer]
+     |-Thread [Reference Handler]
+     ‘-hread [main]
     """

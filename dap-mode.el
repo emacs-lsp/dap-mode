@@ -83,7 +83,8 @@ has been terminated."
   (output-buffer (generate-new-buffer "*out*"))
   (thread-id nil)
   (workspace nil)
-  (threads nil))
+  (threads nil)
+  (thread-stack-frames (make-hash-table :test 'eql) :read-only t))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
