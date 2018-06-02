@@ -21,7 +21,7 @@ Feature: Running without debug
     And I start lsp-java
     And The server status must become "LSP::Started"
 
-  @WIP
+  @Eval
   Scenario: Eval successfull
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
@@ -40,3 +40,23 @@ Feature: Running without debug
     And I execute the action chain
     Then The hook handler "executed" would be called
     And I should see message matching regexp "\"Evaluated\".*"
+
+  @Eval
+  Scenario: Eval failed
+    When I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I go to beginning of buffer
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "System"
+    And I attach handler "executed" to hook "dap-executed-hook"
+    And I start an action chain
+    When I press "M-x"
+    When I type "dap-eval"
+    And I press "<return>"
+    When I type "missingVariable"
+    And I press "<return>"
+    And I execute the action chain
+    Then The hook handler "executed" would be called
+    And I should see message "missingVariable cannot be resolved to a variable"

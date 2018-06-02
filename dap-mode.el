@@ -88,7 +88,8 @@ has been terminated."
   (thread-id nil)
   (workspace nil)
   (threads nil)
-  (thread-stack-frames (make-hash-table :test 'eql) :read-only t))
+  (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
+  (active-frame-id nil))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -281,8 +282,8 @@ has been terminated."
   "TODO."
   (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
     (find-file (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame))))
-    (message (buffer-name (current-buffer)))
     (switch-to-buffer (current-buffer))
+    (setf (dap--debug-session-active-frame-id debug-session) (gethash "id" stack-frame))
     (goto-char (point-min))
     (forward-line (1- (gethash "line" stack-frame)))
     (forward-char (gethash "column" stack-frame))))
@@ -424,11 +425,14 @@ ADAPTER-ID the id of the adapter."
 (defun dap-eval (eval)
   "docstring"
   (interactive "sEval: ")
-  (dap--send-message (dap--make-request "evaluate"
-                                        (list :expression eval
-                                              :frameId 1))
+  (dap--send-message (dap--make-request
+                      "evaluate"
+                      (list :expression eval
+                            :frameId (dap--debug-session-active-frame-id dap--cur-session)))
                      (lambda (result)
-                       (message (gethash "result" (gethash "body" result))))
+                       (if (gethash "success" result)
+                           (message "=> %s" (gethash "result" (gethash "body" result)))
+                         (message (gethash "message" result))))
                      dap--cur-session))
 
 (defun dap-start-debugging (adapter-id create-session launch-args)
