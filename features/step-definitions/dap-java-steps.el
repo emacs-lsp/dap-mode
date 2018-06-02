@@ -131,7 +131,12 @@
 (When "^I go in active window"
   (lambda () (select-window (car (window-list )))))
 
-;; (add-hook (intern ""))
+(Then "^I should see message matching regexp \"\\(.+\\)\"$"
+  "Asserts that MESSAGE has been printed."
+  (lambda (message)
+    (let ((msg "Expected '%s' to be included in the list of printed messages, but was not."))
+      (setq message (s-replace "\\\"" "\"" message))
+      (cl-assert (--find (string-match message it) (-map 's-trim ecukes-message-log)) nil msg message))))
 
 (provide 'dap-java-steps)
 ;;; dap-java-steps.el ends here

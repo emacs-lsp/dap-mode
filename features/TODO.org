@@ -1,0 +1,29 @@
+* Watches
+** TODO full implementation
+* Locals
+** TODO full implementation
+* Sessions
+** TODO Switch session
+*** TODO EVAL
+*** TODO Continue
+*** TODO Visual indication
+**** TODO Session stopped
+**** TODO session deleted
+**** TODO Thread active
+**** TODO Stack frame active
+** TODO Switch frame
+*** TODO EVAL
+*** TODO Continue
+** TODO Persistence of debug configurations
+* Beakpoints
+** TODO Visual indication
+** TODO Enable/disable
+** TODO Persistence
+** TODO Session selection and breakpoints
+* Stepping
+** TODO Visual indication
+** TODO Invalidation
+** TODO Multiple breakpoints hit
+** TODO Switching sessions/frames/threads
+* Breakpoints list
+** TODO implementation

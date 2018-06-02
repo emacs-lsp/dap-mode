@@ -51,6 +51,10 @@ has been terminated."
   :type 'hook
   :group 'dap-mode)
 
+(defcustom dap-executed-hook nil
+  "List of functions that will be called after execution and processing request."
+  :type 'hook
+  :group 'dap-mode)
 
 (defvar dap--cur-session nil)
 
@@ -323,7 +327,10 @@ has been terminated."
                   ("response" (if-let (callback (gethash key handlers nil))
                                   (progn
                                     (funcall callback parsed-msg)
-                                    (remhash key handlers))
+                                    (remhash key handlers)
+                                    (run-hook-with-args 'dap-executed-hook
+                                                        debug-session
+                                                        (gethash "command" parsed-msg)))
                                 (message "Unable to find handler for %s." (pp parsed-msg)))))))
             (dap--parser-read parser msg)))))
 
@@ -401,6 +408,7 @@ ADAPTER-ID the id of the adapter."
   (let ((breakpoint-count (hash-table-count breakpoints))
         (finished 0))
     (if (zerop breakpoint-count)
+        ;; no breakpoints to set
         (funcall callback _)
       (maphash
        (lambda (file-name file-breakpoints)
@@ -420,7 +428,7 @@ ADAPTER-ID the id of the adapter."
                                         (list :expression eval
                                               :frameId 1))
                      (lambda (result)
-                       (message "%s" result))
+                       (message (gethash "result" (gethash "body" result))))
                      dap--cur-session))
 
 (defun dap-start-debugging (adapter-id create-session launch-args)
@@ -435,7 +443,6 @@ ADAPTER-ID the id of the adapter."
         "debug-sessions"
         (cons debug-session (lsp-workspace-get-metadata "debug-sessions" workspace))
         workspace)
-
        (dap--send-message
         (dap--make-request "launch" launch-args)
         (apply-partially #'dap--configure-breakpoints

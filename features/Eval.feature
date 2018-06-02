@@ -30,6 +30,7 @@ Feature: Running without debug
     And I call "dap-java-debug"
     Then The hook handler "breakpoint" would be called
     And the cursor should be before "System"
+    And I attach handler "executed" to hook "dap-executed-hook"
     And I start an action chain
     When I press "M-x"
     When I type "dap-eval"
@@ -37,11 +38,5 @@ Feature: Running without debug
     When I type "toEvaluate"
     And I press "<return>"
     And I execute the action chain
-
-    # And I call "dap-continue"
-    And I should see buffer "*out*" with content "123"
-
-
-    # And I insert "i\n"
-    # And I press
-    Then I should see message "Evaluated"
+    Then The hook handler "executed" would be called
+    And I should see message matching regexp "\"Evaluated\".*"
