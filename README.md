@@ -1,4 +1,4 @@
-# Emacs integration with Debug Adapter Protocol
+# Emacs client/library for Debug Adapter Protocol
 
 [![Build Status](https://travis-ci.org/yyoncho/dap-mode.svg?branch=master)](https://travis-ci.org/yyoncho/dap-mode)
 
@@ -14,3 +14,7 @@ TODO
 ### Watches
 TODO
 ###
+
+## Java
+
+## Adding new language client debug adapter
