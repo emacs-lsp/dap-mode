@@ -279,7 +279,7 @@ has been terminated."
                      dap--cur-session))
 
 (defun dap--go-to-stack-frame (stack-frame debug-session)
-  "TODO."
+  "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
   (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
     (find-file (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame))))
     (switch-to-buffer (current-buffer))
@@ -303,6 +303,9 @@ has been terminated."
          (dap--send-message
           (dap--make-request "stackTrace" (list :threadId thread-id))
           (lambda (stack-frames)
+            (puthash thread-id
+                     stack-frames
+                     (dap--debug-session-thread-stack-frames debug-session))
             (let ((stack-frame (car (gethash "stackFrames" (gethash "body" stack-frames)))))
               (dap--go-to-stack-frame stack-frame debug-session)))
           debug-session)

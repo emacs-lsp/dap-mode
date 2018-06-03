@@ -60,9 +60,10 @@ THREAD-TREE will be widget element holding thread info."
                            (let ((stack-frames (or (gethash "stackFrames"
                                                             (gethash "body" stack-frames-resp))
                                                    (vector))))
-                             (message "Loaded...")
 
-                             (puthash thread-id stack-frames (dap--debug-session-thread-stack-frames session))
+                             (puthash thread-id
+                                      stack-frames
+                                      (dap--debug-session-thread-stack-frames session))
 
                              (tree-mode-reflesh-tree thread-tree)
                              (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames)))
@@ -73,14 +74,14 @@ THREAD-TREE will be widget element holding thread info."
   "Method for expanding threads.
 
 SESSION-TREE will be the root of the threads(session holder)."
-  (let ((session (widget-get session-tree :session)))
-    (if-let (threads (dap--debug-session-threads session))
+  (let ((debug-session (widget-get session-tree :session)))
+    (if-let (threads (dap--debug-session-threads debug-session))
         (mapcar (lambda (thread)
                   `(tree-widget
                     :node (push-button :tag ,(gethash "name" thread)
                                        :format "%[%t%]\n")
                     :thread ,thread
-                    :session ,session
+                    :session ,debug-session
                     :dynargs dap-ui--stack-frames
                     :open nil))
                 threads)
@@ -88,11 +89,11 @@ SESSION-TREE will be the root of the threads(session holder)."
                          (lambda (threads-resp)
                            (let ((threads (gethash "threads" (gethash "body" threads-resp))))
 
-                             (setf (dap--debug-session-threads session) threads)
+                             (setf (dap--debug-session-threads debug-session) threads)
 
                              (tree-mode-reflesh-tree session-tree)
-                             (run-hook-with-args 'dap-ui-stack-frames-loaded session threads)))
-                         session)
+                             (run-hook-with-args 'dap-ui-stack-frames-loaded debug-session threads)))
+                         debug-session)
       dap-ui--loading-tree-widget)))
 
 (defun dap-ui-list-sessions ()
