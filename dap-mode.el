@@ -63,6 +63,11 @@ The hook will be called with the session file and the new set of breakpoint loca
   :type 'hook
   :group 'dap-mode)
 
+(defcustom dap-cursor-position-changed-hook nil
+  "List of functions that will be called after cursor position has changed."
+  :type 'hook
+  :group 'dap-mode)
+
 (defvar dap--cur-session nil)
 
 (defun dap--json-encode (params)
@@ -306,7 +311,9 @@ The hook will be called with the session file and the new set of breakpoint loca
     (setf (dap--debug-session-active-frame-id debug-session) (gethash "id" stack-frame))
     (goto-char (point-min))
     (forward-line (1- (gethash "line" stack-frame)))
-    (forward-char (gethash "column" stack-frame))))
+    (forward-char (gethash "column" stack-frame))
+
+    (run-hook-with-args ')))
 
 (defun dap--on-event (debug-session event)
   "TODO DEBUG-SESSION EVENT."
