@@ -116,5 +116,143 @@ SESSION-TREE will be the root of the threads(session holder)."
        sessions))
     (pop-to-buffer buf)))
 
+(defun dap--internalize-offset (offset)
+  (if (eq 1 (coding-system-eol-type buffer-file-coding-system))
+      (save-excursion
+        (save-restriction
+          (widen)
+          (block nil
+            (when (<= offset 0) (return 1))
+            (when (>= offset (dap--externalize-offset (point-max)))
+              (return (point-max)))
+
+            (goto-char offset)
+            (while t
+              (let* ((diff (- (dap--externalize-offset (point)) offset))
+                     (step (/ (abs diff) 2)))
+                (cond
+                 ((eql diff 0) (return (point)))
+
+                 ;; Treat -1 and +1 specially: if offset matches a CR character
+                 ;; we want to avoid an infinite loop
+                 ((eql diff -1) (if (eql (char-after (point)) ?\n)
+                                    (return (point))
+                                  (return (1+ (point)))))
+                 ((eql diff 1)  (return (1- (point))))
+
+                 ((> diff 0) (backward-char step))
+                 ((< diff 0) (forward-char step))))))))
+    (+ offset 1)))
+
+(defcustom dap-left-margin-gutter t
+  "If non-nil, DAP UI will show the compilation and warning icons
+in the left margin, when in terminal mode. These icons can
+interfere with other modes that use the left-margin. (git-gutter,
+linum, etc..)"
+  :type 'boolean
+  :group 'dap-ui)
+
+(defun dap--before-string (sign face)
+  (propertize " " 'display `((margin left-margin)
+                             ,(propertize sign 'face
+                                          (face-remap-add-relative face
+                                                                   :underline nil
+                                                                   :weight 'normal
+                                                                   :slant 'normal)))))
+
+(defun dap--show-sign-overlay (sign face ov)
+  (save-excursion
+    (overlay-put ov 'before-string (dap--before-string sign face))))
+
+(defun dap--make-overlay (beg end tooltip-text visuals &optional mouse-face buf)
+  "Allocate a DAP UI overlay in range BEG and END."
+  (let ((ov (make-overlay beg end buf t t)))
+    (overlay-put ov 'face           (plist-get visuals :face))
+    (overlay-put ov 'mouse-face     mouse-face)
+    (overlay-put ov 'help-echo      tooltip-text)
+    (overlay-put ov 'dap-ui-overlay  t)
+    (overlay-put ov 'priority 100)
+    (let ((char (plist-get visuals :char)))
+      (if (window-system)
+          (when char
+            (overlay-put ov 'before-string
+                         (propertize char
+                                     'display
+                                     (list 'left-fringe
+                                           (plist-get visuals :bitmap)
+                                           (plist-get visuals :fringe)))))
+        (when (and char dap-left-margin-gutter)
+          (dap--show-sign-overlay char (plist-get visuals :fringe) ov))))
+    ov))
+
+(defun dap--make-overlay-at (file line b e msg visuals)
+  "Create an overlay highlighting the given line in
+any buffer visiting the given file."
+  (let ((beg b)
+        (end e))
+    (assert (or (integerp line)
+                (and (integerp beg) (integerp end))))
+    (-when-let (buf (find-buffer-visiting file))
+      (with-current-buffer buf
+        (if (and (integerp beg) (integerp end))
+            (progn
+              (setq beg (dap--internalize-offset beg))
+              (setq end (dap--internalize-offset end)))
+          ;; If line provided, use line to define region
+          (save-excursion
+            (goto-line line)
+            (setq beg (point-at-bol))
+            (setq end (point-at-eol)))))
+
+      (dap--make-overlay beg end msg visuals nil buf))))
+
+(defvar dap-ui--breakpoint-overlays '())
+
+(defun dap-ui--create-breapoint-overlays (positions visuals)
+  (dolist (pos positions)
+    (let ((file (plist-get pos :file))
+          (line (plist-get pos :line)))
+      (when (and (stringp file) (integerp line))
+        (-when-let (ov (dap--make-overlay-at
+                        file line nil nil
+                        "Breakpoint"
+                        visuals))
+          (push ov dap-ui--breakpoint-overlays))))))
+
+(defun dap--clear-breakpoint-overlays ()
+  "Remove all overlays that ensime-debug has created."
+  (mapc #'delete-overlay dap-ui--breakpoint-overlays)
+  (setq dap-ui--breakpoint-overlays '()))
+
+(defface dap-breakpoint-face
+  '((t ()))
+  "Face used for marking lines with breakpoints."
+  :group 'dap-ui)
+
+(defface dap-pending-breakpoint-face
+  '((t ()))
+  "Face used for marking lines with a pending breakpoints."
+  :group 'dap-ui)
+
+(defun dap--ui--refresh-breakpoints ()
+  "Refresh all breakpoints from server."
+  (dap--db-clear-breakpoint-overlays)
+  (let* ((bps (ensime-rpc-debug-list-breakpoints))
+         (active (plist-get bps :active))
+         (pending (plist-get bps :pending)))
+    (dap--create-breapoint-overlays
+     active
+     (list :face 'dap-breakpoint-face
+           :char "."
+           :bitmap 'breakpoint
+           :fringe 'breakpoint-enabled))
+
+    (dap--create-breapoint-overlays
+     pending
+     (list :face 'dap-pending-breakpoint-face
+           :char "o"
+           :bitmap 'breakpoint
+           :fringe 'breakpoint-disabled))))
+
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

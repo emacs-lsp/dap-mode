@@ -53,7 +53,7 @@ Feature: Sessions
     Then I should see:
     """
     [-] Default Debug
-     ‘-Loading...
+     `-Loading...
     """
     And The hook handler "threads-expanded" would be called
     Then I should see:
@@ -62,7 +62,7 @@ Feature: Sessions
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
-     ‘-[+] Thread [main]
+     `-[+] Thread [main]
     """
 
   @ThreadsList
@@ -83,7 +83,7 @@ Feature: Sessions
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
-     ‘-[+] Thread [main]
+     `-[+] Thread [main]
     """
     When I place the cursor before "main"
     And I call "tree-mode-expand-level"
@@ -93,8 +93,8 @@ Feature: Sessions
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
-     ‘-[-] Thread [main]
-        ‘-Loading...
+     `-[-] Thread [main]
+        `-Loading...
     """
     And The hook handler "threads-expanded" would be called
     And I should see:
@@ -103,7 +103,7 @@ Feature: Sessions
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
-     ‘-[-] Thread [main]
+     `-[-] Thread [main]
         |-App.foo()
-        ‘-App.main(String[])
+        `-App.main(String[])
     """
