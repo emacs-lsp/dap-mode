@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-
 (require 'lsp-mode)
 (require 'dap-mode)
 (require 'tree-mode)
