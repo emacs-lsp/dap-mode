@@ -27,3 +27,5 @@
 ** TODO Switching sessions/frames/threads
 * Breakpoints list
 ** TODO implementation
+* TODO Inspect variable/value
+** TODO Implement ...
