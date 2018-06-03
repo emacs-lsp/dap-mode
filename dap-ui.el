@@ -33,6 +33,16 @@
   :type 'hook
   :group 'dap-ui)
 
+(defface dap-ui-breakpoint-face
+  '((t ()))
+  "Face used for marking lines with breakpoints."
+  :group 'dap-ui)
+
+(defface dap-ui-pending-breakpoint-face
+  '((t ()))
+  "Face used for marking lines with a pending breakpoints."
+  :group 'dap-ui)
+
 (defconst dap-ui--loading-tree-widget (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
 
 (defun dap-ui--stack-frames (thread-tree)
@@ -153,12 +163,14 @@ linum, etc..)"
   :group 'dap-ui)
 
 (defun dap--before-string (sign face)
-  (propertize " " 'display `((margin left-margin)
-                             ,(propertize sign 'face
-                                          (face-remap-add-relative face
-                                                                   :underline nil
-                                                                   :weight 'normal
-                                                                   :slant 'normal)))))
+  (propertize " "
+              'display
+              `((margin left-margin)
+                ,(propertize sign 'face
+                             (face-remap-add-relative face
+                                                      :underline nil
+                                                      :weight 'normal
+                                                      :slant 'normal)))))
 
 (defun dap--show-sign-overlay (sign face ov)
   (save-excursion
@@ -185,12 +197,12 @@ linum, etc..)"
           (dap--show-sign-overlay char (plist-get visuals :fringe) ov))))
     ov))
 
-(defun dap--make-overlay-at (file line b e msg visuals)
+(defun dap-ui--make-overlay-at (file point b e msg visuals)
   "Create an overlay highlighting the given line in
 any buffer visiting the given file."
   (let ((beg b)
         (end e))
-    (assert (or (integerp line)
+    (assert (or (integerp point)
                 (and (integerp beg) (integerp end))))
     (-when-let (buf (find-buffer-visiting file))
       (with-current-buffer buf
@@ -200,7 +212,7 @@ any buffer visiting the given file."
               (setq end (dap--internalize-offset end)))
           ;; If line provided, use line to define region
           (save-excursion
-            (goto-line line)
+            (goto-char point)
             (setq beg (point-at-bol))
             (setq end (point-at-eol)))))
 
@@ -208,51 +220,40 @@ any buffer visiting the given file."
 
 (defvar dap-ui--breakpoint-overlays '())
 
-(defun dap-ui--create-breapoint-overlays (positions visuals)
-  (dolist (pos positions)
-    (let ((file (plist-get pos :file))
-          (line (plist-get pos :line)))
-      (when (and (stringp file) (integerp line))
-        (-when-let (ov (dap--make-overlay-at
-                        file line nil nil
-                        "Breakpoint"
-                        visuals))
-          (push ov dap-ui--breakpoint-overlays))))))
+(defun dap-ui--create-breapoint-overlays (positions visuals file)
+  (dolist (point positions)
+    (when (and (stringp file) (integerp point))
+      (-when-let (ov (dap-ui--make-overlay-at
+                      file point nil nil
+                      "Breakpoint"
+                      visuals))
+        (push ov dap-ui--breakpoint-overlays)))))
 
-(defun dap--clear-breakpoint-overlays ()
+(defun dap-ui--clear-breakpoint-overlays ()
   "Remove all overlays that ensime-debug has created."
   (mapc #'delete-overlay dap-ui--breakpoint-overlays)
   (setq dap-ui--breakpoint-overlays '()))
 
-(defface dap-breakpoint-face
-  '((t ()))
-  "Face used for marking lines with breakpoints."
-  :group 'dap-ui)
-
-(defface dap-pending-breakpoint-face
-  '((t ()))
-  "Face used for marking lines with a pending breakpoints."
-  :group 'dap-ui)
-
-(defun dap--ui--refresh-breakpoints ()
-  "Refresh all breakpoints from server."
-  (dap--db-clear-breakpoint-overlays)
-  (let* ((bps (ensime-rpc-debug-list-breakpoints))
-         (active (plist-get bps :active))
+(defun dap-ui--refresh-breakpoints (file bps)
+  "Refresh all breakpoints in FILE."
+  (dap-ui--clear-breakpoint-overlays)
+  (let* ((active (plist-get bps :active))
          (pending (plist-get bps :pending)))
-    (dap--create-breapoint-overlays
+    (dap-ui--create-breapoint-overlays
      active
-     (list :face 'dap-breakpoint-face
+     (list :face 'dap-ui-breakpoint-face
            :char "."
            :bitmap 'breakpoint
-           :fringe 'breakpoint-enabled))
+           :fringe 'breakpoint-enabled)
+     file)
 
-    (dap--create-breapoint-overlays
+    (dap-ui--create-breapoint-overlays
      pending
-     (list :face 'dap-pending-breakpoint-face
+     (list :face 'dap-ui-pending-breakpoint-face
            :char "o"
            :bitmap 'breakpoint
-           :fringe 'breakpoint-disabled))))
+           :fringe 'breakpoint-disabled)
+     file)))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here
