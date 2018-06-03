@@ -38,7 +38,8 @@
        lsp-java-workspace-cache-dir (f-join dap-java-test-root "workspace-cache/")
        lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
        dap-print-io t
-       lsp-print-io nil)
+       lsp-print-io nil
+       lsp-java-bundles (list (locate-user-emacs-file "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar")))
  (when (file-exists-p dap-java-test-root)
    (delete-directory dap-java-test-root t)))
 
