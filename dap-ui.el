@@ -255,5 +255,44 @@ any buffer visiting the given file."
            :fringe 'breakpoint-disabled)
      file)))
 
+(defun dap-ui--breakpoints-changed (debug-session file-name breakpoints)
+  (dap-ui--refresh-breakpoints
+   file-name
+   (list :pending (mapcar
+                    (lambda (it)
+                      (marker-position (plist-get it :point)))
+                    breakpoints))))
+
+(defun dap-ui--refresh-breakpoints (file bps)
+  "Refresh all breakpoints in FILE."
+  (dap-ui--clear-breakpoint-overlays)
+  (let* ((active (plist-get bps :active))
+         (pending (plist-get bps :pending)))
+    (dap-ui--create-breapoint-overlays
+     active
+     (list :face 'dap-ui-breakpoint-face
+           :char "."
+           :bitmap 'breakpoint
+           :fringe 'breakpoint-enabled)
+     file)
+
+    (dap-ui--create-breapoint-overlays
+     pending
+     (list :face 'dap-ui-pending-breakpoint-face
+           :char "o"
+           :bitmap 'breakpoint
+           :fringe 'breakpoint-disabled)
+     file)))
+
+(define-minor-mode dap-ui-mode
+  "Displaying DAP visuals."
+  :init-value nil
+  :group dap-ui-mode
+  (cond
+   (dap-ui-mode
+    (add-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed))
+   (t
+    (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed))))
+
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

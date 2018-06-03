@@ -56,6 +56,13 @@ has been terminated."
   :type 'hook
   :group 'dap-mode)
 
+(defcustom dap-breakpoints-changed-hook nil
+  "List of functions that will be called after breakpoints have changed.
+
+The hook will be called with the session file and the new set of breakpoint locations."
+  :type 'hook
+  :group 'dap-mode)
+
 (defvar dap--cur-session nil)
 
 (defun dap--json-encode (params)
@@ -147,16 +154,29 @@ has been terminated."
                                                                                  (line-number-at-pos (point))))
                                                                             file-breakpoints))
                                        ;; delete if already exists
-                                       (cl-remove existing-breakpoint file-breakpoints)
+                                       (progn
+                                         (set-marker (plist-get existing-breakpoint :point) nil)
+                                         (cl-remove existing-breakpoint file-breakpoints))
                                      ;; add if does not exist
                                      (push (list :point (point-marker)) file-breakpoints))))
+    ;; update the list
     (if updated-file-breakpoints
         (puthash file-path updated-file-breakpoints breakpoints)
       (remhash file-path breakpoints))
-    (let ((set-breakpoints-req (dap--set-breakpoints-request file-path updated-file-breakpoints)))
+
+    (run-hook-with-args 'dap-breakpoints-changed-hook
+                        dap--cur-session
+                        file-path
+                        updated-file-breakpoints)
+
+    ;; Update all of the active sessions with the list of breakpoints.
+    (let ((set-breakpoints-req (dap--set-breakpoints-request
+                                file-path
+                                updated-file-breakpoints)))
       (mapc (lambda (debug-session)
               (dap--send-message set-breakpoints-req
                                  (lambda (resp)
+                                   ;; TODO
                                    (message "XXX"))
                                  debug-session))
             (lsp-workspace-get-metadata "debug-sessions" lsp--cur-workspace)))))
