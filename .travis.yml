@@ -27,8 +27,6 @@ script:
   - wget http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz -O /tmp/jdt-latest.tar
   - tar xf /tmp/jdt-latest.tar -C ~/.emacs.d/eclipse.jdt.ls/server/
   - mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=com.microsoft.java -DartifactId=com.microsoft.java.debug.plugin -Dversion=0.9.0 -X
-  - ls /home/travis/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.9.0/
-  - ls ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.9.0/
   - cp ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.9.0/com.microsoft.java.debug.plugin-0.9.0.jar ~/.emacs.d/eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar
   - cask exec ecukes --tags Eval --timeout 60
 
@@ -39,6 +37,6 @@ notifications:
     on_success: change
     on_failure: always
     on_start: never
-# cache:
-#   directories:
-#   - $HOME/.m2
+cache:
+  directories:
+  - $HOME/.m2

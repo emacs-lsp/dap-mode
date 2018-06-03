@@ -43,3 +43,11 @@ Feature: Stack traces
     And I execute the action chain
     Then The hook handler "executed" would be called
     And I should see message matching regexp "\"inFooMethod\".*"
+    And I start an action chain
+    When I press "M-x"
+    When I type "dap-switch-frame"
+    And I press "<return>"
+    When I type "main"
+    And I press "<return>"
+    And I execute the action chain
+    And the cursor should be before " foo()"
