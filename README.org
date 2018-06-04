@@ -1,0 +1,18 @@
+* Emacs client/library for Debug Adapter Protocol
+
+[[https://travis-ci.org/yyoncho/dap-mode][https://travis-ci.org/yyoncho/dap-mode.svg?branch=master]]
+[[https://coveralls.io/github/yyoncho/dap-mode?branch=master][https://coveralls.io/repos/github/yyoncho/dap-mode/badge.svg?branch=master]]
+
+Debug Adapter Protocol(https://code.visualstudio.com/docs/extensionAPI/api-debugging) is a
+wire protocol for communication between client and Debug Server. It similar to
+the [LSP](https://github.com/Microsoft/language-server-protocol)
+
+* Features
+** TODO Breakpoints
+** TODO Stackframe
+** TODO Watches
+** TODO Value inspector
+** TODO Locals
+** Language integrations
+*** Java
+** Extending DAP with new Debug servers
