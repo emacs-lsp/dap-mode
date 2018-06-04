@@ -27,5 +27,11 @@
 ** TODO Switching sessions/frames/threads
 * Breakpoints list
 ** TODO implementation
-* TODO Inspect variable/value
+* Inspect variable/value
 ** TODO Implement ...
+* Run configurations management
+** TODO Persistence
+** TODO More ...
+* Java
+** TODO Build before runnning
+** TODO Launch attach

@@ -313,7 +313,7 @@ The hook will be called with the session file and the new set of breakpoint loca
     (forward-line (1- (gethash "line" stack-frame)))
     (forward-char (gethash "column" stack-frame))
 
-    (run-hook-with-args ')))
+    (run-hook-with-args 'dap-cursor-position-changed-hook)))
 
 (defun dap--on-event (debug-session event)
   "TODO DEBUG-SESSION EVENT."
