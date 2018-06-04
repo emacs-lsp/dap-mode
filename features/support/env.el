@@ -1,7 +1,7 @@
 (require 'f)
 
 (when (require 'undercover nil t)
-  (undercover "*.el" "awesome-extensions/*.el" (:exclude "awesome-examples.el")))
+  (undercover "*.el" "*.el"))
 
 (let* ((features-directory
         (file-name-directory
@@ -29,14 +29,14 @@
 (let ((load-prefer-newer t))
   (require 'espuds)
   (require 'ert)
+  (require 'dap-mode)
   (require 'dap-java)
-  (require 'lsp-java))
+  (require 'lsp-java)
+  (require 'dap-ui))
 
 (Setup)
 
 (Before
- (require 'dap-java)
- (require 'dap-ui)
  (setq lsp-java-workspace-dir (f-join dap-java-test-root "workspace")
        lsp-java-workspace-cache-dir (f-join dap-java-test-root "workspace-cache/")
        lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
