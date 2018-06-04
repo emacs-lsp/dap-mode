@@ -41,7 +41,8 @@
        lsp-print-io nil
        lsp-java-bundles (thread-first "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar"
                           locate-user-emacs-file
-                          expand-file-name list))
+                          expand-file-name list)
+       lsp-response-timeout 60)
  (when (file-exists-p dap-java-test-root)
    (delete-directory dap-java-test-root t)))
 
