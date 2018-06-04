@@ -1,5 +1,8 @@
 (require 'f)
 
+(when (require 'undercover nil t)
+  (undercover "*.el" "awesome-extensions/*.el" (:exclude "awesome-examples.el")))
+
 (let* ((features-directory
         (file-name-directory
          (directory-file-name (file-name-directory load-file-name))))
