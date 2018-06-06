@@ -31,9 +31,7 @@
 (defun dap-java-create-session ()
   "DD."
   (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession" )))
-    (dap--create-session "localhost"
-                         debug-port
-                         "Default Debug")))
+    (dap--create-session "localhost" debug-port "Default Debug")))
 
 (defun dap-java-debug ()
   "XX."
