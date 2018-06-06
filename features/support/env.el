@@ -1,5 +1,8 @@
 (require 'f)
 
+(when (require 'undercover nil t)
+  (undercover "*.el" "*.el"))
+
 (let* ((features-directory
         (file-name-directory
          (directory-file-name (file-name-directory load-file-name))))
@@ -26,14 +29,14 @@
 (let ((load-prefer-newer t))
   (require 'espuds)
   (require 'ert)
+  (require 'dap-mode)
   (require 'dap-java)
-  (require 'lsp-java))
+  (require 'lsp-java)
+  (require 'dap-ui))
 
 (Setup)
 
 (Before
- (require 'dap-java)
- (require 'dap-ui)
  (setq lsp-java-workspace-dir (f-join dap-java-test-root "workspace")
        lsp-java-workspace-cache-dir (f-join dap-java-test-root "workspace-cache/")
        lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
@@ -41,7 +44,8 @@
        lsp-print-io nil
        lsp-java-bundles (thread-first "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar"
                           locate-user-emacs-file
-                          expand-file-name list))
+                          expand-file-name list)
+       lsp-response-timeout 60)
  (when (file-exists-p dap-java-test-root)
    (delete-directory dap-java-test-root t)))
 
