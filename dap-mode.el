@@ -270,14 +270,14 @@ The hook will be called with the session file and the new set of breakpoint loca
                      dap--cur-session))
 
 (defun dap-disconnect ()
-  "."
+  "Disconnect from the currently active session."
   (interactive)
   (dap--send-message (dap--make-request "disconnect" (list :restart :json-false))
                      (lambda (resp))
                      dap--cur-session))
 
 (defun dap-next ()
-  "."
+  "Debug next."
   (interactive)
   (dap--send-message (dap--make-request
                       "next"
