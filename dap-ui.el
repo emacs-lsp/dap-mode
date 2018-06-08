@@ -295,16 +295,15 @@ any buffer visiting the given file."
   "Face used for marking the line on which an error occurs."
   :group 'dap-ui)
 
-(defvar dap-ui--marker-overlays '())
+(defun dap-ui--clear-marker-overlay (debug-session)
+  "Remove TODO"
+  (when (dap--debug-session-cursor-marker debug-session)
+    (delete-overlay (dap--debug-session-cursor-marker debug-session))
+    (setf (dap--debug-session-cursor-marker debug-session) nil)))
 
-(defun dap-ui--clear-marker-overlays ()
-  "Remove all overlays that ensime-debug has created."
-  (mapc #'delete-overlay dap-ui--marker-overlays)
-  (setq dap-ui--marker-overlays '()))
-
-(defun dap-ui--set-debug-marker (file point)
+(defun dap-ui--set-debug-marker (debug-session file point)
   "Open location in a new window."
-  (dap-ui--clear-marker-overlays)
+  (dap-ui--clear-marker-overlay debug-session)
   (-when-let (ov (dap-ui--make-overlay-at
                   file point nil nil
                   "Debug Marker"
@@ -312,10 +311,10 @@ any buffer visiting the given file."
                         :char ">"
                         :bitmap 'right-triangle
                         :fringe 'ensime-compile-errline)))
-    (push ov dap-ui--marker-overlays)))
+    (setf (dap--debug-session-cursor-marker debug-session) ov)))
 
 (defun dap-ui--position-changed (debug-session file point)
-  (dap-ui--set-debug-marker file point))
+  (dap-ui--set-debug-marker debug-session file point))
 
 ;;;###autoload
 (define-minor-mode dap-ui-mode
@@ -325,9 +324,11 @@ any buffer visiting the given file."
   (cond
    (dap-ui-mode
     (add-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
+    (add-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (add-hook 'dap-position-changed-hook 'dap-ui--position-changed))
    (t
     (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
+    (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay )
     (remove-hook 'dap-position-changed-hook 'dap-ui--position-changed))))
 
 (provide 'dap-ui)

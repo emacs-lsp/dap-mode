@@ -151,5 +151,23 @@
                  t
                  (format "Actual %s" overlay-faces)))))
 
+(Then "^I should not see the following overlay \"\\([^\"]+\\)\"$"
+  (lambda (face)
+    (let ((overlay-faces (--map (plist-get (overlay-properties it) 'face)
+                                (overlays-in (save-mark-and-excursion
+                                               (beginning-of-line)
+                                               (point))
+                                             (save-mark-and-excursion
+                                               (end-of-line)
+                                               (point))))))
+      (cl-assert (not (cl-find (intern face) overlay-faces))
+                 t
+                 (format "Actual %s" overlay-faces)))))
+
+(And "^I call:$"
+  (lambda (fn-to-call)
+   (call-interactively (intern fn-to-call))))
+
+
 (provide 'dap-java-steps)
 ;;; dap-java-steps.el ends here

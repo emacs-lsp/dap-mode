@@ -51,6 +51,14 @@ has been terminated."
   :type 'hook
   :group 'dap-mode)
 
+(defcustom dap-continue-hook nil
+  "List of functions to be called after application started.
+
+The hook is called after application has been stopped/started(e.
+g. after calling `dap-continue')"
+  :type 'hook
+  :group 'dap-mode)
+
 (defcustom dap-executed-hook nil
   "List of functions that will be called after execution and processing request."
   :type 'hook
@@ -101,7 +109,8 @@ The hook will be called with the session file and the new set of breakpoint loca
   (workspace nil)
   (threads nil)
   (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
-  (active-frame-id nil))
+  (active-frame-id nil)
+  (cursor-marker nil))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -262,9 +271,14 @@ The hook will be called with the session file and the new set of breakpoint loca
     (json-read-from-string str)))
 
 ;;;###autoload
+
+(defun dap--resume-application (debug-session)
+  (run-hook-with-args 'dap-continue-hook debug-session))
+
 (defun dap-continue ()
   "Call continue for the currently active session and thread."
   (interactive)
+  (dap--resume-application dap--cur-session)
   (dap--send-message (dap--make-request
                       "continue"
                       (list :threadId (dap--debug-session-thread-id dap--cur-session)))
@@ -275,6 +289,7 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defun dap-disconnect ()
   "Disconnect from the currently active session."
   (interactive)
+  (dap--resume-application dap--cur-session)
   (dap--send-message (dap--make-request "disconnect" (list :restart :json-false))
                      (lambda (resp))
                      dap--cur-session))
@@ -283,6 +298,7 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defun dap-next ()
   "Debug next."
   (interactive)
+  (dap--resume-application dap--cur-session)
   (dap--send-message (dap--make-request
                       "next"
                       (list :threadId (dap--debug-session-thread-id dap--cur-session)))
@@ -293,6 +309,7 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defun dap-step-in ()
   "Debug step in."
   (interactive)
+  (dap--resume-application dap--cur-session)
   (dap--send-message (dap--make-request
                       "stepIn"
                       (list :threadId (dap--debug-session-thread-id dap--cur-session)))
@@ -303,6 +320,7 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defun dap-step-out ()
   "Debug step in."
   (interactive)
+  (dap--resume-application dap--cur-session)
   (dap--send-message (dap--make-request
                       "stepOut"
                       (list :threadId (dap--debug-session-thread-id dap--cur-session)))
