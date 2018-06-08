@@ -22,9 +22,9 @@
    | ~dap-java-debug~  | Debug Java                    |
    | ~dap-java-run~    | Run Java debug process        |
    | ~dap-java-attach~ | Attach to runnin java process |
-* TODO Extending DAP with new Debug servers
+** TODO Extending DAP with new Debug servers
 * Links
-** [[https://github.com/emacs-lsp/lsp-java][LSP Java]]
-** [[https://github.com/Microsoft/vscode-debugadapter-node/wiki/VS-Code-Debug-Protocol-Implementations][Implementations]]
+- [[https://github.com/emacs-lsp/lsp-java][LSP Java]]
+- [[https://github.com/Microsoft/vscode-debugadapter-node/wiki/VS-Code-Debug-Protocol-Implementations][Implementations]]
 * Troubleshooting
  If you notice a bug, open an issue on Github Issues
