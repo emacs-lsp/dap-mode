@@ -138,5 +138,17 @@
       (setq message (s-replace "\\\"" "\"" message))
       (cl-assert (--find (string-match message it) (-map 's-trim ecukes-message-log)) nil msg message))))
 
+(Then "^I should see the following overlay \"\\([^\"]+\\)\"$"
+  (lambda (face)
+    (cl-find (intern face)
+             (--map (plist-get 'face
+                               (overlay-properties it))
+                    (overlays-in (save-mark-and-excursion
+                                   (beginning-of-line)
+                                   (point))
+                                 (save-mark-and-excursion
+                                   (end-of-line)
+                                   (point)))))))
+
 (provide 'dap-java-steps)
 ;;; dap-java-steps.el ends here

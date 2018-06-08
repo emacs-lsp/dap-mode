@@ -106,6 +106,7 @@ SESSION-TREE will be the root of the threads(session holder)."
                          debug-session)
       dap-ui--loading-tree-widget)))
 
+;;;###autoload
 (defun dap-ui-list-sessions ()
   "Show currently active sessions and it's threads."
   (interactive)
@@ -316,6 +317,7 @@ any buffer visiting the given file."
 (defun dap-ui--position-changed (debug-session file point)
   (dap-ui--set-debug-marker file point))
 
+;;;###autoload
 (define-minor-mode dap-ui-mode
   "Displaying DAP visuals."
   :init-value nil
