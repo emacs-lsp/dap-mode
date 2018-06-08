@@ -147,8 +147,9 @@ The hook will be called with the session file and the new set of breakpoint loca
         (lsp-workspace-set-metadata "Breakpoints" it)
         it)))
 
+;;;###autoload
 (defun dap-toggle-breakpoint ()
-  "TODO ."
+  "Toggle breakpoint on the current line."
   (interactive)
   (lsp--cur-workspace-check)
   (let* ((file-path (buffer-file-name))
@@ -260,8 +261,9 @@ The hook will be called with the session file and the new set of breakpoint loca
          (json-false nil))
     (json-read-from-string str)))
 
+;;;###autoload
 (defun dap-continue ()
-  "."
+  "Call continue for the currently active session and thread."
   (interactive)
   (dap--send-message (dap--make-request
                       "continue"
@@ -269,6 +271,7 @@ The hook will be called with the session file and the new set of breakpoint loca
                      (lambda (resp))
                      dap--cur-session))
 
+;;;###autoload
 (defun dap-disconnect ()
   "Disconnect from the currently active session."
   (interactive)
@@ -276,6 +279,7 @@ The hook will be called with the session file and the new set of breakpoint loca
                      (lambda (resp))
                      dap--cur-session))
 
+;;;###autoload
 (defun dap-next ()
   "Debug next."
   (interactive)
@@ -285,8 +289,9 @@ The hook will be called with the session file and the new set of breakpoint loca
                      (lambda (resp))
                      dap--cur-session))
 
+;;;###autoload
 (defun dap-step-in ()
-  "."
+  "Debug step in."
   (interactive)
   (dap--send-message (dap--make-request
                       "stepIn"
@@ -294,8 +299,9 @@ The hook will be called with the session file and the new set of breakpoint loca
                      (lambda (resp))
                      dap--cur-session))
 
+;;;###autoload
 (defun dap-step-out ()
-  "."
+  "Debug step in."
   (interactive)
   (dap--send-message (dap--make-request
                       "stepOut"
