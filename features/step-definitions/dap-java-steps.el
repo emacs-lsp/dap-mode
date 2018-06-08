@@ -140,15 +140,16 @@
 
 (Then "^I should see the following overlay \"\\([^\"]+\\)\"$"
   (lambda (face)
-    (cl-find (intern face)
-             (--map (plist-get 'face
-                               (overlay-properties it))
-                    (overlays-in (save-mark-and-excursion
-                                   (beginning-of-line)
-                                   (point))
-                                 (save-mark-and-excursion
-                                   (end-of-line)
-                                   (point)))))))
+    (let ((overlay-faces (--map (plist-get (overlay-properties it) 'face)
+                                (overlays-in (save-mark-and-excursion
+                                               (beginning-of-line)
+                                               (point))
+                                             (save-mark-and-excursion
+                                               (end-of-line)
+                                               (point))))))
+      (cl-assert (cl-find (intern face) overlay-faces)
+                 t
+                 (format "Actual %s" overlay-faces)))))
 
 (provide 'dap-java-steps)
 ;;; dap-java-steps.el ends here

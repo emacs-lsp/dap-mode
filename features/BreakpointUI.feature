@@ -33,8 +33,19 @@ Feature: Breakpoint tests
     And The server status must become "LSP::Started"
     And I call "dap-ui-mode"
 
-  @WIP
-  Scenario: Toggle breakpoint
+  @Breakpoints
+  @UI
+  Scenario: Inactive breakpoint
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
     Then I should see the following overlay "dap-ui-pending-breakpoint-face"
+
+  @UI
+  @Breakpoints
+  Scenario: Cursor placement
+    When I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    And The hook handler "breakpoint" would be called
+    Then I should see the following overlay "dap-ui-marker-face"
