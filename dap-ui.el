@@ -259,9 +259,9 @@ any buffer visiting the given file."
   (dap-ui--refresh-breakpoints
    file-name
    (list :pending (mapcar
-                    (lambda (it)
-                      (marker-position (plist-get it :point)))
-                    breakpoints))))
+                   (lambda (it)
+                     (marker-position (plist-get it :point)))
+                   breakpoints))))
 
 (defun dap-ui--refresh-breakpoints (file bps)
   "Refresh all breakpoints in FILE."
@@ -284,15 +284,52 @@ any buffer visiting the given file."
            :fringe 'breakpoint-disabled)
      file)))
 
+(defface dap-ui-marker-face
+  '((t (:inherit hl-line-face)))
+  "Face used for marking the current point of execution."
+  :group 'dap-ui)
+
+(defface dap-ui-compile-errline
+  '((t (:inherit compilation-error)))
+  "Face used for marking the line on which an error occurs."
+  :group 'dap-ui)
+
+(defvar dap-ui--marker-overlays '())
+
+(defun dap-ui--clear-marker-overlays ()
+  "Remove all overlays that ensime-debug has created."
+  (mapc #'delete-overlay dap-ui--marker-overlays)
+  (setq dap-ui--marker-overlays '()))
+
+(defun dap-ui--set-debug-marker (file point)
+  "Open location in a new window."
+  (dap-ui--clear-marker-overlays)
+  (-when-let (ov (dap-ui--make-overlay-at
+                  file point nil nil
+                  "Debug Marker"
+                  (list :face 'dap-ui-marker-face
+                        :char ">"
+                        :bitmap 'right-triangle
+                        :fringe 'ensime-compile-errline)))
+    (push ov dap-ui--marker-overlays))
+  )
+
+(defun dap-ui--position-changed (debug-session file point)
+  (dap-ui--set-debug-marker file point)
+
+  )
+(setq overlay-arrow-position (point))
 (define-minor-mode dap-ui-mode
   "Displaying DAP visuals."
   :init-value nil
   :group dap-ui-mode
   (cond
    (dap-ui-mode
-    (add-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed))
+    (add-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
+    (add-hook 'dap-position-changed-hook 'dap-ui--position-changed))
    (t
-    (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed))))
+    (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
+    (remove-hook 'dap-position-changed-hook 'dap-ui--position-changed))))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

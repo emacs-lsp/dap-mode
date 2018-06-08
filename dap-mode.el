@@ -63,7 +63,7 @@ The hook will be called with the session file and the new set of breakpoint loca
   :type 'hook
   :group 'dap-mode)
 
-(defcustom dap-cursor-position-changed-hook nil
+(defcustom dap-position-changed-hook nil
   "List of functions that will be called after cursor position has changed."
   :type 'hook
   :group 'dap-mode)
@@ -313,13 +313,16 @@ The hook will be called with the session file and the new set of breakpoint loca
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
   (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
     (find-file (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame))))
-    (switch-to-buffer (current-buffer))
+    ;; (switch-to-buffer (current-buffer))
     (setf (dap--debug-session-active-frame-id debug-session) (gethash "id" stack-frame))
     (goto-char (point-min))
     (forward-line (1- (gethash "line" stack-frame)))
     (forward-char (gethash "column" stack-frame))
 
-    (run-hook-with-args 'dap-cursor-position-changed-hook)))
+    (run-hook-with-args 'dap-position-changed-hook
+                        debug-session
+                        buffer-file-name
+                        (point))))
 
 (defun dap--on-event (debug-session event)
   "TODO DEBUG-SESSION EVENT."
