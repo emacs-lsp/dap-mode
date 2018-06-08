@@ -311,14 +311,11 @@ any buffer visiting the given file."
                         :char ">"
                         :bitmap 'right-triangle
                         :fringe 'ensime-compile-errline)))
-    (push ov dap-ui--marker-overlays))
-  )
+    (push ov dap-ui--marker-overlays)))
 
 (defun dap-ui--position-changed (debug-session file point)
-  (dap-ui--set-debug-marker file point)
+  (dap-ui--set-debug-marker file point))
 
-  )
-(setq overlay-arrow-position (point))
 (define-minor-mode dap-ui-mode
   "Displaying DAP visuals."
   :init-value nil
