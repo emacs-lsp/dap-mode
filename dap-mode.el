@@ -371,7 +371,7 @@ This is in contrast to merely setting it to 0."
           (dap--make-request "stackTrace" (list :threadId thread-id))
           (lambda (stack-frames)
             (puthash thread-id
-                     stack-frames
+                     (gethash "stackFrames" (gethash "body" stack-frames))
                      (dap--debug-session-thread-stack-frames debug-session))
             (let ((stack-frame (car (gethash "stackFrames" (gethash "body" stack-frames)))))
               (dap--go-to-stack-frame stack-frame debug-session)))
@@ -503,7 +503,7 @@ ADAPTER-ID the id of the adapter."
         (funcall callback _)
       (maphash
        (lambda (file-name file-breakpoints-original)
-         (let ((file-breakpoints (cl-copy-list file-breakpoints-original)))
+         (let ((file-breakpoints (copy-tree file-breakpoints-original)))
            (dap--send-message
             (dap--set-breakpoints-request file-name file-breakpoints)
             (lambda (resp)

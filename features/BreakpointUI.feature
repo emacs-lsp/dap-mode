@@ -109,7 +109,7 @@ Feature: Breakpoint UI tests
     And The hook handler "breakpoint" would be called
     Then I should see the following overlay "dap-ui-verified-breakpoint-face"
 
-  @Breakpoints @UI @WIP
+  @Breakpoints @UI
   Scenario: Disable breakpoints after session shutdown
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
@@ -119,4 +119,4 @@ Feature: Breakpoint UI tests
     And I attach handler "terminated" to hook "dap-terminated-hook"
     When I call "dap-continue"
     Then The hook handler "terminated" would be called
-    Then I should see the following overlay "dap-ui-pending-breakpoint-face"
+    And I should see the following overlay "dap-ui-pending-breakpoint-face"

@@ -284,6 +284,11 @@ BPS the new breakpoints for FILE."
     (delete-overlay (dap--debug-session-cursor-marker debug-session))
     (setf (dap--debug-session-cursor-marker debug-session) nil)))
 
+(defface dap-ui-compile-errline
+  '((t (:inherit compilation-error)))
+  "Face used for marking the line on which an error occurs."
+  :group 'dap-ui)
+
 (defun dap-ui--set-debug-marker (debug-session file point)
   "Open location in a new window."
   (dap-ui--clear-marker-overlay debug-session)
@@ -293,7 +298,7 @@ BPS the new breakpoints for FILE."
                   (list :face 'dap-ui-marker-face
                         :char ">"
                         :bitmap 'right-triangle
-                        :fringe 'ensime-compile-errline)))
+                        :fringe 'dap-ui-compile-errline)))
     (setf (dap--debug-session-cursor-marker debug-session) ov)))
 
 (defun dap-ui--position-changed (debug-session file point)
@@ -302,7 +307,6 @@ BPS the new breakpoints for FILE."
 (defun dap-ui--terminated (debug-session)
   "DEBUG-SESSION."
   (maphash (lambda (file-name breakpoints)
-             (message "XXXX")
              (dap-ui--breakpoints-changed debug-session file-name breakpoints))
            (dap--get-breakpoints (dap--debug-session-workspace debug-session))))
 

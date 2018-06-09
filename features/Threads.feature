@@ -65,7 +65,7 @@ Feature: Sessions
      ‘-[+] Thread [main]
     """
 
-  @WIP
+  @Threads @UI @Stackframes
   Scenario: Stackframes
     When I call "dap-ui-list-sessions"
     Then I should be in buffer "*sessions*"
@@ -83,20 +83,10 @@ Feature: Sessions
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
-     ‘-[+] Thread [main]
+     ‘-[+] Thread [main] (Stopped)
     """
     When I place the cursor before "main"
     And I call "tree-mode-expand-level"
-    And I should see:
-    """
-    [-] Default Debug
-     |-[+] Thread [Signal Dispatcher]
-     |-[+] Thread [Finalizer]
-     |-[+] Thread [Reference Handler]
-     ‘-[-] Thread [main]
-        ‘-Loading...
-    """
-    And The hook handler "threads-expanded" would be called
     And I should see:
     """
     [-] Default Debug
