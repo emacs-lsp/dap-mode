@@ -122,7 +122,9 @@ This is in contrast to merely setting it to 0."
   (active-frame-id nil)
   (cursor-marker nil)
   ;; The session breakpoints;
-  (session-breakpoints (make-hash-table :test 'equal) :read-only t))
+  (session-breakpoints (make-hash-table :test 'equal) :read-only t)
+  ;; one of 'started
+  (state 'pending))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -204,9 +206,15 @@ This is in contrast to merely setting it to 0."
       (mapc (lambda (debug-session)
               (dap--send-message set-breakpoints-req
                                  (lambda (resp)
-                                   (dap--update-breakpoints debug-session resp file-name file-breakpoints))
+                                   (dap--update-breakpoints
+                                    debug-session
+                                    resp
+                                    file-name
+                                    file-breakpoints))
                                  debug-session))
-            (lsp-workspace-get-metadata "debug-sessions" lsp--cur-workspace)))))
+            (--remove
+             (eq 'terminated (dap--debug-session-state it))
+             (lsp-workspace-get-metadata "debug-sessions" lsp--cur-workspace))))))
 
 (defun dap--get-body-length (headers)
   "Get body length from HEADERS."
@@ -379,6 +387,7 @@ This is in contrast to merely setting it to 0."
          (run-hook-with-args 'dap-stopped-hook debug-session)))
 
       ("terminated"
+       (setf (dap--debug-session-state debug-session) 'terminated)
        (run-hook-with-args 'dap-terminated-hook debug-session))
       (_ (message (format "No messages handler for %s" event-type))))))
 

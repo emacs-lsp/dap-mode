@@ -120,3 +120,14 @@ Feature: Breakpoint UI tests
     When I call "dap-continue"
     Then The hook handler "terminated" would be called
     And I should see the following overlay "dap-ui-pending-breakpoint-face"
+
+  @Breakpoints @UI @WIP
+  Scenario: Filter dead sessions.
+    And I attach handler "terminated" to hook "dap-terminated-hook"
+    And I call "dap-java-debug"
+    Then The hook handler "terminated" would be called
+    When I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    And The hook handler "breakpoint" would be called
