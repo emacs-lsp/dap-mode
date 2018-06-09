@@ -3,7 +3,7 @@ Feature: Breakpoint UI tests
   Background:
     Given I have maven project "m" in "tmp"
     And I add project "m" folder "tmp" to the list of workspace folders
-    And I have a java file "tmp/m/src/main/java/temp/App.java"
+    And I open a java file "tmp/m/src/main/java/temp/App.java"
     And I clear the buffer
     And I insert:
       """
@@ -121,7 +121,7 @@ Feature: Breakpoint UI tests
     Then The hook handler "terminated" would be called
     And I should see the following overlay "dap-ui-pending-breakpoint-face"
 
-  @Breakpoints @UI @WIP
+  @Breakpoints @UI
   Scenario: Filter dead sessions.
     And I attach handler "terminated" to hook "dap-terminated-hook"
     And I call "dap-java-debug"

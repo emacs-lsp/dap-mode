@@ -310,6 +310,12 @@ BPS the new breakpoints for FILE."
              (dap-ui--breakpoints-changed debug-session file-name breakpoints))
            (dap--get-breakpoints (dap--debug-session-workspace debug-session))))
 
+(defun dap-ui--after-open ()
+  "Handler for `lsp-after-open-hook'."
+  (when-let (breakpoints (gethash buffer-file-name
+                                  (dap--get-breakpoints lsp--cur-workspace)))
+    (dap-ui--breakpoints-changed dap--cur-session buffer-file-name breakpoints)))
+
 ;;;###autoload
 (define-minor-mode dap-ui-mode
   "Displaying DAP visuals."
@@ -320,12 +326,14 @@ BPS the new breakpoints for FILE."
     (add-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
     (add-hook 'dap-terminated-hook 'dap-ui--terminated)
     (add-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
-    (add-hook 'dap-position-changed-hook 'dap-ui--position-changed))
+    (add-hook 'dap-position-changed-hook 'dap-ui--position-changed)
+    (add-hook 'lsp-after-open-hook 'dap-ui--after-open))
    (t
     (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
     (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (remove-hook 'dap-terminated-hook 'dap-ui--terminated)
-    (remove-hook 'dap-position-changed-hook 'dap-ui--position-changed))))
+    (remove-hook 'dap-position-changed-hook 'dap-ui--position-changed)
+    (remove-hook 'lsp-after-open-hook 'dap-ui--after-open))))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

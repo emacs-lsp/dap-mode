@@ -3,7 +3,7 @@ Feature: Breakpoint tests which require multiple files
   Background:
     Given I have maven project "m" in "tmp"
     And I add project "m" folder "tmp" to the list of workspace folders
-    And I have a java file "tmp/m/src/main/java/temp/App.java"
+    And I open a java file "tmp/m/src/main/java/temp/App.java"
     And I clear the buffer
     And I insert:
     """
@@ -17,7 +17,7 @@ Feature: Breakpoint tests which require multiple files
     """
     And I call "save-buffer"
     And I start lsp-java
-    And I have a java file "tmp/m/src/main/java/temp/Foo.java"
+    And I open a java file "tmp/m/src/main/java/temp/Foo.java"
     And I clear the buffer
     And I insert:
     """

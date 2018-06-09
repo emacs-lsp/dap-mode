@@ -70,7 +70,7 @@
   </properties>
 </project>"))))
 
-(And "^I have a java file \"\\([^\"]+\\)\"$"
+(And "^I open a java file \"\\([^\"]+\\)\"$"
   (lambda (file-name)
     (setq default-directory dap-java-test-root)
     (find-file file-name)
@@ -168,6 +168,9 @@
   (lambda (fn-to-call)
    (call-interactively (intern fn-to-call))))
 
+(And "^I kill buffer \"\\([^\"]+\\)\"$"
+  (lambda (buffer-name)
+    (kill-buffer buffer-name)))
 
 (provide 'dap-java-steps)
 ;;; dap-java-steps.el ends here
