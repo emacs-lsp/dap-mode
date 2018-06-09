@@ -48,7 +48,33 @@
   "Face used for marking lines with a verified breakpoints."
   :group 'dap-ui)
 
-(defconst dap-ui--loading-tree-widget (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
+(defface dap-ui-marker-face
+  '((t (:inherit hl-line-face)))
+  "Face used for marking the current point of execution."
+  :group 'dap-ui)
+
+(defface dap-ui-compile-errline
+  '((t (:inherit compilation-error)))
+  "Face used for marking the line on which an error occurs."
+  :group 'dap-ui)
+
+(defface dap-ui-breakpoint-verified-fringe
+  '((t
+     :foreground "dark green"
+     :weight bold))
+  "Face for enabled breakpoint icon in fringe."
+  :group 'dap-ui)
+
+(defcustom dap-left-margin-gutter t
+  "If non-nil, DAP UI will show the compilation and warning icons
+in the left margin, when in terminal mode. These icons can
+interfere with other modes that use the left-margin. (git-gutter,
+linum, etc..)"
+  :type 'boolean
+  :group 'dap-ui)
+
+(defconst dap-ui--loading-tree-widget
+  (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
 
 (defun dap-ui--stack-frames (thread-tree)
   "Method for expanding stackframe content.
@@ -160,14 +186,6 @@ SESSION-TREE will be the root of the threads(session holder)."
                  ((< diff 0) (forward-char step))))))))
     (+ offset 1)))
 
-(defcustom dap-left-margin-gutter t
-  "If non-nil, DAP UI will show the compilation and warning icons
-in the left margin, when in terminal mode. These icons can
-interfere with other modes that use the left-margin. (git-gutter,
-linum, etc..)"
-  :type 'boolean
-  :group 'dap-ui)
-
 (defun dap--before-string (sign face)
   (propertize " "
               'display
@@ -224,7 +242,7 @@ any buffer visiting the given file."
 
       (dap--make-overlay beg end msg visuals nil buf))))
 
-(defvar dap-ui--breakpoint-overlays '())
+(defvar-local dap-ui--breakpoint-overlays '())
 
 (defun dap-ui--clear-breakpoint-overlays ()
   "Remove all overlays that ensime-debug has created."
@@ -235,26 +253,13 @@ any buffer visiting the given file."
   "TODO DEBUG-SESSION FILE-NAME BREAKPOINTS."
   (dap-ui--refresh-breakpoints file-name breakpoints))
 
-(defface dap-ui-breakpoint-verified-fringe
-  '((t
-     :foreground "blue"
-     :weight bold))
-  "Face for enabled breakpoint icon in fringe."
-  :group 'dap-ui)
-
 (defun dap-ui--breakpoint-visuals (bp)
-  (message "XXXX %s" bp)
- (cond
+  (cond
    ((plist-get bp :verified)
     (list :face 'dap-ui-verified-breakpoint-face
           :char "."
           :bitmap 'breakpoint
           :fringe 'dap-ui-breakpoint-verified-fringe))
-   ;; ((plist-get :verified bp)
-   ;;  (list :face 'dap-ui-pending-breakpoint-face
-   ;;        :char "."
-   ;;        :bitmap 'breakpoint
-   ;;        :fringe 'dap-ui-breakpoint-activated))
    (t
     (list :face 'dap-ui-pending-breakpoint-face
           :char "."
@@ -272,16 +277,6 @@ BPS the new breakpoints for FILE."
                     "Breakpoint"
                     (dap-ui--breakpoint-visuals bp)))
       (push ov dap-ui--breakpoint-overlays))))
-
-(defface dap-ui-marker-face
-  '((t (:inherit hl-line-face)))
-  "Face used for marking the current point of execution."
-  :group 'dap-ui)
-
-(defface dap-ui-compile-errline
-  '((t (:inherit compilation-error)))
-  "Face used for marking the line on which an error occurs."
-  :group 'dap-ui)
 
 (defun dap-ui--clear-marker-overlay (debug-session)
   "DEBUG-SESSION."
@@ -304,6 +299,13 @@ BPS the new breakpoints for FILE."
 (defun dap-ui--position-changed (debug-session file point)
   (dap-ui--set-debug-marker debug-session file point))
 
+(defun dap-ui--terminated (debug-session)
+  "DEBUG-SESSION."
+  (maphash (lambda (file-name breakpoints)
+             (message "XXXX")
+             (dap-ui--breakpoints-changed debug-session file-name breakpoints))
+           (dap--get-breakpoints (dap--debug-session-workspace debug-session))))
+
 ;;;###autoload
 (define-minor-mode dap-ui-mode
   "Displaying DAP visuals."
@@ -312,11 +314,13 @@ BPS the new breakpoints for FILE."
   (cond
    (dap-ui-mode
     (add-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
+    (add-hook 'dap-terminated-hook 'dap-ui--terminated)
     (add-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (add-hook 'dap-position-changed-hook 'dap-ui--position-changed))
    (t
     (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
-    (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay )
+    (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
+    (remove-hook 'dap-terminated-hook 'dap-ui--terminated)
     (remove-hook 'dap-position-changed-hook 'dap-ui--position-changed))))
 
 (provide 'dap-ui)

@@ -88,23 +88,35 @@ Feature: Breakpoint UI tests
     And I call "dap-step-out"
     Then I should not see the following overlay "dap-ui-marker-face"
 
-  @UI @Breakpoints
-  Scenario: Cursor removed - terminate
-    When I place the cursor before "System"
+  @Breakpoints @UI
+  Scenario: Verified breakpoint
+    Given I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I place the cursor before "foo"
     And I call "dap-toggle-breakpoint"
     And I attach handler "breakpoint" to hook "dap-stopped-hook"
     And I call "dap-java-debug"
     And The hook handler "breakpoint" would be called
-    And I call "dap-terminate"
-    Then I should not see the following overlay "dap-ui-marker-face"
+    When I place the cursor before "foo"
+    Then I should see the following overlay "dap-ui-verified-breakpoint-face"
 
   @Breakpoints @UI
-  Scenario: Verified breakpoint
+  Scenario: Enabled breakpoint
     When I place the cursor before "System"
-    And I call "dap-toggle-breakpoint"
-    When I place the cursor before "foo"
     And I call "dap-toggle-breakpoint"
     And I attach handler "breakpoint" to hook "dap-stopped-hook"
     And I call "dap-java-debug"
     And The hook handler "breakpoint" would be called
     Then I should see the following overlay "dap-ui-verified-breakpoint-face"
+
+  @Breakpoints @UI @WIP
+  Scenario: Disable breakpoints after session shutdown
+    When I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    And The hook handler "breakpoint" would be called
+    And I attach handler "terminated" to hook "dap-terminated-hook"
+    When I call "dap-continue"
+    Then The hook handler "terminated" would be called
+    Then I should see the following overlay "dap-ui-pending-breakpoint-face"

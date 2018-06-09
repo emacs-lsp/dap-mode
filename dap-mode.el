@@ -120,7 +120,9 @@ This is in contrast to merely setting it to 0."
   (threads nil)
   (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
   (active-frame-id nil)
-  (cursor-marker nil))
+  (cursor-marker nil)
+  ;; The session breakpoints;
+  (session-breakpoints (make-hash-table :test 'equal) :read-only t))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -171,9 +173,9 @@ This is in contrast to merely setting it to 0."
   "Toggle breakpoint on the current line."
   (interactive)
   (lsp--cur-workspace-check)
-  (let* ((file-path (buffer-file-name))
+  (let* ((file-name (buffer-file-name))
          (breakpoints (dap--get-breakpoints lsp--cur-workspace))
-         (file-breakpoints (gethash file-path breakpoints))
+         (file-breakpoints (gethash file-name breakpoints))
          (updated-file-breakpoints (if-let (existing-breakpoint (cl-find-if
                                                                  (lambda (existing)
                                                                    (= (line-number-at-pos (plist-get existing :point))
@@ -187,23 +189,22 @@ This is in contrast to merely setting it to 0."
                                      (push (list :point (point-marker)) file-breakpoints))))
     ;; update the list
     (if updated-file-breakpoints
-        (puthash file-path updated-file-breakpoints breakpoints)
-      (remhash file-path breakpoints))
+        (puthash file-name updated-file-breakpoints breakpoints)
+      (remhash file-name breakpoints))
 
     (run-hook-with-args 'dap-breakpoints-changed-hook
                         dap--cur-session
-                        file-path
+                        file-name
                         updated-file-breakpoints)
 
     ;; Update all of the active sessions with the list of breakpoints.
     (let ((set-breakpoints-req (dap--set-breakpoints-request
-                                file-path
+                                file-name
                                 updated-file-breakpoints)))
       (mapc (lambda (debug-session)
               (dap--send-message set-breakpoints-req
                                  (lambda (resp)
-                                   ;; TODO
-                                   (message "XXX"))
+                                   (dap--update-breakpoints debug-session resp file-name file-breakpoints))
                                  debug-session))
             (lsp-workspace-get-metadata "debug-sessions" lsp--cur-workspace)))))
 
@@ -472,8 +473,29 @@ ADAPTER-ID the id of the adapter."
                                                         (marker-position (plist-get br :point)))))
                                          file-breakpoints)
                            :sourceModified :json-false)))
+
+(defun dap--update-breakpoints (debug-session resp file-name file-breakpoints)
+  "DEBUG-SESSION RESP FILE-BREAKPOINTS FILE-NAME."
+  ;; update the breakpoints with the information from the server:
+  (let ((server-breakpoints (gethash "breakpoints" (gethash "body" resp))))
+    (cl-mapc (lambda (bkp update-bkp)
+               (plist-put bkp :message (gethash "message" update-bkp))
+               (plist-put bkp :verified (gethash "verified" update-bkp))
+               ;; TODO update point
+               ;; (plist-put bkp :line (gethash "verified" update-bkp))
+               (plist-put bkp :id (gethash "id" update-bkp)))
+             file-breakpoints
+             server-breakpoints))
+
+  (puthash file-name file-breakpoints (dap--debug-session-session-breakpoints dap--cur-session))
+
+  (run-hook-with-args 'dap-breakpoints-changed-hook
+                      dap--cur-session
+                      file-name
+                      file-breakpoints))
+
 (defun dap--configure-breakpoints (debug-session breakpoints callback _)
-  "TODO doc."
+  "TODO DEBUG-SESSION BREAKPOINTS CALLBACK."
   (let ((breakpoint-count (hash-table-count breakpoints))
         (finished 0))
     (if (zerop breakpoint-count)
@@ -486,23 +508,9 @@ ADAPTER-ID the id of the adapter."
             (dap--set-breakpoints-request file-name file-breakpoints)
             (lambda (resp)
               (setf finished (1+ finished))
-              ;; update the breakpoints with the information from the server:
-              (let ((server-breakpoints (gethash "breakpoints" (gethash "body" resp))))
-                (cl-mapc (lambda (bkp update-bkp)
-                        (plist-put bkp :message (gethash "message" update-bkp))
-                        (plist-put bkp :verified (gethash "verified" update-bkp))
-                        (plist-put bkp :id (gethash "id" update-bkp)))
-                      file-breakpoints
-                      server-breakpoints))
-
-              (run-hook-with-args 'dap-breakpoints-changed-hook
-                                  dap--cur-session
-                                  file-name
-                                  file-breakpoints)
+              (dap--update-breakpoints debug-session resp file-name file-breakpoints)
               (when (= finished breakpoint-count)
-                (funcall callback '_))
-
-              )
+                (funcall callback '_)))
             debug-session)))
        breakpoints))))
 
