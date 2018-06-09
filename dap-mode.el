@@ -78,6 +78,16 @@ The hook will be called with the session file and the new set of breakpoint loca
 
 (defvar dap--cur-session nil)
 
+(defun dap--plist-delete (plist property)
+  "Delete PROPERTY from PLIST.
+This is in contrast to merely setting it to 0."
+  (let (p)
+    (while plist
+      (if (not (eq property (car plist)))
+          (setq p (plist-put p (car plist) (nth 1 plist))))
+      (setq plist (cddr plist)))
+    p))
+
 (defun dap--json-encode (params)
   "Create a LSP message from PARAMS, after encoding it to a JSON string."
   (let* ((json-encoding-pretty-print dap-print-io)
@@ -164,10 +174,11 @@ The hook will be called with the session file and the new set of breakpoint loca
   (let* ((file-path (buffer-file-name))
          (breakpoints (dap--get-breakpoints lsp--cur-workspace))
          (file-breakpoints (gethash file-path breakpoints))
-         (updated-file-breakpoints (if-let (existing-breakpoint (cl-find-if (lambda (existing)
-                                                                              (= (line-number-at-pos (plist-get existing :point))
-                                                                                 (line-number-at-pos (point))))
-                                                                            file-breakpoints))
+         (updated-file-breakpoints (if-let (existing-breakpoint (cl-find-if
+                                                                 (lambda (existing)
+                                                                   (= (line-number-at-pos (plist-get existing :point))
+                                                                      (line-number-at-pos (point))))
+                                                                 file-breakpoints))
                                        ;; delete if already exists
                                        (progn
                                          (set-marker (plist-get existing-breakpoint :point) nil)
@@ -348,6 +359,7 @@ The hook will be called with the session file and the new set of breakpoint loca
     (pcase event-type
       ("output" (with-current-buffer (dap--debug-session-output-buffer debug-session)
                   (insert (gethash "output" (gethash "body" event)))))
+      ("breakpoint" ())
       ("exited" (with-current-buffer (dap--debug-session-output-buffer debug-session)
                   ;; (insert (gethash "body" (gethash "body" event)))
                   ))
@@ -460,7 +472,6 @@ ADAPTER-ID the id of the adapter."
                                                         (marker-position (plist-get br :point)))))
                                          file-breakpoints)
                            :sourceModified :json-false)))
-
 (defun dap--configure-breakpoints (debug-session breakpoints callback _)
   "TODO doc."
   (let ((breakpoint-count (hash-table-count breakpoints))
@@ -469,14 +480,30 @@ ADAPTER-ID the id of the adapter."
         ;; no breakpoints to set
         (funcall callback _)
       (maphash
-       (lambda (file-name file-breakpoints)
-         (dap--send-message
-          (dap--set-breakpoints-request file-name file-breakpoints)
-          (lambda (_resp)
-            (setf finished (1+ finished))
-            (when (= finished breakpoint-count)
-              (funcall callback '_)))
-          debug-session))
+       (lambda (file-name file-breakpoints-original)
+         (let ((file-breakpoints (cl-copy-list file-breakpoints-original)))
+           (dap--send-message
+            (dap--set-breakpoints-request file-name file-breakpoints)
+            (lambda (resp)
+              (setf finished (1+ finished))
+              ;; update the breakpoints with the information from the server:
+              (let ((server-breakpoints (gethash "breakpoints" (gethash "body" resp))))
+                (cl-mapc (lambda (bkp update-bkp)
+                        (plist-put bkp :message (gethash "message" update-bkp))
+                        (plist-put bkp :verified (gethash "verified" update-bkp))
+                        (plist-put bkp :id (gethash "id" update-bkp)))
+                      file-breakpoints
+                      server-breakpoints))
+
+              (run-hook-with-args 'dap-breakpoints-changed-hook
+                                  dap--cur-session
+                                  file-name
+                                  file-breakpoints)
+              (when (= finished breakpoint-count)
+                (funcall callback '_))
+
+              )
+            debug-session)))
        breakpoints))))
 
 (defun dap-eval (eval)

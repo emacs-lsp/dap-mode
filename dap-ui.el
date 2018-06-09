@@ -43,6 +43,11 @@
   "Face used for marking lines with a pending breakpoints."
   :group 'dap-ui)
 
+(defface dap-ui-verified-breakpoint-face
+  '((t ()))
+  "Face used for marking lines with a verified breakpoints."
+  :group 'dap-ui)
+
 (defconst dap-ui--loading-tree-widget (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
 
 (defun dap-ui--stack-frames (thread-tree)
@@ -221,69 +226,52 @@ any buffer visiting the given file."
 
 (defvar dap-ui--breakpoint-overlays '())
 
-(defun dap-ui--create-breapoint-overlays (positions visuals file)
-  (dolist (point positions)
-    (when (and (stringp file) (integerp point))
-      (-when-let (ov (dap-ui--make-overlay-at
-                      file point nil nil
-                      "Breakpoint"
-                      visuals))
-        (push ov dap-ui--breakpoint-overlays)))))
-
 (defun dap-ui--clear-breakpoint-overlays ()
   "Remove all overlays that ensime-debug has created."
   (mapc #'delete-overlay dap-ui--breakpoint-overlays)
   (setq dap-ui--breakpoint-overlays '()))
 
-(defun dap-ui--refresh-breakpoints (file bps)
-  "Refresh all breakpoints in FILE."
-  (dap-ui--clear-breakpoint-overlays)
-  (let* ((active (plist-get bps :active))
-         (pending (plist-get bps :pending)))
-    (dap-ui--create-breapoint-overlays
-     active
-     (list :face 'dap-ui-breakpoint-face
-           :char "."
-           :bitmap 'breakpoint
-           :fringe 'breakpoint-enabled)
-     file)
-
-    (dap-ui--create-breapoint-overlays
-     pending
-     (list :face 'dap-ui-pending-breakpoint-face
-           :char "o"
-           :bitmap 'breakpoint
-           :fringe 'breakpoint-disabled)
-     file)))
-
 (defun dap-ui--breakpoints-changed (debug-session file-name breakpoints)
-  (dap-ui--refresh-breakpoints
-   file-name
-   (list :pending (mapcar
-                   (lambda (it)
-                     (marker-position (plist-get it :point)))
-                   breakpoints))))
+  "TODO DEBUG-SESSION FILE-NAME BREAKPOINTS."
+  (dap-ui--refresh-breakpoints file-name breakpoints))
+
+(defface dap-ui-breakpoint-verified-fringe
+  '((t
+     :foreground "blue"
+     :weight bold))
+  "Face for enabled breakpoint icon in fringe."
+  :group 'dap-ui)
+
+(defun dap-ui--breakpoint-visuals (bp)
+  (message "XXXX %s" bp)
+ (cond
+   ((plist-get bp :verified)
+    (list :face 'dap-ui-verified-breakpoint-face
+          :char "."
+          :bitmap 'breakpoint
+          :fringe 'dap-ui-breakpoint-verified-fringe))
+   ;; ((plist-get :verified bp)
+   ;;  (list :face 'dap-ui-pending-breakpoint-face
+   ;;        :char "."
+   ;;        :bitmap 'breakpoint
+   ;;        :fringe 'dap-ui-breakpoint-activated))
+   (t
+    (list :face 'dap-ui-pending-breakpoint-face
+          :char "."
+          :bitmap 'breakpoint
+          :fringe 'breakpoint-disabled))))
 
 (defun dap-ui--refresh-breakpoints (file bps)
-  "Refresh all breakpoints in FILE."
-  (dap-ui--clear-breakpoint-overlays)
-  (let* ((active (plist-get bps :active))
-         (pending (plist-get bps :pending)))
-    (dap-ui--create-breapoint-overlays
-     active
-     (list :face 'dap-ui-breakpoint-face
-           :char "."
-           :bitmap 'breakpoint
-           :fringe 'breakpoint-enabled)
-     file)
+  "Refresh all breakpoints in FILE.
 
-    (dap-ui--create-breapoint-overlays
-     pending
-     (list :face 'dap-ui-pending-breakpoint-face
-           :char "o"
-           :bitmap 'breakpoint
-           :fringe 'breakpoint-disabled)
-     file)))
+BPS the new breakpoints for FILE."
+  (dap-ui--clear-breakpoint-overlays)
+  (dolist (bp bps)
+    (-when-let (ov (dap-ui--make-overlay-at
+                    file (marker-position (plist-get bp :point)) nil nil
+                    "Breakpoint"
+                    (dap-ui--breakpoint-visuals bp)))
+      (push ov dap-ui--breakpoint-overlays))))
 
 (defface dap-ui-marker-face
   '((t (:inherit hl-line-face)))
@@ -296,7 +284,7 @@ any buffer visiting the given file."
   :group 'dap-ui)
 
 (defun dap-ui--clear-marker-overlay (debug-session)
-  "Remove TODO"
+  "DEBUG-SESSION."
   (when (dap--debug-session-cursor-marker debug-session)
     (delete-overlay (dap--debug-session-cursor-marker debug-session))
     (setf (dap--debug-session-cursor-marker debug-session) nil)))
