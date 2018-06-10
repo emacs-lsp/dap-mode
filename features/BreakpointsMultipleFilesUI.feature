@@ -1,5 +1,4 @@
 Feature: Breakpoint UI tests
-
   Background:
     Given I have maven project "m" in "tmp"
     And I add project "m" folder "tmp" to the list of workspace folders
@@ -35,19 +34,19 @@ Feature: Breakpoint UI tests
     And I call "dap-ui-mode"
 
   @Breakpoints @UI
-  Scenario: Open/close file workspace started/withtout debug session running.
+  Scenario: Open/close file workspace started/without debug session running.
     Given I switch to buffer "App.java"
     And I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
     And I kill buffer "App.java"
     And I open a java file "tmp/m/src/main/java/temp/App.java"
     And I start lsp-java
-    And I call "dap-mode"
+    And I call "dap-ui-mode"
     When I place the cursor before "System"
     Then I should see the following overlay "dap-ui-pending-breakpoint-face"
 
-  @Breakpoints @UI
-  Scenario: Open/close file workspace started/withtout debug session running.
+  @Breakpoints @UI @WIP
+  Scenario: Open/close file workspace started/with debug session running.
     Given I switch to buffer "App.java"
     And I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
@@ -60,3 +59,4 @@ Feature: Breakpoint UI tests
     And I call "dap-ui-mode"
     When I place the cursor before "System"
     Then I should see the following overlay "dap-ui-verified-breakpoint-face"
+    And I should see the following overlay "dap-ui-marker-face"

@@ -27,6 +27,7 @@
 (require 'dap-mode)
 (require 'tree-widget)
 (require 'wid-edit)
+(require 'dash)
 
 (defcustom dap-ui-stack-frames-loaded nil
   "Stack frames loaded."
@@ -225,10 +226,15 @@ SESSION-TREE will be the root of the threads(session holder)."
 (defun dap-ui--make-overlay-at (file point b e msg visuals)
   "Create an overlay highlighting the given line in
 any buffer visiting the given file."
+
+
   (let ((beg b)
         (end e))
-    (assert (or (integerp point)
-                (and (integerp beg) (integerp end))))
+    (assert (and
+             file
+             (or (integerp point)
+                 (and (integerp beg)
+                      (integerp end)))))
     (-when-let (buf (find-buffer-visiting file))
       (with-current-buffer buf
         (if (and (integerp beg) (integerp end))
@@ -306,6 +312,7 @@ BPS the new breakpoints for FILE."
                         :char ">"
                         :bitmap 'right-triangle
                         :fringe 'dap-ui-compile-errline)))
+
     (setf (dap--debug-session-cursor-marker debug-session) ov)))
 
 (defun dap-ui--position-changed (debug-session file point)
@@ -317,10 +324,16 @@ BPS the new breakpoints for FILE."
              (dap-ui--breakpoints-changed debug-session file-name breakpoints))
            (dap--get-breakpoints (dap--debug-session-workspace debug-session))))
 
+(defun dap-ui--stack-frame-changed (debug-session)
+  (-let [(&hash "source" (&hash "path" path)
+                "line" line
+                "column" column) (dap--debug-session-active-frame debug-session)]
+    (goto-char (point-min))
+    (forward-line (1- line))
+    (forward-char column)
+    (dap-ui--set-debug-marker debug-session path (point))))
+
 ;;;###autoload
-
-
-
 (define-minor-mode dap-ui-mode
   "Displaying DAP visuals."
   :init-value nil
@@ -330,14 +343,19 @@ BPS the new breakpoints for FILE."
     (add-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
     (add-hook 'dap-terminated-hook 'dap-ui--terminated)
     (add-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
-    (add-hook 'dap-position-changed-hook 'dap-ui--position-changed)
+    (add-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
     (when-let (breakpoints (dap--active-get-breakpoints))
-      (dap-ui--breakpoints-changed dap--cur-session buffer-file-name breakpoints)))
+      (dap-ui--breakpoints-changed dap--cur-session buffer-file-name breakpoints))
+
+    (when dap--cur-session
+      (-let [(&hash "source" (&hash "path" path)) (dap--debug-session-active-frame dap--cur-session)]
+        (when (string= buffer-file-name path)
+          (dap-ui--stack-frame-changed dap--cur-session)))))
    (t
     (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
     (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (remove-hook 'dap-terminated-hook 'dap-ui--terminated)
-    (remove-hook 'dap-position-changed-hook 'dap-ui--position-changed))))
+    (add-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed))))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

@@ -16,8 +16,10 @@
 *** TODO Continue
 ** TODO Persistence of debug configurations
 * Beakpoints
-** TODO Visual indication
-** TODO Enable/disable
+** DONE Visual indication
+   CLOSED: [2018-06-10 Sun 11:55]
+** DONE Enable/disable
+   CLOSED: [2018-06-10 Sun 11:55]
 ** TODO Persistence
 ** TODO Session selection and breakpoints
 * Stepping

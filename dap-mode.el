@@ -76,6 +76,11 @@ The hook will be called with the session file and the new set of breakpoint loca
   :type 'hook
   :group 'dap-mode)
 
+(defcustom dap-stack-frame-changed-hook nil
+  "List of functions that will be called after active stack frame has changed."
+  :type 'hook
+  :group 'dap-mode)
+
 (defvar dap--cur-session nil)
 
 (defun dap--plist-delete (plist property)
@@ -120,6 +125,7 @@ This is in contrast to merely setting it to 0."
   (threads nil)
   (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
   (active-frame-id nil)
+  (active-frame nil)
   (cursor-marker nil)
   ;; The session breakpoints;
   (session-breakpoints (make-hash-table :test 'equal) :read-only t)
@@ -355,15 +361,12 @@ This is in contrast to merely setting it to 0."
   (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
     (find-file (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame))))
     ;; (switch-to-buffer (current-buffer))
-    (setf (dap--debug-session-active-frame-id debug-session) (gethash "id" stack-frame))
+    (setf (dap--debug-session-active-frame debug-session) stack-frame)
+
     (goto-char (point-min))
     (forward-line (1- (gethash "line" stack-frame)))
     (forward-char (gethash "column" stack-frame))
-
-    (run-hook-with-args 'dap-position-changed-hook
-                        debug-session
-                        buffer-file-name
-                        (point))))
+    (run-hook-with-args 'dap-stack-frame-changed-hook debug-session)))
 
 (defun dap--on-event (debug-session event)
   "TODO DEBUG-SESSION EVENT."
@@ -532,7 +535,7 @@ ADAPTER-ID the id of the adapter."
   (dap--send-message (dap--make-request
                       "evaluate"
                       (list :expression expression
-                            :frameId (dap--debug-session-active-frame-id dap--cur-session)))
+                            :frameId (gethash "id" (dap--debug-session-active-frame dap--cur-session))))
                      (lambda (result)
                        (if (gethash "success" result)
                            (message "=> %s" (gethash "result" (gethash "body" result)))
