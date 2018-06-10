@@ -7,10 +7,10 @@
 
 * Features
 ** Breakpoints
-   | Command                  | Description                    |
-   |--------------------------+--------------------------------|
-   | ~dap-toggle-breakpoint~  | Toggle java breakpoint at line |
-   |                          |                                |
+   | Command                 | Description                     |
+   |-------------------------+---------------------------------|
+   | ~dap-toggle-breakpoint~ | Toggle java breakpoint at line. |
+   |                         |                                 |
 ** TODO Stackframe
 ** TODO Watches
 ** TODO Value inspector
@@ -25,6 +25,6 @@
 ** TODO Extending DAP with new Debug servers
 * Links
 - [[https://github.com/emacs-lsp/lsp-java][LSP Java]]
-- [[https://github.com/Microsoft/vscode-debugadapter-node/wiki/VS-Code-Debug-Protocol-Implementations][Implementations]]
+- [[https://github.com/Microsoft/vscode-debugadapter-node/wiki/VS-Code-Debug-Protocol-Implementations][Debug Adapter Protocol Server Implementations]]
 * Troubleshooting
  If you notice a bug, open an issue on Github Issues

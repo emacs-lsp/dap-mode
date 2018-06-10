@@ -34,13 +34,29 @@ Feature: Breakpoint UI tests
     And The server status must become "LSP::Started"
     And I call "dap-ui-mode"
 
-  @Breakpoints @UI @WIP
-  Scenario: Open/close file workspace is working.
+  @Breakpoints @UI
+  Scenario: Open/close file workspace started/withtout debug session running.
     Given I switch to buffer "App.java"
     And I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
     And I kill buffer "App.java"
     And I open a java file "tmp/m/src/main/java/temp/App.java"
     And I start lsp-java
+    And I call "dap-mode"
     When I place the cursor before "System"
     Then I should see the following overlay "dap-ui-pending-breakpoint-face"
+
+  @Breakpoints @UI
+  Scenario: Open/close file workspace started/withtout debug session running.
+    Given I switch to buffer "App.java"
+    And I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    And The hook handler "breakpoint" would be called
+    And I kill buffer "App.java"
+    And I open a java file "tmp/m/src/main/java/temp/App.java"
+    And I start lsp-java
+    And I call "dap-ui-mode"
+    When I place the cursor before "System"
+    Then I should see the following overlay "dap-ui-verified-breakpoint-face"

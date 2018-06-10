@@ -126,15 +126,16 @@ SESSION-TREE will be the root of the threads(session holder)."
                     :dynargs dap-ui--stack-frames
                     :open nil))
                 threads)
-      (dap--send-message (dap--make-request "threads")
-                         (lambda (threads-resp)
-                           (let ((threads (gethash "threads" (gethash "body" threads-resp))))
+      (dap--send-message
+       (dap--make-request "threads")
+       (lambda (threads-resp)
+         (let ((threads (gethash "threads" (gethash "body" threads-resp))))
 
-                             (setf (dap--debug-session-threads debug-session) threads)
+           (setf (dap--debug-session-threads debug-session) threads)
 
-                             (tree-mode-reflesh-tree session-tree)
-                             (run-hook-with-args 'dap-ui-stack-frames-loaded debug-session threads)))
-                         debug-session)
+           (tree-mode-reflesh-tree session-tree)
+           (run-hook-with-args 'dap-ui-stack-frames-loaded debug-session threads)))
+       debug-session)
       dap-ui--loading-tree-widget)))
 
 ;;;###autoload
@@ -253,9 +254,10 @@ any buffer visiting the given file."
   "TODO DEBUG-SESSION FILE-NAME BREAKPOINTS."
   (dap-ui--refresh-breakpoints file-name breakpoints))
 
-(defun dap-ui--breakpoint-visuals (bp)
+(defun dap-ui--breakpoint-visuals (breakpoint)
+  "Calculate visuals for BREAKPOINT."
   (cond
-   ((plist-get bp :verified)
+   ((plist-get breakpoint :verified)
     (list :face 'dap-ui-verified-breakpoint-face
           :char "."
           :bitmap 'breakpoint
@@ -266,6 +268,10 @@ any buffer visiting the given file."
           :bitmap 'breakpoint
           :fringe 'breakpoint-disabled))))
 
+(defun dap-breakpoint-get-point (breakpoint)
+  (or (marker-position (plist-get breakpoint :marker))
+      (plist-get breakpoint :point)))
+
 (defun dap-ui--refresh-breakpoints (file bps)
   "Refresh all breakpoints in FILE.
 
@@ -273,7 +279,9 @@ BPS the new breakpoints for FILE."
   (dap-ui--clear-breakpoint-overlays)
   (dolist (bp bps)
     (-when-let (ov (dap-ui--make-overlay-at
-                    file (marker-position (plist-get bp :point)) nil nil
+                    file
+                    (dap-breakpoint-get-point bp)
+                    nil nil
                     "Breakpoint"
                     (dap-ui--breakpoint-visuals bp)))
       (push ov dap-ui--breakpoint-overlays))))
@@ -290,7 +298,6 @@ BPS the new breakpoints for FILE."
   :group 'dap-ui)
 
 (defun dap-ui--set-debug-marker (debug-session file point)
-  "Open location in a new window."
   (dap-ui--clear-marker-overlay debug-session)
   (-when-let (ov (dap-ui--make-overlay-at
                   file point nil nil
@@ -310,30 +317,27 @@ BPS the new breakpoints for FILE."
              (dap-ui--breakpoints-changed debug-session file-name breakpoints))
            (dap--get-breakpoints (dap--debug-session-workspace debug-session))))
 
-(defun dap-ui--after-open ()
-  "Handler for `lsp-after-open-hook'."
-  (when-let (breakpoints (gethash buffer-file-name
-                                  (dap--get-breakpoints lsp--cur-workspace)))
-    (dap-ui--breakpoints-changed dap--cur-session buffer-file-name breakpoints)))
-
 ;;;###autoload
+
+
+
 (define-minor-mode dap-ui-mode
   "Displaying DAP visuals."
   :init-value nil
-  :group dap-ui-mode
+  :group dap-ui
   (cond
    (dap-ui-mode
     (add-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
     (add-hook 'dap-terminated-hook 'dap-ui--terminated)
     (add-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (add-hook 'dap-position-changed-hook 'dap-ui--position-changed)
-    (add-hook 'lsp-after-open-hook 'dap-ui--after-open))
+    (when-let (breakpoints (dap--active-get-breakpoints))
+      (dap-ui--breakpoints-changed dap--cur-session buffer-file-name breakpoints)))
    (t
     (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
     (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (remove-hook 'dap-terminated-hook 'dap-ui--terminated)
-    (remove-hook 'dap-position-changed-hook 'dap-ui--position-changed)
-    (remove-hook 'lsp-after-open-hook 'dap-ui--after-open))))
+    (remove-hook 'dap-position-changed-hook 'dap-ui--position-changed))))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

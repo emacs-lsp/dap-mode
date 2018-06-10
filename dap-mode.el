@@ -21,7 +21,7 @@
 ;;; Commentary:
 ;; Author: Ivan <kyoncho@myoncho>
 ;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((Emacs "25.1"))
 ;; Version: 0.1
 
 ;; Debug Adapter Protocol
@@ -124,7 +124,8 @@ This is in contrast to merely setting it to 0."
   ;; The session breakpoints;
   (session-breakpoints (make-hash-table :test 'equal) :read-only t)
   ;; one of 'started
-  (state 'pending))
+  (state 'pending)
+  (breakpoints nil))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -180,15 +181,17 @@ This is in contrast to merely setting it to 0."
          (file-breakpoints (gethash file-name breakpoints))
          (updated-file-breakpoints (if-let (existing-breakpoint (cl-find-if
                                                                  (lambda (existing)
-                                                                   (= (line-number-at-pos (plist-get existing :point))
+                                                                   (= (line-number-at-pos (plist-get existing :marker))
                                                                       (line-number-at-pos (point))))
                                                                  file-breakpoints))
                                        ;; delete if already exists
                                        (progn
-                                         (set-marker (plist-get existing-breakpoint :point) nil)
+                                         (set-marker (plist-get existing-breakpoint :marker) nil)
                                          (cl-remove existing-breakpoint file-breakpoints))
                                      ;; add if does not exist
-                                     (push (list :point (point-marker)) file-breakpoints))))
+                                     (push (list :marker (point-marker)
+                                                 :point (point))
+                                           file-breakpoints))))
     ;; update the list
     (if updated-file-breakpoints
         (puthash file-name updated-file-breakpoints breakpoints)
@@ -467,7 +470,7 @@ ADAPTER-ID the id of the adapter."
 (defun dap--send-configuration-done (debug-session _)
   "Send 'configurationDone' message for DEBUG-SESSION."
   (dap--send-message (dap--make-request "configurationDone")
-                     (lambda (configuration-done))
+                     (lambda (_))
                      debug-session))
 
 (defun dap--set-breakpoints-request (file-name file-breakpoints)
@@ -479,7 +482,7 @@ ADAPTER-ID the id of the adapter."
                                          'vector
                                          (lambda (br)
                                            (list :line (line-number-at-pos
-                                                        (marker-position (plist-get br :point)))))
+                                                        (marker-position (plist-get br :marker)))))
                                          file-breakpoints)
                            :sourceModified :json-false)))
 
@@ -503,13 +506,13 @@ ADAPTER-ID the id of the adapter."
                       file-name
                       file-breakpoints))
 
-(defun dap--configure-breakpoints (debug-session breakpoints callback _)
-  "TODO DEBUG-SESSION BREAKPOINTS CALLBACK."
+(defun dap--configure-breakpoints (debug-session breakpoints callback result)
+  "TODO DEBUG-SESSION BREAKPOINTS CALLBACK RESULT."
   (let ((breakpoint-count (hash-table-count breakpoints))
         (finished 0))
     (if (zerop breakpoint-count)
         ;; no breakpoints to set
-        (funcall callback _)
+        (funcall callback result)
       (maphash
        (lambda (file-name file-breakpoints-original)
          (let ((file-breakpoints (copy-tree file-breakpoints-original)))
@@ -523,18 +526,32 @@ ADAPTER-ID the id of the adapter."
             debug-session)))
        breakpoints))))
 
-(defun dap-eval (eval)
-  "docstring"
+(defun dap-eval (expression)
+  "Eval and print EXPRESSION."
   (interactive "sEval: ")
   (dap--send-message (dap--make-request
                       "evaluate"
-                      (list :expression eval
+                      (list :expression expression
                             :frameId (dap--debug-session-active-frame-id dap--cur-session)))
                      (lambda (result)
                        (if (gethash "success" result)
                            (message "=> %s" (gethash "result" (gethash "body" result)))
                          (message (gethash "message" result))))
                      dap--cur-session))
+
+(defun dap--active-get-breakpoints ()
+  "Get breakpoints either from debug session or from workspace in case the debug session is not present."
+  (gethash buffer-file-name
+           (if  (or (not dap--cur-session)
+                    (eq 'terminated (dap--debug-session-state dap--cur-session)))
+               (dap--get-breakpoints lsp--cur-workspace)
+             (dap--debug-session-session-breakpoints dap--cur-session))
+           nil))
+
+(define-minor-mode dap-mode
+  "DAP mode."
+  :init-value nil
+  :group dap-mode)
 
 (defun dap-start-debugging (adapter-id create-session launch-args)
   "ADAPTER-ID CREATE-SESSION LAUNCH-ARGS."
