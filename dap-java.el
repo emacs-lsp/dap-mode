@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'lsp-mode)
+(require 'lsp-java)
 (require 'dap-mode)
 (require 'tree-mode)
 
@@ -33,38 +34,40 @@
   (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession" )))
     (dap--create-session "localhost" debug-port "Default Debug")))
 
-(defun dap-java-debug ()
-  "XX."
-  (interactive)
-  (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession" ))
+(defun dap-java--calculate-default-args ()
+  "Calculates default arguments based on current point."
+  (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession"))
          (main-classes (lsp-send-execute-command "vscode.java.resolveMainClass"))
          (items (mapcar (lambda (it)
                           (list (format "%s (%s)"(gethash "mainClass" it)
                                         (gethash "projectName" it)) it))
                         main-classes))
-         (main-class (if (= 1 (length items))
-                        (car main-classes)
-                      (cadr (assoc
-                             (completing-read "Select main class to run: " items nil t)
-                             items))))
+         (main-class (case (length items)
+                       (0 (error "Unable to find main class"))
+                       (1 (car main-classes))
+                       (t (cadr (assoc
+                                 (completing-read "Select main class to run: " items nil t)
+                                 items)))))
          (classpath (second
                      (lsp-send-execute-command "vscode.java.resolveClasspath"
                                                (list (gethash "mainClass" main-class)
                                                      (gethash "projectName" main-class))))))
-    (dap-start-debugging
-     "java"
-     'dap-java-create-session
-     (list :args ""
-           :name "Debug (Launch)"
-           :request "launch"
-           :type "java"
-           :cwd (lsp-java--get-root)
-           :stopOnEntry :json-false
-           :mainClass (gethash "mainClass" main-class)
-           :classPaths classpath
-           :modulePaths (vector)
-           :debugServer debug-port
-           :__sessionId "123123"))))
+    (list :args ""
+          :name "Debug (Launch)"
+          :request "launch"
+          :type "java"
+          :cwd (lsp-java--get-root)
+          :stopOnEntry :json-false
+          :mainClass (gethash "mainClass" main-class)
+          :classPaths classpath
+          :modulePaths (vector)
+          :debugServer debug-port
+          :__sessionId "123123")))
+
+(defun dap-java-debug (debug-args)
+  "Start debug session with DEBUG-ARGS."
+  (interactive (list (dap-java--calculate-default-args)))
+  (dap-start-debugging "java" 'dap-java-create-session debug-args))
 
 (provide 'dap-java)
 ;;; dap-java.el ends here
