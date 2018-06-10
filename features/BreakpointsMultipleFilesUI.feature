@@ -45,7 +45,7 @@ Feature: Breakpoint UI tests
     When I place the cursor before "System"
     Then I should see the following overlay "dap-ui-pending-breakpoint-face"
 
-  @Breakpoints @UI @WIP
+  @Breakpoints @UI
   Scenario: Open/close file workspace started/with debug session running.
     Given I switch to buffer "App.java"
     And I place the cursor before "System"

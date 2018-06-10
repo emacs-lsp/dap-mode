@@ -26,7 +26,7 @@ Feature: Stack traces
     And The server status must become "LSP::Started"
 
   @WIP
-  Scenario: Eval successfull
+  Scenario: Eval multiple frames
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
     And I go to beginning of buffer
@@ -45,7 +45,7 @@ Feature: Stack traces
     And I should see message matching regexp "\"inFooMethod\".*"
     And I start an action chain
     When I press "M-x"
-    When I type "dap-switch-frame"
+    When I type "dap-switch-stack-frame"
     And I press "<return>"
     When I type "main"
     And I press "<return>"

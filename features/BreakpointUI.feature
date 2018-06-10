@@ -48,7 +48,7 @@ Feature: Breakpoint UI tests
     And The hook handler "breakpoint" would be called
     Then I should see the following overlay "dap-ui-marker-face"
 
-  @UI @Breakpoints
+  @UI @Breakpoints @WIP
   Scenario: Cursor removed - continue
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
@@ -57,10 +57,12 @@ Feature: Breakpoint UI tests
     And The hook handler "breakpoint" would be called
     And I call "dap-continue"
     Then I should not see the following overlay "dap-ui-marker-face"
+    And I call "dap-disconnect"
 
-  @UI @Breakpoints
+  @UI @Breakpoints @WIP
   Scenario: Cursor removed - next
     When I place the cursor before "System"
+    Then I should not see the following overlay "dap-ui-marker-face"
     And I call "dap-toggle-breakpoint"
     And I attach handler "breakpoint" to hook "dap-stopped-hook"
     And I call "dap-java-debug"

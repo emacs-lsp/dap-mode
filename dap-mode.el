@@ -551,6 +551,24 @@ ADAPTER-ID the id of the adapter."
              (dap--debug-session-session-breakpoints dap--cur-session))
            nil))
 
+(defun dap-switch-stack-frame ()
+  "Switch stackframe by selecting another stackframe stackframes from current thread."
+  (interactive)
+  (when (not dap--cur-session)
+    (error "There is no active session"))
+
+  (-if-let (thread-id (dap--debug-session-thread-id dap--cur-session))
+      (-if-let (stack-frames (gethash thread-id (dap--debug-session-thread-stack-frames dap--cur-session)))
+          (completing-read "Select active frame: " (--map (gethash "name" it) stack-frames))
+        (thread-last dap--cur-session
+          dap--debug-session-name
+          (format "Current session %s is not stopped")
+          error))
+    (thread-last dap--cur-session
+      dap--debug-session-name
+      (format "Current session %s is not stopped")
+      error)))
+
 (define-minor-mode dap-mode
   "DAP mode."
   :init-value nil

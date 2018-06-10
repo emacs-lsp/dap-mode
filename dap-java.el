@@ -34,6 +34,12 @@
   (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession" )))
     (dap--create-session "localhost" debug-port "Default Debug")))
 
+(defun dap--completing-read (prompt collection transform-fn &optional predicate
+                                    require-match initial-input
+                                    hist def inherit-input-method)
+  (completing-read prompt collection predicate require-match initial-input hist
+                   def inherit-input-method))
+
 (defun dap-java--calculate-default-args ()
   "Calculates default arguments based on current point."
   (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession"))
