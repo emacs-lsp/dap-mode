@@ -355,7 +355,7 @@ BPS the new breakpoints for FILE."
     (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
     (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (remove-hook 'dap-terminated-hook 'dap-ui--terminated)
-    (add-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed))))
+    (remove-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed))))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

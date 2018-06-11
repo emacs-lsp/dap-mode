@@ -57,7 +57,6 @@ Feature: Breakpoint UI tests
     And The hook handler "breakpoint" would be called
     And I call "dap-continue"
     Then I should not see the following overlay "dap-ui-marker-face"
-    And I call "dap-disconnect"
 
   @UI @Breakpoints @WIP
   Scenario: Cursor removed - next
