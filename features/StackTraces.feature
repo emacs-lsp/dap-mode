@@ -25,7 +25,7 @@ Feature: Stack traces
     And I start lsp-java
     And The server status must become "LSP::Started"
 
-  @WIP
+  @StackTraces
   Scenario: Eval multiple frames
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
@@ -47,7 +47,7 @@ Feature: Stack traces
     When I press "M-x"
     When I type "dap-switch-stack-frame"
     And I press "<return>"
-    When I type "main"
+    When I type "App.main"
     And I press "<return>"
     And I execute the action chain
-    And the cursor should be before " foo()"
+    And the cursor should be before "    foo();"

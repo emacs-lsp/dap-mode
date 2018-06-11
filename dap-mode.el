@@ -83,6 +83,15 @@ The hook will be called with the session file and the new set of breakpoint loca
 
 (defvar dap--cur-session nil)
 
+(defun dap--completing-read (prompt collection transform-fn &optional predicate
+                                    require-match initial-input
+                                    hist def inherit-input-method)
+  (let ((result (--map (cons (funcall transform-fn it) it) collection)))
+    (cdr (assoc (completing-read prompt result
+                                 predicate require-match initial-input hist
+                                 def inherit-input-method)
+                result))))
+
 (defun dap--plist-delete (plist property)
   "Delete PROPERTY from PLIST.
 This is in contrast to merely setting it to 0."
@@ -542,6 +551,17 @@ ADAPTER-ID the id of the adapter."
                          (message (gethash "message" result))))
                      dap--cur-session))
 
+(defun dap-eval-dwim ()
+  "Eval and print EXPRESSION."
+  (interactive)
+  (dap-eval (thing-at-point 'symbol))
+  )
+
+(defun dap-eval-region (start end)
+  "Evaluate the region between START and END."
+  (interactive "r")
+  (dap-eval (buffer-substring-no-properties start end)))
+
 (defun dap--active-get-breakpoints ()
   "Get breakpoints either from debug session or from workspace in case the debug session is not present."
   (gethash buffer-file-name
@@ -554,12 +574,20 @@ ADAPTER-ID the id of the adapter."
 (defun dap-switch-stack-frame ()
   "Switch stackframe by selecting another stackframe stackframes from current thread."
   (interactive)
+
   (when (not dap--cur-session)
     (error "There is no active session"))
 
   (-if-let (thread-id (dap--debug-session-thread-id dap--cur-session))
-      (-if-let (stack-frames (gethash thread-id (dap--debug-session-thread-stack-frames dap--cur-session)))
-          (completing-read "Select active frame: " (--map (gethash "name" it) stack-frames))
+      (-if-let (stack-frames (gethash thread-id
+                                      (dap--debug-session-thread-stack-frames dap--cur-session)))
+          (let ((new-stack-frame (dap--completing-read "Select active frame: "
+                                                       stack-frames
+                                                       (lambda (it) (gethash "name" it))
+                                                       nil
+                                                       t)))
+            (message "Messages %s %s" new-stack-frame stack-frames)
+            (dap--go-to-stack-frame new-stack-frame dap--cur-session))
         (thread-last dap--cur-session
           dap--debug-session-name
           (format "Current session %s is not stopped")
