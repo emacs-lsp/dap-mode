@@ -33,6 +33,9 @@
 (require 'f)
 (require 'dash)
 
+(defconst dap--breakpoints-file ".breakpoints"
+  "Name of the file in which the breakpoints will be persisted.")
+
 (defcustom dap-print-io t
   "If non-nil, print all messages to and from the DAP to messages."
   :group 'dap-mode
@@ -82,6 +85,9 @@ The hook will be called with the session file and the new set of breakpoint loca
   :group 'dap-mode)
 
 (defvar dap--cur-session nil)
+
+(defun dap--locate-workspace-file (workspace file-name)
+  (f-join (lsp--workspace-root workspace) dap--breakpoints-file))
 
 (defun dap--completing-read (prompt collection transform-fn &optional predicate
                                     require-match initial-input
@@ -186,7 +192,13 @@ This is in contrast to merely setting it to 0."
         (lsp-workspace-set-metadata "Breakpoints" it)
         it)))
 
-;;;###autoload
+(defun dap--persist (workspace to-persist)
+  (with-demoted-errors
+      "Failed to persist breakpoints: %S"
+    (with-temp-file (dap--locate-workspace-file workspace dap--breakpoints-file)
+      (erase-buffer)
+      (insert (prin1-to-string to-persist)))))
+
 (defun dap-toggle-breakpoint ()
   "Toggle breakpoint on the current line."
   (interactive)
@@ -212,6 +224,7 @@ This is in contrast to merely setting it to 0."
         (puthash file-name updated-file-breakpoints breakpoints)
       (remhash file-name breakpoints))
 
+
     (run-hook-with-args 'dap-breakpoints-changed-hook
                         dap--cur-session
                         file-name
@@ -232,7 +245,13 @@ This is in contrast to merely setting it to 0."
                                  debug-session))
             (--remove
              (eq 'terminated (dap--debug-session-state it))
-             (lsp-workspace-get-metadata "debug-sessions" lsp--cur-workspace))))))
+             (lsp-workspace-get-metadata "debug-sessions" lsp--cur-workspace))))
+    ;; filter markers before persisting the breakpoints (they are not writeable)
+    (-let [filtered-breakpoints (make-hash-table :test 'equal)]
+      (maphash (lambda (k v)
+                 (puthash k (--map (dap--plist-delete it :marker) v) filtered-breakpoints))
+               breakpoints)
+      (dap--persist lsp--cur-workspace filtered-breakpoints))))
 
 (defun dap--get-body-length (headers)
   "Get body length from HEADERS."
@@ -597,11 +616,6 @@ ADAPTER-ID the id of the adapter."
       (format "Current session %s is not stopped")
       error)))
 
-(define-minor-mode dap-mode
-  "DAP mode."
-  :init-value nil
-  :group dap-mode)
-
 (defun dap-start-debugging (adapter-id create-session launch-args)
   "ADAPTER-ID CREATE-SESSION LAUNCH-ARGS."
   (let ((debug-session (funcall create-session))
@@ -624,6 +638,49 @@ ADAPTER-ID the id of the adapter."
         debug-session))
      debug-session)
     (setq dap--cur-session debug-session)))
+
+(defun dap--set-breakpoints-in-file (file file-breakpoints)
+  (-when-let (buffer (get-file-buffer file))
+    (with-current-buffer buffer
+      (mapc (lambda (bkp)
+              (-let [marker (make-marker)]
+                (set-marker marker (plist-get bkp :point))
+                (plist-put bkp :marker marker)))
+            file-breakpoints)
+      (run-hook-with-args 'dap-breakpoints-changed-hook
+                          nil
+                          file
+                          file-breakpoints))))
+
+(defun dap--after-initialize ()
+  (with-demoted-errors
+      "Failed to load breakpoints for the current workspace with error: %S"
+    (let ((breakpoints-file (dap--locate-workspace-file lsp--cur-workspace
+                                                        dap--breakpoints-file))
+          (workspace lsp--cur-workspace))
+      (when (f-exists? breakpoints-file)
+        (-let [breakpoints (with-temp-buffer
+                             (insert-file-contents-literally breakpoints-file)
+                             (first (read-from-string
+                                     (buffer-substring-no-properties (point-min) (point-max)))))]
+          (maphash (lambda (file file-breakpoints)
+                     (dap--set-breakpoints-in-file  file file-breakpoints))
+                   breakpoints)
+          (lsp-workspace-set-metadata "Breakpoints"
+                                      breakpoints
+                                      workspace))))))
+
+(define-minor-mode dap-mode
+  "Global minor mode for DAP mode."
+  :init-value nil
+  :group 'dap-mode
+  :global t
+  (add-hook 'lsp-after-initialize-hook 'dap--after-initialize))
+
+(defun dap-turn-on-dap-mode ()
+  "docstring"
+  (interactive)
+  (dap-mode t))
 
 (provide 'dap-mode)
 ;;; dap-mode.el ends here
