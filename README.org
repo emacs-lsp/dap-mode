@@ -1,4 +1,4 @@
-* Emacs client/library for Debug Adapter Protocol
+* Emacs client/library for Debug Adapter Protocol (alpha)
 
   [[https://travis-ci.org/yyoncho/dap-mode][https://travis-ci.org/yyoncho/dap-mode.svg?branch=master]]
   [[https://coveralls.io/github/yyoncho/dap-mode?branch=master][https://coveralls.io/repos/github/yyoncho/dap-mode/badge.svg?branch=master]]
@@ -6,12 +6,37 @@
   [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]] is a wire protocol for communication between client and Debug Server. It similar to the [[https://github.com/Microsoft/language-server-protocol][LSP]].
 
 * Features
-** Breakpoints
-   | Command                 | Description                     |
-   |-------------------------+---------------------------------|
-   | ~dap-toggle-breakpoint~ | Toggle java breakpoint at line. |
-   |                         |                                 |
-** TODO Stackframe
+** Debugger commands
+   | Command                  | Description                    | Keybindings |
+   |--------------------------+--------------------------------+-------------|
+   | ~dap-toggle-breakpoint~  | Toggle java breakpoint at line | bt          |
+   | ~dap-eval~               | Eval string                    | ee          |
+   | ~dap-eval-region~        | Eval region string             | er          |
+   | ~dap-eval-dwim~          | Eval symbol at point           |             |
+   | ~dap-step-in~            | Debug step in                  |             |
+   | ~dap-step-out~           | Debug step out                 |             |
+   | ~dap-next~               | Debug next                     |             |
+   | ~dap-continue~           | Debug continue                 |             |
+   | ~dap-disconnect~         | Cancel current debug session   |             |
+   | ~dap-switch-stack-frame~ | Switch active stack frame      |             |
+   | ~dap-switch-thread~      | Switch active thread           |             |
+** Sessions
+   | Command               | Description                 | Binding |
+   |-----------------------+-----------------------------+---------|
+   | ~dap-ui-session-list~ | List current debug sessions |         |
+
+*** Sessions view
+    | Command                     | Description                                                 | Keybindings |
+    |-----------------------------+-------------------------------------------------------------+-------------|
+    | ~dap-ui-session-remove~     | Remove terminated session from the list of running sessions |             |
+    | ~dap-ui-session-disconnect~ | Terminate the session under cursor                          |             |
+    | ~dap-ui-session-select~     | Select object under point                                   | <return>    |
+
+** Breakpoints view
+   | Command                   | Description                 | Binding |
+   |---------------------------+-----------------------------+---------|
+   | ~dap-ui-breakpoints-list~ | List current debug sessions |         |
+
 ** TODO Watches
 ** TODO Value inspector
 ** TODO Locals

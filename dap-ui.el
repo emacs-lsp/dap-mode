@@ -315,9 +315,6 @@ BPS the new breakpoints for FILE."
 
     (setf (dap--debug-session-cursor-marker debug-session) ov)))
 
-(defun dap-ui--position-changed (debug-session file point)
-  (dap-ui--set-debug-marker debug-session file point))
-
 (defun dap-ui--terminated (debug-session)
   "DEBUG-SESSION."
   (maphash (lambda (file-name breakpoints)
@@ -325,6 +322,8 @@ BPS the new breakpoints for FILE."
            (dap--get-breakpoints (dap--debug-session-workspace debug-session))))
 
 (defun dap-ui--stack-frame-changed (debug-session)
+  "Handler for `dap-stack-frame-changed-hook'.
+DEBUG-SESSION is the debug session triggering the event."
   (-let [(&hash "source" (&hash "path" path)
                 "line" line
                 "column" column) (dap--debug-session-active-frame debug-session)]
