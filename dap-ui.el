@@ -282,15 +282,16 @@ any buffer visiting the given file."
   "Refresh all breakpoints in FILE.
 
 BPS the new breakpoints for FILE."
-  (dap-ui--clear-breakpoint-overlays)
-  (dolist (bp bps)
-    (-when-let (ov (dap-ui--make-overlay-at
-                    file
-                    (dap-breakpoint-get-point bp)
-                    nil nil
-                    "Breakpoint"
-                    (dap-ui--breakpoint-visuals bp)))
-      (push ov dap-ui--breakpoint-overlays))))
+  (when (string= file buffer-file-name)
+    (dap-ui--clear-breakpoint-overlays)
+    (dolist (bp bps)
+      (-when-let (ov (dap-ui--make-overlay-at
+                      file
+                      (dap-breakpoint-get-point bp)
+                      nil nil
+                      "Breakpoint"
+                      (dap-ui--breakpoint-visuals bp)))
+        (push ov dap-ui--breakpoint-overlays)))))
 
 (defun dap-ui--clear-marker-overlay (debug-session)
   "DEBUG-SESSION."

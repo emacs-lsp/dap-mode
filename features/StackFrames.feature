@@ -25,7 +25,7 @@ Feature: Stack traces
     And I start lsp-java
     And The server status must become "LSP::Started"
 
-  @StackTraces
+  @StackFrames
   Scenario: Eval multiple frames
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"

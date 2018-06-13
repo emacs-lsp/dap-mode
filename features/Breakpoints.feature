@@ -2,6 +2,7 @@ Feature: Breakpoint tests
 
   Background:
     Given I have maven project "m" in "tmp"
+    And I call "dap-turn-on-dap-mode"
     And I add project "m" folder "tmp" to the list of workspace folders
     And I open a java file "tmp/m/src/main/java/temp/App.java"
     And I clear the buffer
@@ -158,4 +159,18 @@ Feature: Breakpoint tests
     Then The hook handler "breakpoint" would be called
     And the cursor should be before "bar()"
     When I call "dap-continue"
+    And I should see buffer "*out*" with content "123"
+
+  @Breakpoints @WIP @Persistence
+  Scenario: Toggle(disable) breakpoint when running
+    When I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I kill buffer "App.java"
+    And I open a java file "tmp/m/src/main/java/temp/App.java"
+    And I start lsp-java
+    And I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-java-debug"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "System"
+    And I call "dap-continue"
     And I should see buffer "*out*" with content "123"
