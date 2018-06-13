@@ -325,9 +325,9 @@ BPS the new breakpoints for FILE."
 (defun dap-ui--stack-frame-changed (debug-session)
   "Handler for `dap-stack-frame-changed-hook'.
 DEBUG-SESSION is the debug session triggering the event."
-  (-let [(&hash "source" (&hash "path" path)
-                "line" line
-                "column" column) (dap--debug-session-active-frame debug-session)]
+  (-when-let ((&hash "source" (&hash "path" path)
+                   "line" line
+                   "column" column) (dap--debug-session-active-frame debug-session))
     (goto-char (point-min))
     (forward-line (1- line))
     (forward-char column)

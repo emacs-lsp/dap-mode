@@ -138,7 +138,8 @@ This is in contrast to merely setting it to 0."
   (thread-id nil)
   (workspace nil)
   (threads nil)
-  (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
+  (thread-states (make-hash-table :test 'eql) :read-only t)
+
   (active-frame-id nil)
   (active-frame nil)
   (cursor-marker nil)
@@ -146,7 +147,8 @@ This is in contrast to merely setting it to 0."
   (session-breakpoints (make-hash-table :test 'equal) :read-only t)
   ;; one of 'started
   (state 'pending)
-  (breakpoints nil))
+  (breakpoints nil)
+  (thread-stack-frames (make-hash-table :test 'eql) :read-only t))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -403,6 +405,8 @@ This is in contrast to merely setting it to 0."
       ("output" (with-current-buffer (dap--debug-session-output-buffer debug-session)
                   (insert (gethash "output" (gethash "body" event)))))
       ("breakpoint" ())
+      ("thread" (-let [(&hash "body" (&hash "threadId" id "reason" reason)) event]
+                  (puthash id reason (dap--debug-session-thread-states debug-session))))
       ("exited" (with-current-buffer (dap--debug-session-output-buffer debug-session)
                   ;; (insert (gethash "body" (gethash "body" event)))
                   ))
@@ -520,7 +524,7 @@ ADAPTER-ID the id of the adapter."
 (defun dap--update-breakpoints (debug-session resp file-name file-breakpoints)
   "DEBUG-SESSION RESP FILE-BREAKPOINTS FILE-NAME."
   ;; update the breakpoints with the information from the server:
-  (let ((server-breakpoints (gethash "breakpoints" (gethash "body" resp))))
+  (when-let ((server-breakpoints (gethash "breakpoints" (gethash "body" resp))))
     (cl-mapc (lambda (bkp update-bkp)
                (plist-put bkp :message (gethash "message" update-bkp))
                (plist-put bkp :verified (gethash "verified" update-bkp))
@@ -530,10 +534,10 @@ ADAPTER-ID the id of the adapter."
              file-breakpoints
              server-breakpoints))
 
-  (puthash file-name file-breakpoints (dap--debug-session-session-breakpoints dap--cur-session))
+  (puthash file-name file-breakpoints (dap--debug-session-session-breakpoints debug-session))
 
   (run-hook-with-args 'dap-breakpoints-changed-hook
-                      dap--cur-session
+                      debug-session
                       file-name
                       file-breakpoints))
 
