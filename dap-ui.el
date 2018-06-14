@@ -119,16 +119,18 @@ SESSION-TREE will be the root of the threads(session holder)."
   (let ((debug-session (widget-get session-tree :session)))
     (if-let (threads (dap--debug-session-threads debug-session))
         (mapcar (-lambda ((thread &as &hash "name" name "id" thread-id))
-                  `(tree-widget
-                    :node (push-button :tag ,(format "%s (%s)"
-                                                     name
-                                                     (gethash thread-id
-                                                              (dap--debug-session-thread-states debug-session)))
-                                       :format "%[%t%]\n")
-                    :thread ,thread
-                    :session ,debug-session
-                    :dynargs dap-ui--stack-frames
-                    :open nil))
+                  (-let [label (-if-let (status (gethash
+                                                 thread-id
+                                                 (dap--debug-session-thread-states debug-session)))
+                                   (format "%s (%s)" name status)
+                                 name)]
+                    `(tree-widget
+                      :node (push-button :tag ,label
+                                         :format "%[%t%]\n")
+                      :thread ,thread
+                      :session ,debug-session
+                      :dynargs dap-ui--stack-frames
+                      :open nil)))
                 threads)
       (dap--send-message
        (dap--make-request "threads")
@@ -328,8 +330,8 @@ BPS the new breakpoints for FILE."
   "Handler for `dap-stack-frame-changed-hook'.
 DEBUG-SESSION is the debug session triggering the event."
   (-when-let ((&hash "source" (&hash "path" path)
-                   "line" line
-                   "column" column) (dap--debug-session-active-frame debug-session))
+                     "line" line
+                     "column" column) (dap--debug-session-active-frame debug-session))
     (goto-char (point-min))
     (forward-line (1- line))
     (forward-char column)
