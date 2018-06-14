@@ -118,9 +118,12 @@ THREAD-TREE will be widget element holding thread info."
 SESSION-TREE will be the root of the threads(session holder)."
   (let ((debug-session (widget-get session-tree :session)))
     (if-let (threads (dap--debug-session-threads debug-session))
-        (mapcar (lambda (thread)
+        (mapcar (-lambda ((thread &as &hash "name" name "id" thread-id))
                   `(tree-widget
-                    :node (push-button :tag ,(gethash "name" thread)
+                    :node (push-button :tag ,(format "%s (%s)"
+                                                     name
+                                                     (gethash thread-id
+                                                              (dap--debug-session-thread-states debug-session)))
                                        :format "%[%t%]\n")
                     :thread ,thread
                     :session ,debug-session
@@ -148,7 +151,6 @@ SESSION-TREE will be the root of the threads(session holder)."
         (buf (get-buffer-create "*sessions*")))
     (with-current-buffer buf
       (erase-buffer)
-      ;; (setq header-line-format gdb-breakpoints-header)
       (mapc
        (lambda (session)
          (widget-create
