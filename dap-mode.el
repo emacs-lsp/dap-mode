@@ -620,13 +620,13 @@ ADAPTER-ID the id of the adapter."
       (format "Current session %s is not stopped")
       error)))
 
-(defun dap-start-debugging (adapter-id create-session launch-args)
+(defun dap-start-debugging (create-session launch-args)
   "ADAPTER-ID CREATE-SESSION LAUNCH-ARGS."
   (let ((debug-session (funcall create-session))
         (workspace lsp--cur-workspace)
         (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
     (dap--send-message
-     (dap--initialize-message adapter-id)
+     (dap--initialize-message (plist-get launch-args :type))
      (lambda (_initialize-result)
        (lsp-workspace-set-metadata
         "debug-sessions"
