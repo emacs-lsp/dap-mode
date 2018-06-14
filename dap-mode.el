@@ -411,8 +411,9 @@ This is in contrast to merely setting it to 0."
                   ;; (insert (gethash "body" (gethash "body" event)))
                   ))
       ("stopped"
-       (let ((thread-id (gethash "threadId" (gethash "body" event))))
+       (-let [(&hash "body" (&hash "threadId" thread-id "type" reason)) event]
          (setf (dap--debug-session-thread-id dap--cur-session) thread-id)
+         (puthash thread-id "stopped" (dap--debug-session-thread-states debug-session))
          (dap--send-message
           (dap--make-request "stackTrace" (list :threadId thread-id))
           (lambda (stack-frames)
