@@ -494,10 +494,9 @@ ADAPTER-ID the id of the adapter."
                          (dap--make-message message))))
 
 (defun dap--create-session (host port session-name)
-  "HOST PORT SESSION-NAME ."
+  "HOST PORT "
   (let* ((proc (open-network-stream session-name nil host port :type 'plain))
          (debug-session (make-dap--debug-session
-                         :name session-name
                          :proc proc
                          :workspace lsp--cur-workspace)))
     (set-process-filter proc (dap--create-filter-function debug-session))

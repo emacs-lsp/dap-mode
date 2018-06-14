@@ -31,31 +31,30 @@
 
 (defun dap-java-create-session ()
   "DD."
-  (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession" )))
+  (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession")))
     (dap--create-session "localhost" debug-port "Default Debug")))
 
-
-
-(defun dap-java--calculate-default-args ()
+(defun dap-java--calculate-default-args (configuration)
   "Calculates default arguments based on current point."
-  (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession"))
-         (main-classes (lsp-send-execute-command "vscode.java.resolveMainClass"))
-         (items (mapcar (lambda (it)
-                          (list (format "%s (%s)"(gethash "mainClass" it)
-                                        (gethash "projectName" it)) it))
-                        main-classes))
-         (main-class (case (length items)
-                       (0 (error "Unable to find main class"))
-                       (1 (car main-classes))
-                       (t (cadr (assoc
-                                 (completing-read "Select main class to run: " items nil t)
-                                 items)))))
-         (classpath (second
-                     (lsp-send-execute-command "vscode.java.resolveClasspath"
-                                               (list (gethash "mainClass" main-class)
-                                                     (gethash "projectName" main-class))))))
+  (-let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession"))
+          (main-classes (lsp-send-execute-command "vscode.java.resolveMainClass"))
+          (main-class (case (length main-classes)
+                        (0 (error "Unable to find main class"))
+                        (1 (car main-classes))
+                        (t (dap--completing-read "Select main class to run: " main-classes
+                                                 (lambda (it)
+                                                   (list (format "%s (%s)"(gethash "mainClass" it)
+                                                                 (gethash "projectName" it)) it))
+                                                 nil
+                                                 t))))
+          (classpath (second
+                      (lsp-send-execute-command "vscode.java.resolveClasspath"
+                                                (list (gethash "mainClass" main-class)
+                                                      (gethash "projectName" main-class))))))
     (list :args ""
-          :name "Debug (Launch)"
+          :name (format "%s (%s) - Debug Launch"
+                        (gethash "mainClass" main-class)
+                        (gethash "projectName" main-class))
           :request "launch"
           :type "java"
           :cwd (lsp-java--get-root)
@@ -68,7 +67,7 @@
 
 (defun dap-java-debug (debug-args)
   "Start debug session with DEBUG-ARGS."
-  (interactive (list (dap-java--calculate-default-args)))
+  (interactive )
   (dap-start-debugging "java" 'dap-java-create-session debug-args))
 
 (provide 'dap-java)
