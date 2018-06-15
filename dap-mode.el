@@ -496,11 +496,16 @@ ADAPTER-ID the id of the adapter."
     (process-send-string (dap--debug-session-proc debug-session)
                          (dap--make-message message))))
 
-(defun dap--create-session (host port session-name)
-  "HOST PORT "
-  (let* ((proc (open-network-stream session-name nil host port :type 'plain))
+(defun dap--create-session (launch-args)
+  "Create debug session from LAUNCH-ARGS."
+  (let* ((host (plist-get launch-args :host))
+         (port (plist-get launch-args :debugServer))
+         (session-name (plist-get launch-args :name))
+         (proc (open-network-stream session-name nil host port :type 'plain))
          (debug-session (make-dap--debug-session
+                         :launch-args launch-args
                          :proc proc
+                         :name (plist-get launch-args :name)
                          :workspace lsp--cur-workspace)))
     (set-process-filter proc (dap--create-filter-function debug-session))
     debug-session))
@@ -612,7 +617,6 @@ ADAPTER-ID the id of the adapter."
                                                        (lambda (it) (gethash "name" it))
                                                        nil
                                                        t)))
-            (message "Messages %s %s" new-stack-frame stack-frames)
             (dap--go-to-stack-frame new-stack-frame dap--cur-session))
         (thread-last dap--cur-session
           dap--debug-session-name
@@ -625,9 +629,7 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap-start-debugging (launch-args)
   "Start debug session with LAUNCH-ARGS."
-  (let ((debug-session (dap--create-session (plist-get launch-args :host)
-                                            (plist-get launch-args :debugServer)
-                                            (plist-get launch-args :name)))
+  (let ((debug-session (dap--create-session launch-args))
         (workspace lsp--cur-workspace)
         (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
     (dap--send-message

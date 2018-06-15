@@ -29,11 +29,6 @@
 (require 'dap-mode)
 (require 'tree-mode)
 
-(defun dap-java-create-session ()
-  "DD."
-  (let* ((debug-port (lsp-send-execute-command "vscode.java.startDebugSession")))
-    (dap--create-session "localhost" debug-port "Default Debug")))
-
 (defun dap-java--select-main-class ()
   "Select main class from the current workspace."
   (let ((main-classes (lsp-send-execute-command "vscode.java.resolveMainClass")))
@@ -66,7 +61,7 @@
                         :classPaths
                         (second
                          (lsp-send-execute-command "vscode.java.resolveClasspath"
-                                                   (list project-name main-class))))
+                                                   (list main-class project-name))))
     (dap--put-if-absent conf :name (format "%s (%s) - Debug Launch"
                                            (plist-get conf :mainClass)
                                            (plist-get conf :projectName)))
