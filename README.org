@@ -16,41 +16,47 @@
   - Multiple simultaneous debug sessions
   - Evaluating statements
   - Debug/Run configurations
-** TODO Debugger commands
-   | Command                        | Description                    | Keybindings |
-   |--------------------------------+--------------------------------+-------------|
-   | ~dap-toggle-breakpoint~        | Toggle java breakpoint at line |             |
-   | ~dap-eval~                     | Eval string                    |             |
-   | ~dap-eval-region~              | Eval region string             |             |
-   | ~dap-eval-dwim~                | Eval symbol at point           |             |
-   | ~dap-step-in~                  | Debug step in                  |             |
-   | ~dap-step-out~                 | Debug step out                 |             |
-   | ~dap-next~                     | Debug next                     |             |
-   | ~dap-continue~                 | Debug continue                 |             |
-   | ~dap-disconnect~               | Cancel current debug session   |             |
-   | ~dap-switch-stack-frame~       | Switch active stack frame      |             |
-   | ~dap-switch-thread~            | Switch active thread           |             |
-   | ~dap-run-last-configuration~   | Run previous configuration     |             |
-   | ~dap-debug-last-configuration~ | Debug previous configuration   |             |
+** Launching
+** Debugger commands
+   | Command                              | Description                        | Keybindings |
+   |--------------------------------------+------------------------------------+-------------|
+   | ~dap-toggle-breakpoint~              | Toggle java breakpoint at line     |             |
+   | ~dap-eval~                           | Eval string                        |             |
+   | ~dap-eval-region~                    | Eval region string                 |             |
+   | ~dap-eval-dwim~                      | Eval symbol at point               |             |
+   | ~dap-step-in~                        | Debug step in                      |             |
+   | ~dap-step-out~                       | Debug step out                     |             |
+   | ~dap-next~                           | Debug next                         |             |
+   | ~dap-continue~                       | Debug continue                     |             |
+   | ~dap-disconnect~                     | Cancel current debug session       |             |
+   | ~dap-switch-stack-frame~             | Switch active stack frame          |             |
+   | ~dap-switch-thread~ [WIP]            | Switch active thread               |             |
+   | ~dap-add-configuration~ [WIP]        | Add new debug/run configuration    |             |
+   | ~dap-run-select-configuration~ [WIP] | Select and run debug configuration |             |
+   | ~dap-debug-last-configuration~ [WIP] | Debug previous configuration       |             |
+   | ~dap-run-last-configuration~ [WIP]   | Run previous configuration         |             |
 ** Sessions
    | Command               | Description                 | Keybindings |
    |-----------------------+-----------------------------+-------------|
    | ~dap-ui-session-list~ | List current debug sessions |             |
-*** Sessions view
-    | Command                     | Description                                                 | Keybindings |
-    |-----------------------------+-------------------------------------------------------------+-------------|
-    | ~dap-ui-session-remove~     | Remove terminated session from the list of running sessions |             |
-    | ~dap-ui-session-disconnect~ | Terminate the session under cursor                          |             |
-    | ~dap-ui-session-select~     | Select object under point                                   | <return>    |
-
+*** Sessions view [WIP]
+    | Command                      | Description                                                 | Keybindings |
+    |------------------------------+-------------------------------------------------------------+-------------|
+    | ~dap-ui-session-remove~      | Remove terminated session from the list of running sessions |             |
+    | ~dap-ui-session-disconnect~  | Terminate the session under cursor                          |             |
+    | ~dap-ui-session-thread-stop~ | stop thread at point                                        |             |
+    | ~dap-ui-session-thread-kill~ | Kill thread at point                                        |             |
+    | ~dap-ui-session-select~      | Select object at point                                      | <return>    |
+    | ~dap-ui-session-toggle-node~ | Toggle node expand state                                    | <tab>       |
+    | ~dap-ui-session-eval~        | Eval statement in current context                           | e           |
 ** Breakpoints view
    | Command                   | Description                 | Keybindings |
    |---------------------------+-----------------------------+-------------|
    | ~dap-ui-breakpoints-list~ | List current debug sessions |             |
 
-** TODO Watches
-** TODO Value inspector
-** TODO Locals
+** Watches [WIP]
+** Value inspector [WIP]
+** Locals [WIP]
 * Language integrations
 ** Java
 *** Installation
@@ -72,10 +78,10 @@ cp ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.9.0/com
 *** Commands
     | Command                               | Description                        |
     |---------------------------------------+------------------------------------|
-    | ~dap-java-debug~                      | Debug Java                         |
+    | ~dap-java-debug~                      | Debug java                         |
     | ~dap-java-run~                        | Run Java debug process             |
     | ~dap-java-attach~                     | Attach to running java process     |
-** TODO Extending DAP with new Debug servers
+** Extending DAP with new Debug servers [WIP]
 * Links
   - [[https://github.com/emacs-lsp/lsp-java][LSP Java]]
   - [[https://github.com/Microsoft/vscode-debugadapter-node/wiki/VS-Code-Debug-Protocol-Implementations][Debug Adapter Protocol Server Implementations]]
