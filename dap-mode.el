@@ -86,6 +86,9 @@ The hook will be called with the session file and the new set of breakpoint loca
 
 (defvar dap--cur-session nil)
 
+(defmacro dap--put-if-absent (config key form)
+  `(plist-put ,config ,key (or (plist-get ,config ,key) ,form)))
+
 (defun dap--locate-workspace-file (workspace file-name)
   (f-join (lsp--workspace-root workspace) dap--breakpoints-file))
 
@@ -621,8 +624,10 @@ ADAPTER-ID the id of the adapter."
       error)))
 
 (defun dap-start-debugging (launch-args)
-  "ADAPTER-ID CREATE-SESSION LAUNCH-ARGS."
-  (let ((debug-session (dap--create-session launch-args))
+  "Start debug session with LAUNCH-ARGS."
+  (let ((debug-session (dap--create-session (plist-get launch-args :host)
+                                            (plist-get launch-args :debugServer)
+                                            (plist-get launch-args :name)))
         (workspace lsp--cur-workspace)
         (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
     (dap--send-message
