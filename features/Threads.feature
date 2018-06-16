@@ -1,5 +1,4 @@
-Feature: Sessions
-
+Feature: Threads
   Background:
     Given I have maven project "m" in "tmp"
     And I add project "m" folder "tmp" to the list of workspace folders
@@ -29,36 +28,35 @@ Feature: Sessions
     And The hook handler "breakpoint" would be called
     And the cursor should be before "System"
 
-
-  @ThreadsList
+  @Threads
   Scenario: Listing sessions
     When I call "dap-ui-list-sessions"
     Then I should be in buffer "*sessions*"
     Then I should see:
     """
-    [+] Default Debug
+    [+] temp.App (test-project) - Debug Launch
     """
 
-  @ThreadList
+  @Threads
   Scenario: Listing sessions - listing threads
     When I call "dap-ui-list-sessions"
     Then I should be in buffer "*sessions*"
     And I should see:
     """
-    [+] Default Debug
+    [+] temp.App (test-project) - Debug Launch
     """
     When I place the cursor before "Default"
     And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
     And I call "tree-mode-expand-level"
     Then I should see:
     """
-    [-] Default Debug
+    [-] temp.App (test-project) - Debug Launch
      ‘-Loading...
     """
     And The hook handler "threads-expanded" would be called
     Then I should see:
     """
-    [-] Default Debug
+    [-] temp.App (test-project) - Debug Launch
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
@@ -71,7 +69,7 @@ Feature: Sessions
     Then I should be in buffer "*sessions*"
     And I should see:
     """
-    [+] Default Debug
+    [+] temp.App (test-project) - Debug Launch
     """
     When I place the cursor before "Default"
     And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
@@ -79,7 +77,7 @@ Feature: Sessions
     And The hook handler "threads-expanded" would be called
     And I should see:
     """
-    [-] Default Debug
+    [-] temp.App (test-project) - Debug Launch
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
@@ -89,7 +87,7 @@ Feature: Sessions
     And I call "tree-mode-expand-level"
     And I should see:
     """
-    [-] Default Debug
+    [-] temp.App (test-project) - Debug Launch
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]

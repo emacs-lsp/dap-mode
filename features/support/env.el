@@ -12,6 +12,10 @@
   (defvar dap-java-root-path project-directory)
   (defvar dap-java-test-root (f-join temporary-file-directory "tests")))
 
+(defun dap-steps--wait-minibuffer()
+  (interactive)
+  (sit-for 1))
+
 (defvar dap-java-support-path
   (f-dirname load-file-name))
 

@@ -11,22 +11,29 @@
 **** TODO session deleted
 **** TODO Thread active
 **** TODO Stack frame active
-** TODO Switch frame
-*** TODO EVAL
-*** TODO Continue
+** DONE Switch frame
+   CLOSED: [2018-06-16 Sat 10:03]
+*** EVAL
+*** Continue
 ** TODO Persistence of debug configurations
 * Beakpoints
 ** DONE Visual indication
    CLOSED: [2018-06-10 Sun 11:55]
 ** DONE Enable/disable
    CLOSED: [2018-06-10 Sun 11:55]
-** TODO Persistence
+** DONE Persistence
+   CLOSED: [2018-06-16 Sat 09:56]
 ** TODO Session selection and breakpoints
+** TODO Persist breakpoints using marker indicator.
 * Stepping
-** TODO Visual indication
+** DONE Visual indication
+   CLOSED: [2018-06-16 Sat 09:57]
 ** TODO Invalidation
 ** TODO Multiple breakpoints hit
-** TODO Switching sessions/frames/threads
+** TODO Switching
+   - Frames [Done]
+   - Session
+   - Threads
 * Breakpoints list
 ** TODO implementation
 * Inspect variable/value
@@ -37,3 +44,6 @@
 * Java
 ** TODO Build before runnning
 ** TODO Launch attach
+* General
+** TODO Error handlers
+** TODO Request timeouts

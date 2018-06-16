@@ -151,7 +151,8 @@ This is in contrast to merely setting it to 0."
   ;; one of 'started
   (state 'pending)
   (breakpoints nil)
-  (thread-stack-frames (make-hash-table :test 'eql) :read-only t))
+  (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
+  (launch-args nil))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -332,11 +333,11 @@ This is in contrast to merely setting it to 0."
          (json-false nil))
     (json-read-from-string str)))
 
-;;;###autoload
 
 (defun dap--resume-application (debug-session)
   (run-hook-with-args 'dap-continue-hook debug-session))
 
+;;;###autoload
 (defun dap-continue ()
   "Call continue for the currently active session and thread."
   (interactive)
@@ -401,8 +402,22 @@ This is in contrast to merely setting it to 0."
     (forward-char (gethash "column" stack-frame))
     (run-hook-with-args 'dap-stack-frame-changed-hook debug-session)))
 
+(defun dap--select-thread-id (debug-session thread-id)
+  "Make the thread with id=THREAD-ID the active thread for DEBUG-SESSION."
+  (setf (dap--debug-session-thread-id dap--cur-session) thread-id)
+  (dap--send-message
+   (dap--make-request "stackTrace" (list :threadId thread-id))
+   (lambda (stack-frames)
+     (puthash thread-id
+              (gethash "stackFrames" (gethash "body" stack-frames))
+              (dap--debug-session-thread-stack-frames debug-session))
+     (let ((stack-frame (car (gethash "stackFrames" (gethash "body" stack-frames)))))
+       (dap--go-to-stack-frame stack-frame debug-session)))
+   debug-session)
+  (run-hook-with-args 'dap-stopped-hook debug-session))
+
 (defun dap--on-event (debug-session event)
-  "TODO DEBUG-SESSION EVENT."
+  "Dispatch EVENT for DEBUG-SESSION."
   (let ((event-type (gethash "event" event)))
     (pcase event-type
       ("output" (with-current-buffer (dap--debug-session-output-buffer debug-session)
@@ -415,19 +430,8 @@ This is in contrast to merely setting it to 0."
                   ))
       ("stopped"
        (-let [(&hash "body" (&hash "threadId" thread-id "type" reason)) event]
-         (setf (dap--debug-session-thread-id dap--cur-session) thread-id)
          (puthash thread-id reason (dap--debug-session-thread-states debug-session))
-         (dap--send-message
-          (dap--make-request "stackTrace" (list :threadId thread-id))
-          (lambda (stack-frames)
-            (puthash thread-id
-                     (gethash "stackFrames" (gethash "body" stack-frames))
-                     (dap--debug-session-thread-stack-frames debug-session))
-            (let ((stack-frame (car (gethash "stackFrames" (gethash "body" stack-frames)))))
-              (dap--go-to-stack-frame stack-frame debug-session)))
-          debug-session)
-         (run-hook-with-args 'dap-stopped-hook debug-session)))
-
+         (dap--select-thread-id debug-session thread-id)))
       ("terminated"
        (setf (dap--debug-session-state debug-session) 'terminated)
        (run-hook-with-args 'dap-terminated-hook debug-session))
@@ -651,6 +655,7 @@ ADAPTER-ID the id of the adapter."
     (setq dap--cur-session debug-session)))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
+  "Establish markers"
   (-when-let (buffer (get-file-buffer file))
     (with-current-buffer buffer
       (mapc (lambda (bkp)
@@ -687,6 +692,24 @@ ADAPTER-ID the id of the adapter."
   :group 'dap-mode
   :global t
   (add-hook 'lsp-after-initialize-hook 'dap--after-initialize))
+
+(defun dap-switch-thread ()
+  "Switch current thread."
+  (interactive)
+  (let ((debug-session dap--cur-session))
+    (dap--send-message
+     (dap--make-request "threads")
+     (lambda (threads-resp)
+       (let ((threads (gethash "threads" (gethash "body" threads-resp))))
+         (setf (dap--debug-session-threads debug-session) threads)
+         (-let [(&hash "id" thread-id) (dap--completing-read
+                                        "Select active thread: "
+                                        threads
+                                        (lambda (thread)
+                                          (gethash "name" thread)))]
+
+           (dap--select-thread-id debug-session thread-id))))
+     debug-session)))
 
 (defun dap-turn-on-dap-mode ()
   "docstring"
