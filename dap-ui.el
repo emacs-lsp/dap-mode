@@ -143,7 +143,9 @@ SESSION-TREE will be the root of the threads(session holder)."
            (setf (dap--debug-session-threads debug-session) threads)
 
            (tree-mode-reflesh-tree session-tree)
-           (run-hook-with-args 'dap-ui-stack-frames-loaded debug-session threads)))
+           (run-hook-with-args 'dap-ui-stack-frames-loaded
+                               debug-session
+                               threads)))
        debug-session)
       dap-ui--loading-tree-widget)))
 
@@ -169,6 +171,7 @@ SESSION-TREE will be the root of the threads(session holder)."
     (pop-to-buffer buf)))
 
 (defun dap--internalize-offset (offset)
+
   (if (eq 1 (coding-system-eol-type buffer-file-coding-system))
       (save-excursion
         (save-restriction
@@ -264,12 +267,11 @@ any buffer visiting the given file."
   (mapc #'delete-overlay dap-ui--breakpoint-overlays)
   (setq dap-ui--breakpoint-overlays '()))
 
-(defun dap-ui--breakpoints-changed (debug-session file-name breakpoints)
+(defun dap-ui--breakpoints-changed (_debug-session file-name breakpoints)
   "Handler for breakpoints changed.
 
 FILE-NAME the name in which the breakpoints has changed.
-BREAKPOINTS list of the active breakpoints.
-DEBUG-SESSION the debug session containing the breakpoints."
+BREAKPOINTS list of the active breakpoints. "
 
   (dap-ui--refresh-breakpoints file-name breakpoints))
 
@@ -340,7 +342,9 @@ DEBUG-SESSION is the debug session triggering the event."
     (goto-char (point-min))
     (forward-line (1- line))
     (forward-char column)
-    (dap-ui--set-debug-marker debug-session path (point))))
+    (dap-ui--set-debug-marker debug-session
+                              (lsp--uri-to-path path)
+                              (point))))
 
 ;;;###autoload
 (define-minor-mode dap-ui-mode

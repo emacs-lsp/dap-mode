@@ -430,7 +430,6 @@ WORKSPACE will be used to calculate root folder."
   (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
     (when stack-frame
       (find-file (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame))))
-      ;; (switch-to-buffer (current-buffer))
       (setf (dap--debug-session-active-frame debug-session) stack-frame)
 
       (goto-char (point-min))
