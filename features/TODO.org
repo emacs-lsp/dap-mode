@@ -15,6 +15,9 @@
 *** Continue
 ** TODO Persistence of debug configurations
 ** TODO Terminate to kill the tcp process.
+** TODO Run in terminal
+** TODO Run no debug.
+** TODO Attach.
 * Beakpoints
 ** DONE Visual indication
    CLOSED: [2018-06-10 Sun 11:55]
@@ -43,7 +46,6 @@
 ** TODO More ...
 * Java
 ** TODO Build before runnning
-** TODO Launch attach
 * General
 ** TODO Error handlers
 ** TODO Request timeouts

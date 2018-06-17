@@ -86,15 +86,32 @@ The hook will be called with the session file and the new set of breakpoint loca
 
 (defvar dap--cur-session nil)
 
+(defun dap--cur-session ()
+  "Get currently active `dap--debug-session'."
+  (when lsp--cur-workspace
+    (lsp-workspace-get-metadata "default-session" lsp--cur-workspace)))
+
+(defun dap--set-cur-session (debug-session)
+  "Change the active debug session to DEBUG-SESSION."
+  (lsp-workspace-set-metadata "default-session" debug-session lsp--cur-workspace))
+
 (defmacro dap--put-if-absent (config key form)
+  "Update KEY to FORM if KEY does not exist in plist CONFIG."
   `(plist-put ,config ,key (or (plist-get ,config ,key) ,form)))
 
 (defun dap--locate-workspace-file (workspace file-name)
-  (f-join (lsp--workspace-root workspace) dap--breakpoints-file))
+  "Locate FILE-NAME with relatively to WORKSPACE root dir."
+  (f-join (lsp--workspace-root workspace) file-name))
 
 (defun dap--completing-read (prompt collection transform-fn &optional predicate
                                     require-match initial-input
                                     hist def inherit-input-method)
+  "Wrap `completing-read' to provide tranformation function.
+
+TRANSFORM-FN will be used to transform each of the items before displaying.
+
+PROMPT COLLECTION PREDICATE REQUIRE-MATCH INITIAL-INPUT HIST DEF
+INHERIT-INPUT-METHOD will be proxied to `completing-read' without changes."
   (let ((result (--map (cons (funcall transform-fn it) it) collection)))
     (cdr (assoc (completing-read prompt result
                                  predicate require-match initial-input hist
@@ -198,10 +215,14 @@ This is in contrast to merely setting it to 0."
         (lsp-workspace-set-metadata "Breakpoints" it)
         it)))
 
-(defun dap--persist (workspace to-persist)
+(defun dap--persist (workspace file-name to-persist)
+  "Persist TO-PERSIST.
+
+FILE-NAME the file name.
+WORKSPACE will be used to calculate root folder."
   (with-demoted-errors
-      "Failed to persist breakpoints: %S"
-    (with-temp-file (dap--locate-workspace-file workspace dap--breakpoints-file)
+      "Failed to persist file: %S"
+    (with-temp-file (dap--locate-workspace-file workspace file-name)
       (erase-buffer)
       (insert (prin1-to-string to-persist)))))
 
@@ -232,7 +253,7 @@ This is in contrast to merely setting it to 0."
 
 
     (run-hook-with-args 'dap-breakpoints-changed-hook
-                        dap--cur-session
+                        (dap--cur-session)
                         file-name
                         updated-file-breakpoints)
 
@@ -257,7 +278,7 @@ This is in contrast to merely setting it to 0."
       (maphash (lambda (k v)
                  (puthash k (--map (dap--plist-delete it :marker) v) filtered-breakpoints))
                breakpoints)
-      (dap--persist lsp--cur-workspace filtered-breakpoints))))
+      (dap--persist lsp--cur-workspace dap--breakpoints-file filtered-breakpoints))))
 
 (defun dap--get-body-length (headers)
   "Get body length from HEADERS."
@@ -335,84 +356,85 @@ This is in contrast to merely setting it to 0."
 
 
 (defun dap--resume-application (debug-session)
+  "Resume DEBUG-SESSION."
   (run-hook-with-args 'dap-continue-hook debug-session))
 
 ;;;###autoload
 (defun dap-continue ()
   "Call continue for the currently active session and thread."
   (interactive)
-  (dap--resume-application dap--cur-session)
+  (dap--resume-application (dap--cur-session))
   (dap--send-message (dap--make-request
                       "continue"
-                      (list :threadId (dap--debug-session-thread-id dap--cur-session)))
-                     (lambda (resp))
-                     dap--cur-session))
+                      (list :threadId (dap--debug-session-thread-id (dap--cur-session))))
+                     (lambda (_resp))
+                     (dap--cur-session)))
 
 ;;;###autoload
 (defun dap-disconnect ()
   "Disconnect from the currently active session."
   (interactive)
-  (dap--resume-application dap--cur-session)
+  (dap--resume-application (dap--cur-session))
   (dap--send-message (dap--make-request "disconnect" (list :restart :json-false))
-                     (lambda (resp))
-                     dap--cur-session))
+                     (lambda (_resp))
+                     (dap--cur-session)))
 
 ;;;###autoload
 (defun dap-next ()
   "Debug next."
   (interactive)
-  (dap--resume-application dap--cur-session)
+  (dap--resume-application (dap--cur-session))
   (dap--send-message (dap--make-request
                       "next"
-                      (list :threadId (dap--debug-session-thread-id dap--cur-session)))
-                     (lambda (resp))
-                     dap--cur-session))
+                      (list :threadId (dap--debug-session-thread-id (dap--cur-session))))
+                     (lambda (_resp))
+                     (dap--cur-session)))
 
 ;;;###autoload
 (defun dap-step-in ()
   "Debug step in."
   (interactive)
-  (dap--resume-application dap--cur-session)
+  (dap--resume-application (dap--cur-session))
   (dap--send-message (dap--make-request
                       "stepIn"
-                      (list :threadId (dap--debug-session-thread-id dap--cur-session)))
-                     (lambda (resp))
-                     dap--cur-session))
+                      (list :threadId (dap--debug-session-thread-id (dap--cur-session))))
+                     (lambda (_resp))
+                     (dap--cur-session)))
 
 ;;;###autoload
 (defun dap-step-out ()
   "Debug step in."
   (interactive)
-  (dap--resume-application dap--cur-session)
+  (dap--resume-application (dap--cur-session))
   (dap--send-message (dap--make-request
                       "stepOut"
-                      (list :threadId (dap--debug-session-thread-id dap--cur-session)))
-                     (lambda (resp))
-                     dap--cur-session))
+                      (list :threadId (dap--debug-session-thread-id (dap--cur-session))))
+                     (lambda (_resp))
+                     (dap--cur-session)))
 
 (defun dap--go-to-stack-frame (stack-frame debug-session)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
   (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
-    (find-file (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame))))
-    ;; (switch-to-buffer (current-buffer))
-    (setf (dap--debug-session-active-frame debug-session) stack-frame)
+    (when stack-frame
+      (find-file (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame))))
+      ;; (switch-to-buffer (current-buffer))
+      (setf (dap--debug-session-active-frame debug-session) stack-frame)
 
-    (goto-char (point-min))
-    (forward-line (1- (gethash "line" stack-frame)))
-    (forward-char (gethash "column" stack-frame))
+      (goto-char (point-min))
+      (forward-line (1- (gethash "line" stack-frame)))
+      (forward-char (gethash "column" stack-frame)))
     (run-hook-with-args 'dap-stack-frame-changed-hook debug-session)))
 
 (defun dap--select-thread-id (debug-session thread-id)
   "Make the thread with id=THREAD-ID the active thread for DEBUG-SESSION."
-  (setf (dap--debug-session-thread-id dap--cur-session) thread-id)
+  (setf (dap--debug-session-thread-id (dap--cur-session)) thread-id)
   (dap--send-message
    (dap--make-request "stackTrace" (list :threadId thread-id))
-   (lambda (stack-frames)
+   (-lambda ((&hash "body" (&hash "stackFrames" stack-frames)))
      (puthash thread-id
-              (gethash "stackFrames" (gethash "body" stack-frames))
+              stack-frames
               (dap--debug-session-thread-stack-frames debug-session))
-     (let ((stack-frame (car (gethash "stackFrames" (gethash "body" stack-frames)))))
-       (dap--go-to-stack-frame stack-frame debug-session)))
+     (dap--go-to-stack-frame (car stack-frames) debug-session))
    debug-session)
   (run-hook-with-args 'dap-stopped-hook debug-session))
 
@@ -434,6 +456,7 @@ This is in contrast to merely setting it to 0."
          (dap--select-thread-id debug-session thread-id)))
       ("terminated"
        (setf (dap--debug-session-state debug-session) 'terminated)
+       (kill-process (dap--debug-session-proc debug-session))
        (run-hook-with-args 'dap-terminated-hook debug-session))
       (_ (message (format "No messages handler for %s" event-type))))))
 
@@ -492,13 +515,15 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--send-message (message callback debug-session)
   "MESSAGE DEBUG-SESSION CALLBACK."
-  (let* ((request-id (cl-incf (dap--debug-session-last-id debug-session)))
-         (message (plist-put message :seq request-id)))
-    (puthash request-id callback (dap--debug-session-response-handlers debug-session))
-    (when dap-print-io
-      (message "Sending: \n%s" (dap--json-encode message)))
-    (process-send-string (dap--debug-session-proc debug-session)
-                         (dap--make-message message))))
+  (if (not (eq 'terminated (dap--debug-session-state debug-session)))
+      (let* ((request-id (cl-incf (dap--debug-session-last-id debug-session)))
+             (message (plist-put message :seq request-id)))
+        (puthash request-id callback (dap--debug-session-response-handlers debug-session))
+        (when dap-print-io
+          (message "Sending: \n%s" (dap--json-encode message)))
+        (process-send-string (dap--debug-session-proc debug-session)
+                             (dap--make-message message)))
+    (error "Session %s is already terminated" (dap--debug-session-name debug-session))))
 
 (defun dap--create-session (launch-args)
   "Create debug session from LAUNCH-ARGS."
@@ -579,12 +604,12 @@ ADAPTER-ID the id of the adapter."
   (dap--send-message (dap--make-request
                       "evaluate"
                       (list :expression expression
-                            :frameId (gethash "id" (dap--debug-session-active-frame dap--cur-session))))
+                            :frameId (gethash "id" (dap--debug-session-active-frame (dap--cur-session)))))
                      (lambda (result)
                        (if (gethash "success" result)
                            (message "=> %s" (gethash "result" (gethash "body" result)))
                          (message (gethash "message" result))))
-                     dap--cur-session))
+                     (dap--cur-session)))
 
 (defun dap-eval-dwim ()
   "Eval and print EXPRESSION."
@@ -600,33 +625,33 @@ ADAPTER-ID the id of the adapter."
 (defun dap--active-get-breakpoints ()
   "Get breakpoints either from debug session or from workspace in case the debug session is not present."
   (gethash buffer-file-name
-           (if  (or (not dap--cur-session)
-                    (eq 'terminated (dap--debug-session-state dap--cur-session)))
+           (if  (or (not (dap--cur-session))
+                    (eq 'terminated (dap--debug-session-state (dap--cur-session))))
                (dap--get-breakpoints lsp--cur-workspace)
-             (dap--debug-session-session-breakpoints dap--cur-session))
+             (dap--debug-session-session-breakpoints (dap--cur-session)))
            nil))
 
 (defun dap-switch-stack-frame ()
   "Switch stackframe by selecting another stackframe stackframes from current thread."
   (interactive)
 
-  (when (not dap--cur-session)
+  (when (not (dap--cur-session))
     (error "There is no active session"))
 
-  (-if-let (thread-id (dap--debug-session-thread-id dap--cur-session))
+  (-if-let (thread-id (dap--debug-session-thread-id (dap--cur-session)))
       (-if-let (stack-frames (gethash thread-id
-                                      (dap--debug-session-thread-stack-frames dap--cur-session)))
+                                      (dap--debug-session-thread-stack-frames (dap--cur-session))))
           (let ((new-stack-frame (dap--completing-read "Select active frame: "
                                                        stack-frames
                                                        (lambda (it) (gethash "name" it))
                                                        nil
                                                        t)))
-            (dap--go-to-stack-frame new-stack-frame dap--cur-session))
-        (thread-last dap--cur-session
+            (dap--go-to-stack-frame new-stack-frame (dap--cur-session)))
+        (thread-last (dap--cur-session)
           dap--debug-session-name
           (format "Current session %s is not stopped")
           error))
-    (thread-last dap--cur-session
+    (thread-last (dap--cur-session)
       dap--debug-session-name
       (format "Current session %s is not stopped")
       error)))
@@ -652,10 +677,10 @@ ADAPTER-ID the id of the adapter."
                                           debug-session))
         debug-session))
      debug-session)
-    (setq dap--cur-session debug-session)))
+    (dap--set-cur-session debug-session)))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
-  "Establish markers"
+  "Establish markers for FILE-BREAKPOINTS in FILE."
   (-when-let (buffer (get-file-buffer file))
     (with-current-buffer buffer
       (mapc (lambda (bkp)
@@ -669,6 +694,7 @@ ADAPTER-ID the id of the adapter."
                           file-breakpoints))))
 
 (defun dap--after-initialize ()
+  "After initialize handler."
   (with-demoted-errors
       "Failed to load breakpoints for the current workspace with error: %S"
     (let ((breakpoints-file (dap--locate-workspace-file lsp--cur-workspace
@@ -686,32 +712,38 @@ ADAPTER-ID the id of the adapter."
                                       breakpoints
                                       workspace))))))
 
+(defun dap-mode-line ()
+  "Calculate DAP modeline."
+  (-when-let (debug-session (dap--cur-session))
+    (format "%s(%s)"
+            (process-name (dap--debug-session-proc debug-session))
+            (dap--debug-session-state debug-session))))
+
 (define-minor-mode dap-mode
   "Global minor mode for DAP mode."
   :init-value nil
   :group 'dap-mode
   :global t
+  :lighter (:eval (dap-mode-line))
   (add-hook 'lsp-after-initialize-hook 'dap--after-initialize))
 
 (defun dap-switch-thread ()
   "Switch current thread."
   (interactive)
-  (let ((debug-session dap--cur-session))
+  (let ((debug-session (dap--cur-session)))
     (dap--send-message
      (dap--make-request "threads")
-     (lambda (threads-resp)
-       (let ((threads (gethash "threads" (gethash "body" threads-resp))))
-         (setf (dap--debug-session-threads debug-session) threads)
-         (-let [(&hash "id" thread-id) (dap--completing-read
-                                        "Select active thread: "
-                                        threads
-                                        (lambda (thread)
-                                          (gethash "name" thread)))]
-           (dap--select-thread-id debug-session thread-id))))
+     (-lambda ((&hash "body" (&hash "threads" threads)))
+       (setf (dap--debug-session-threads debug-session) threads)
+       (-let [(&hash "id" thread-id) (dap--completing-read
+                                      "Select active thread: "
+                                      threads
+                                      (apply-partially 'gethash "name"))]
+         (dap--select-thread-id debug-session thread-id)))
      debug-session)))
 
 (defun dap-turn-on-dap-mode ()
-  "docstring"
+  "Turn on `dap-mode'."
   (interactive)
   (dap-mode t))
 

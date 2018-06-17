@@ -149,7 +149,7 @@ SESSION-TREE will be the root of the threads(session holder)."
   "Show currently active sessions and it's threads."
   (interactive)
   (lsp--cur-workspace-check)
-  (let ((sessions (lsp-workspace-get-metadata "debug-sessions"))
+  (let ((sessions (reverse (lsp-workspace-get-metadata "debug-sessions")))
         (buf (get-buffer-create "*sessions*")))
     (with-current-buffer buf
       (erase-buffer)
@@ -157,7 +157,7 @@ SESSION-TREE will be the root of the threads(session holder)."
        (lambda (session)
          (widget-create
           `(tree-widget
-            :node (push-button :format "%[%t%]\n" :tag ,(dap--debug-session-name session))
+            :node (push-button :format "%[%t%]\n" :tag ,(process-name (dap--debug-session-proc session)))
             :open nil
             :session ,session
             :dynargs dap-ui--load-threads)))
@@ -349,12 +349,12 @@ DEBUG-SESSION is the debug session triggering the event."
     (add-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (add-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
     (when-let (breakpoints (dap--active-get-breakpoints))
-      (dap-ui--breakpoints-changed dap--cur-session buffer-file-name breakpoints))
+      (dap-ui--breakpoints-changed (dap--cur-session) buffer-file-name breakpoints))
 
-    (when dap--cur-session
-      (-let [(&hash "source" (&hash "path" path)) (dap--debug-session-active-frame dap--cur-session)]
+    (when (dap--cur-session)
+      (-let [(&hash "source" (&hash "path" path)) (dap--debug-session-active-frame (dap--cur-session))]
         (when (string= buffer-file-name path)
-          (dap-ui--stack-frame-changed dap--cur-session)))))
+          (dap-ui--stack-frame-changed (dap--cur-session))))))
    (t
     (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
     (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)

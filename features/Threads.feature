@@ -34,7 +34,7 @@ Feature: Threads
     Then I should be in buffer "*sessions*"
     Then I should see:
     """
-    [+] temp.App (test-project) - Debug Launch
+    [+] temp.App (test-project)
     """
 
   @Threads
@@ -43,20 +43,20 @@ Feature: Threads
     Then I should be in buffer "*sessions*"
     And I should see:
     """
-    [+] temp.App (test-project) - Debug Launch
+    [+] temp.App (test-project)
     """
     When I place the cursor before "temp"
     And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
     And I call "tree-mode-expand-level"
     Then I should see:
     """
-    [-] temp.App (test-project) - Debug Launch
+    [-] temp.App (test-project)
      ‘-Loading...
     """
     And The hook handler "threads-expanded" would be called
     Then I should see:
     """
-    [-] temp.App (test-project) - Debug Launch
+    [-] temp.App (test-project)
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
@@ -69,7 +69,7 @@ Feature: Threads
     Then I should be in buffer "*sessions*"
     And I should see:
     """
-    [+] temp.App (test-project) - Debug Launch
+    [+] temp.App (test-project)
     """
     When I place the cursor before "temp"
     And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
@@ -77,7 +77,7 @@ Feature: Threads
     And The hook handler "threads-expanded" would be called
     And I should see:
     """
-    [-] temp.App (test-project) - Debug Launch
+    [-] temp.App (test-project)
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
@@ -87,7 +87,7 @@ Feature: Threads
     And I call "tree-mode-expand-level"
     And I should see:
     """
-    [-] temp.App (test-project) - Debug Launch
+    [-] temp.App (test-project)
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]

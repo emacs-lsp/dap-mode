@@ -62,7 +62,7 @@
                         (second
                          (lsp-send-execute-command "vscode.java.resolveClasspath"
                                                    (list main-class project-name))))
-    (dap--put-if-absent conf :name (format "%s (%s) - Debug Launch"
+    (dap--put-if-absent conf :name (format "%s (%s)"
                                            (plist-get conf :mainClass)
                                            (plist-get conf :projectName)))
 
