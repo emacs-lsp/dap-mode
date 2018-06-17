@@ -30,7 +30,8 @@
    | ~dap-continue~                       | Debug continue                     |             |
    | ~dap-disconnect~                     | Cancel current debug session       |             |
    | ~dap-switch-stack-frame~             | Switch active stack frame          |             |
-   | ~dap-switch-thread~ [WIP]            | Switch active thread               |             |
+   | ~dap-switch-thread~                  | Switch active thread               |             |
+   | ~dap-switch-session~                 | Switch active session              |             |
    | ~dap-add-configuration~ [WIP]        | Add new debug/run configuration    |             |
    | ~dap-run-select-configuration~ [WIP] | Select and run debug configuration |             |
    | ~dap-debug-last-configuration~ [WIP] | Debug previous configuration       |             |

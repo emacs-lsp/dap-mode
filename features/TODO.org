@@ -1,5 +1,3 @@
-* Locals
-** TODO full implementation
 * Sessions
 ** TODO Switch session
 *** TODO EVAL
@@ -27,6 +25,9 @@
    CLOSED: [2018-06-16 Sat 09:56]
 ** TODO Session selection and breakpoints
 ** TODO Persist breakpoints using marker indicator.
+** TODO Breakpoint conditions
+** TODO Breakpoints hit count
+** TODO Exception breakpoints.
 * Stepping
 ** DONE Visual indication
    CLOSED: [2018-06-16 Sat 09:57]
@@ -49,5 +50,8 @@
 * General
 ** TODO Error handlers
 ** TODO Request timeouts
+** TODO Checking server supports the call.
 * Watches
+** TODO full implementation
+* Locals
 ** TODO full implementation

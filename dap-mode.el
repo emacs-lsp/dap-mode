@@ -91,6 +91,15 @@ The hook will be called with the session file and the new set of breakpoint loca
   (when lsp--cur-workspace
     (lsp-workspace-get-metadata "default-session" lsp--cur-workspace)))
 
+(defun dap--cur-session-or-die ()
+  "Get currently active `dap--debug-session' or die."
+  (or (dap--cur-session) (error "No active current session")))
+
+(defun dap-breakpoint-get-point (breakpoint)
+  "Get position of BREAKPOINT."
+  (or (marker-position (plist-get breakpoint :marker))
+      (plist-get breakpoint :point)))
+
 (defun dap--set-cur-session (debug-session)
   "Change the active debug session to DEBUG-SESSION."
   (lsp-workspace-set-metadata "default-session" debug-session lsp--cur-workspace))
@@ -226,6 +235,10 @@ WORKSPACE will be used to calculate root folder."
       (erase-buffer)
       (insert (prin1-to-string to-persist)))))
 
+(defun dap--get-sessions (workspace)
+  "Get sessions for WORKSPACE."
+  (lsp-workspace-get-metadata "debug-sessions" workspace))
+
 (defun dap-toggle-breakpoint ()
   "Toggle breakpoint on the current line."
   (interactive)
@@ -272,7 +285,7 @@ WORKSPACE will be used to calculate root folder."
                                  debug-session))
             (--remove
              (eq 'terminated (dap--debug-session-state it))
-             (lsp-workspace-get-metadata "debug-sessions" lsp--cur-workspace))))
+             (dap--get-sessions lsp--cur-workspace))))
     ;; filter markers before persisting the breakpoints (they are not writeable)
     (-let [filtered-breakpoints (make-hash-table :test 'equal)]
       (maphash (lambda (k v)
@@ -456,7 +469,7 @@ WORKSPACE will be used to calculate root folder."
          (dap--select-thread-id debug-session thread-id)))
       ("terminated"
        (setf (dap--debug-session-state debug-session) 'terminated)
-       (kill-process (dap--debug-session-proc debug-session))
+       (delete-process (dap--debug-session-proc debug-session))
        (run-hook-with-args 'dap-terminated-hook debug-session))
       (_ (message (format "No messages handler for %s" event-type))))))
 
@@ -715,7 +728,7 @@ ADAPTER-ID the id of the adapter."
 (defun dap-mode-line ()
   "Calculate DAP modeline."
   (-when-let (debug-session (dap--cur-session))
-    (format "%s(%s)"
+    (format "%s - %s::"
             (process-name (dap--debug-session-proc debug-session))
             (dap--debug-session-state debug-session))))
 
@@ -741,6 +754,29 @@ ADAPTER-ID the id of the adapter."
                                       (apply-partially 'gethash "name"))]
          (dap--select-thread-id debug-session thread-id)))
      debug-session)))
+
+(defun dap--switch-to-session (new-session)
+  "Make NEW-SESSION the active debug session."
+  (dap--set-cur-session new-session))
+
+(defun dap-switch-session ()
+  "Switch current session interactively."
+  (interactive)
+  (lsp--cur-workspace-check)
+  (let* ((current-session (dap--cur-session))
+         (target-debug-sessions (reverse
+                                 (--remove
+                                  (or (eq 'terminated (dap--debug-session-state it))
+                                      (eq it current-session))
+                                  (dap--get-sessions lsp--cur-workspace)))))
+    (case (length target-debug-sessions)
+      (0 (error "No active session to switch to"))
+      (1 (dap--switch-to-session (first target-debug-sessions)))
+      (t (dap--switch-to-session
+          (dap--completing-read "Select session: "
+                                target-debug-sessions
+                                (lambda (session)
+                                  (process-name (dap--debug-session-proc session)))))))))
 
 (defun dap-turn-on-dap-mode ()
   "Turn on `dap-mode'."

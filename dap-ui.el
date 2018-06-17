@@ -92,6 +92,8 @@ THREAD-TREE will be widget element holding thread info."
                                 :format "%[%t%]\n"
                                 :stack-frame ,stack-frame
                                 :session ,session
+                                :element-type :stack-frame
+                                :thread ,session
                                 :dynargs dap-ui--stack-frames
                                 :open nil))
                 stack-frames)
@@ -130,6 +132,7 @@ SESSION-TREE will be the root of the threads(session holder)."
                       :thread ,thread
                       :session ,debug-session
                       :dynargs dap-ui--stack-frames
+                      :element-type :thread
                       :open nil)))
                 threads)
       (dap--send-message
@@ -157,7 +160,8 @@ SESSION-TREE will be the root of the threads(session holder)."
        (lambda (session)
          (widget-create
           `(tree-widget
-            :node (push-button :format "%[%t%]\n" :tag ,(process-name (dap--debug-session-proc session)))
+            :node (push-button :format "%[%t%]\n"
+                               :tag ,(process-name (dap--debug-session-proc session)))
             :open nil
             :session ,session
             :dynargs dap-ui--load-threads)))
@@ -261,7 +265,12 @@ any buffer visiting the given file."
   (setq dap-ui--breakpoint-overlays '()))
 
 (defun dap-ui--breakpoints-changed (debug-session file-name breakpoints)
-  "TODO DEBUG-SESSION FILE-NAME BREAKPOINTS."
+  "Handler for breakpoints changed.
+
+FILE-NAME the name in which the breakpoints has changed.
+BREAKPOINTS list of the active breakpoints.
+DEBUG-SESSION the debug session containing the breakpoints."
+
   (dap-ui--refresh-breakpoints file-name breakpoints))
 
 (defun dap-ui--breakpoint-visuals (breakpoint)
@@ -277,10 +286,6 @@ any buffer visiting the given file."
           :char "."
           :bitmap 'breakpoint
           :fringe 'breakpoint-disabled))))
-
-(defun dap-breakpoint-get-point (breakpoint)
-  (or (marker-position (plist-get breakpoint :marker))
-      (plist-get breakpoint :point)))
 
 (defun dap-ui--refresh-breakpoints (file bps)
   "Refresh all breakpoints in FILE.

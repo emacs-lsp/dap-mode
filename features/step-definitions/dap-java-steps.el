@@ -98,7 +98,9 @@
 (When "^I invoke \"\\([^\"]+\\)\" I should see error message \"\\([^\"]+\\)\"$"
   (lambda (command message)
     (condition-case err
-        (funcall (intern command))
+        (progn
+          (funcall (intern command))
+          (cl-assert nil t (format "Command %s should have failed." command)))
       (error (cl-assert (string= message (error-message-string err)) t (error-message-string err))))))
 
 (Then "^I should see buffer \"\\([^\"]+\\)\" with content \"\\([^\"]+\\)\"$"
