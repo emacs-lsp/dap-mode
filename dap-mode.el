@@ -707,7 +707,6 @@ ADAPTER-ID the id of the adapter."
                                         threads
                                         (lambda (thread)
                                           (gethash "name" thread)))]
-
            (dap--select-thread-id debug-session thread-id))))
      debug-session)))
 

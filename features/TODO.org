@@ -1,5 +1,3 @@
-* Watches
-** TODO full implementation
 * Locals
 ** TODO full implementation
 * Sessions
@@ -16,6 +14,7 @@
 *** EVAL
 *** Continue
 ** TODO Persistence of debug configurations
+** TODO Terminate to kill the tcp process.
 * Beakpoints
 ** DONE Visual indication
    CLOSED: [2018-06-10 Sun 11:55]
@@ -29,11 +28,12 @@
 ** DONE Visual indication
    CLOSED: [2018-06-16 Sat 09:57]
 ** TODO Invalidation
-** TODO Multiple breakpoints hit
+** DONE Multiple breakpoints hit
+   CLOSED: [2018-06-16 Sat 23:56]
 ** TODO Switching
    - Frames [Done]
    - Session
-   - Threads
+   - Threads [Done]
 * Breakpoints list
 ** TODO implementation
 * Inspect variable/value
@@ -47,3 +47,5 @@
 * General
 ** TODO Error handlers
 ** TODO Request timeouts
+* Watches
+** TODO full implementation

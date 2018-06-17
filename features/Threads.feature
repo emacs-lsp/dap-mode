@@ -45,7 +45,7 @@ Feature: Threads
     """
     [+] temp.App (test-project) - Debug Launch
     """
-    When I place the cursor before "Default"
+    When I place the cursor before "temp"
     And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
     And I call "tree-mode-expand-level"
     Then I should see:
@@ -71,7 +71,7 @@ Feature: Threads
     """
     [+] temp.App (test-project) - Debug Launch
     """
-    When I place the cursor before "Default"
+    When I place the cursor before "temp"
     And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
     And I call "tree-mode-expand-level"
     And The hook handler "threads-expanded" would be called
@@ -81,7 +81,7 @@ Feature: Threads
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
-     ‘-[+] Thread [main] (Stopped)
+     ‘-[+] Thread [main] (stopped)
     """
     When I place the cursor before "main"
     And I call "tree-mode-expand-level"
@@ -91,7 +91,7 @@ Feature: Threads
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
-     ‘-[-] Thread [main]
+     ‘-[-] Thread [main] (stopped)
         |-App.foo()
         ‘-App.main(String[])
     """
