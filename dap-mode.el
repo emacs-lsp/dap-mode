@@ -21,7 +21,7 @@
 ;;; Commentary:
 ;; Author: Ivan <kyoncho@myoncho>
 ;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((Emacs "25.1"))
+;; Package-Requires: ((emacs "25.1"))
 ;; Version: 0.1
 
 ;; Debug Adapter Protocol
@@ -583,7 +583,9 @@ ADAPTER-ID the id of the adapter."
              file-breakpoints
              server-breakpoints))
 
-  (puthash file-name file-breakpoints (dap--debug-session-session-breakpoints debug-session))
+  (puthash file-name
+           file-breakpoints
+           (dap--debug-session-session-breakpoints debug-session))
 
   (run-hook-with-args 'dap-breakpoints-changed-hook
                       debug-session
@@ -718,7 +720,7 @@ ADAPTER-ID the id of the adapter."
                              (first (read-from-string
                                      (buffer-substring-no-properties (point-min) (point-max)))))]
           (maphash (lambda (file file-breakpoints)
-                     (dap--set-breakpoints-in-file  file file-breakpoints))
+                     (dap--set-breakpoints-in-file file file-breakpoints))
                    breakpoints)
           (lsp-workspace-set-metadata "Breakpoints"
                                       breakpoints
@@ -756,7 +758,18 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--switch-to-session (new-session)
   "Make NEW-SESSION the active debug session."
-  (dap--set-cur-session new-session))
+  ;; (-when-let ((old-session (dap--cur-session)))
+  ;;   ())
+  (dap--set-cur-session new-session)
+
+  ;; (let ((buffers (lsp--workspace-buffers (dap--debug-session-workspace new-session))))
+  ;;   (maphash (lambda (file file-breakpoints)
+  ;;              (dap--set-breakpoints-in-file file file-breakpoints))
+  ;;            breakpoints)
+  ;;   )
+  (when-let ((stack-frame (dap--debug-session-active-frame new-session)))
+    (dap--go-to-stack-frame stack-frame new-session)))
+
 
 (defun dap-switch-session ()
   "Switch current session interactively."

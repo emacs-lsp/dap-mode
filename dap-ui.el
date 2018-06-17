@@ -235,10 +235,7 @@ SESSION-TREE will be the root of the threads(session holder)."
     ov))
 
 (defun dap-ui--make-overlay-at (file point b e msg visuals)
-  "Create an overlay highlighting the given line in
-any buffer visiting the given file."
-
-
+  "Create an overlay highlighting the given line in any buffer visiting the given file."
   (let ((beg b)
         (end e))
     (assert (and
@@ -262,6 +259,8 @@ any buffer visiting the given file."
 
 (defvar-local dap-ui--breakpoint-overlays '())
 
+(defvar-local dap-ui--cursor-overlay '())
+
 (defun dap-ui--clear-breakpoint-overlays ()
   "Remove all overlays that ensime-debug has created."
   (mapc #'delete-overlay dap-ui--breakpoint-overlays)
@@ -271,7 +270,7 @@ any buffer visiting the given file."
   "Handler for breakpoints changed.
 
 FILE-NAME the name in which the breakpoints has changed.
-BREAKPOINTS list of the active breakpoints. "
+BREAKPOINTS list of the active breakpoints."
 
   (dap-ui--refresh-breakpoints file-name breakpoints))
 
@@ -306,9 +305,12 @@ BPS the new breakpoints for FILE."
 
 (defun dap-ui--clear-marker-overlay (debug-session)
   "DEBUG-SESSION."
-  (when (dap--debug-session-cursor-marker debug-session)
-    (delete-overlay (dap--debug-session-cursor-marker debug-session))
-    (setf (dap--debug-session-cursor-marker debug-session) nil)))
+  (--map
+   (with-current-buffer it
+     (when dap-ui--cursor-overlay
+       (delete-overlay dap-ui--cursor-overlay)
+       (setq-local dap-ui--cursor-overlay nil)))
+   (lsp--workspace-buffers (dap--debug-session-workspace debug-session))))
 
 (defface dap-ui-compile-errline
   '((t (:inherit compilation-error)))
@@ -317,15 +319,15 @@ BPS the new breakpoints for FILE."
 
 (defun dap-ui--set-debug-marker (debug-session file point)
   (dap-ui--clear-marker-overlay debug-session)
-  (-when-let (ov (dap-ui--make-overlay-at
-                  file point nil nil
-                  "Debug Marker"
-                  (list :face 'dap-ui-marker-face
-                        :char ">"
-                        :bitmap 'right-triangle
-                        :fringe 'dap-ui-compile-errline)))
 
-    (setf (dap--debug-session-cursor-marker debug-session) ov)))
+  (setq-local dap-ui--cursor-overlay
+              (dap-ui--make-overlay-at
+               file point nil nil
+               "Debug Marker"
+               (list :face 'dap-ui-marker-face
+                     :char ">"
+                     :bitmap 'right-triangle
+                     :fringe 'dap-ui-compile-errline))))
 
 (defun dap-ui--terminated (debug-session)
   "DEBUG-SESSION."
@@ -358,7 +360,9 @@ DEBUG-SESSION is the debug session triggering the event."
     (add-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (add-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
     (when-let (breakpoints (dap--active-get-breakpoints))
-      (dap-ui--breakpoints-changed (dap--cur-session) buffer-file-name breakpoints))
+      (dap-ui--breakpoints-changed (dap--cur-session)
+                                   buffer-file-name
+                                   breakpoints))
 
     (when (dap--cur-session)
       (-let [(&hash "source" (&hash "path" path)) (dap--debug-session-active-frame (dap--cur-session))]

@@ -35,7 +35,7 @@ Feature: Switching active session
     Then The hook handler "breakpoint" would be called
     And I invoke "dap-switch-session" I should see error message "No active session to switch to"
 
-  @SwitchSession @WIP
+  @SwitchSession
   Scenario: Switch current session.
     Given I attach handler "breakpoint" to hook "dap-stopped-hook"
     And I place the cursor before "Integer"
@@ -49,5 +49,5 @@ Feature: Switching active session
     And I call "dap-java-debug"
     Then The hook handler "breakpoint" would be called
     And the cursor should be before "Integer"
-    And I invoke "dap-switch-session" I should see error message "No active session to switch to"
+    And I call "dap-switch-session"
     And the cursor should be before "System"
