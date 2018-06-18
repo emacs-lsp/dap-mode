@@ -46,9 +46,11 @@
   "Populate all of the fields that are not present in CONF."
   (when (not (and (plist-get conf :mainClass)
                   (plist-get conf :projectName)))
-    (-let [(&hash "mainClass" main-class "projectName" project-name) (dap-java--select-main-class)]
-      (setq conf (plist-put conf :mainClass main-class))
-      (plist-put conf :projectName project-name)))
+    (-if-let ((&hash "mainClass" main-class "projectName" project-name) (dap-java--select-main-class))
+        (progn
+          (setq conf (plist-put conf :mainClass main-class))
+          (plist-put conf :projectName project-name))
+      (error "Select main class")))
 
   (-let [(&plist :mainClass main-class :projectName project-name) conf]
     (dap--put-if-absent conf :args "")

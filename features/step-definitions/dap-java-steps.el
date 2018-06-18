@@ -43,22 +43,18 @@
   (lambda (project-name dir-name)
     (setq default-directory dap-java-test-root)
 
-    ;; delete old directory
-    (when (file-exists-p dir-name)
-      (delete-directory dir-name t))
-
     ;; create directory structure
     (mkdir (expand-file-name
             (f-join   dir-name project-name "src" "main" "java" "temp")) t)
 
     ;; add pom.xml
     (with-temp-file (expand-file-name "pom.xml" (f-join dir-name project-name))
-      (insert "
+      (insert (format "
 <project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
   xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">
   <modelVersion>4.0.0</modelVersion>
   <groupId>test</groupId>
-  <artifactId>test-project</artifactId>
+  <artifactId>%s</artifactId>
   <packaging>jar</packaging>
   <version>1</version>
   <name>test-project</name>
@@ -68,11 +64,13 @@
       <maven.compiler.source>1.8</maven.compiler.source>
       <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
-</project>"))))
+</project>" project-name)))))
 
 (And "^I open a java file \"\\([^\"]+\\)\"$"
   (lambda (file-name)
     (setq default-directory dap-java-test-root)
+    (message "making directory %s" (f-dirname file-name))
+    (mkdir (f-dirname file-name) t)
     (find-file file-name)
     (save-buffer)))
 

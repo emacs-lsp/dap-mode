@@ -51,3 +51,24 @@ Feature: Switching active session
     And the cursor should be before "Integer"
     And I call "dap-switch-session"
     And the cursor should be before "System"
+
+  @SwitchSession @UI
+  Scenario: Switch current session - overlays
+    Given I attach handler "breakpoint" to hook "dap-stopped-hook"
+    And I call "dap-ui-mode"
+    And I place the cursor before "Integer"
+    And I call "dap-toggle-breakpoint"
+    And I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I call "dap-java-debug"
+    And The hook handler "breakpoint" would be called
+    And I call "dap-continue"
+    And The hook handler "breakpoint" would be called
+    And I call "dap-java-debug"
+    Then The hook handler "breakpoint" would be called
+    And the cursor should be before "Integer"
+    And I call "dap-switch-session"
+    And the cursor should be before "System"
+    Then I should see the following overlay "dap-ui-marker-face"
+    When I place the cursor before "Integer"
+    Then I should not see the following overlay "dap-ui-marker-face"

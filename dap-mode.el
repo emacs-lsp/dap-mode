@@ -758,10 +758,9 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--switch-to-session (new-session)
   "Make NEW-SESSION the active debug session."
-  ;; (-when-let ((old-session (dap--cur-session)))
-  ;;   ())
   (dap--set-cur-session new-session)
 
+  ;; TODO multi project setup
   ;; (let ((buffers (lsp--workspace-buffers (dap--debug-session-workspace new-session))))
   ;;   (maphash (lambda (file file-breakpoints)
   ;;              (dap--set-breakpoints-in-file file file-breakpoints))
