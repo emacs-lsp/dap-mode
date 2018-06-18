@@ -35,9 +35,10 @@
     (case (length main-classes)
       (0 (error "Unable to find main class"))
       (1 (car main-classes))
-      (t (dap--completing-read "Select main class to run: " main-classes
+      (t (dap--completing-read "Select main class to run: "
+                               main-classes
                                (lambda (it)
-                                 (format "%s (%s)"
+                                 (format "%s(%s)"
                                          (gethash "mainClass" it)
                                          (gethash "projectName" it)))
                                nil
