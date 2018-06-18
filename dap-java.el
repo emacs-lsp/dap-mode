@@ -37,8 +37,9 @@
       (1 (car main-classes))
       (t (dap--completing-read "Select main class to run: " main-classes
                                (lambda (it)
-                                 (list (format "%s (%s)"(gethash "mainClass" it)
-                                               (gethash "projectName" it)) it))
+                                 (format "%s (%s)"
+                                         (gethash "mainClass" it)
+                                         (gethash "projectName" it)))
                                nil
                                t)))))
 
