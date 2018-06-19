@@ -88,10 +88,11 @@ linum, etc..)"
 (defun dap-ui-sessions-thread ()
   "XX"
   (interactive)
-  (let ((tree (get-char-property (point) 'button)))
-    (dap--select-thread-id
-     (widget-get tree :session)
-     (gethash "id" (widget-get tree :thread)))))
+  (let* ((tree (get-char-property (point) 'button))
+         (session (widget-get tree :session))
+         (thread (widget-get tree :thread))
+         (thread-id (gethash "id" thread)))
+    (dap--select-thread-id session thread-id)))
 
 (defun dap-ui--stack-frames (thread-tree)
   "Method for expanding stackframe content.
@@ -113,7 +114,7 @@ THREAD-TREE will be widget element holding thread info."
                                 :stack-frame ,stack-frame
                                 :session ,session
                                 :element-type :stack-frame
-                                :thread ,session
+                                :thread ,thread
                                 :dynargs dap-ui--stack-frames
                                 :open nil))
                 stack-frames)

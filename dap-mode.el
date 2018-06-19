@@ -439,7 +439,7 @@ WORKSPACE will be used to calculate root folder."
 
 (defun dap--select-thread-id (debug-session thread-id)
   "Make the thread with id=THREAD-ID the active thread for DEBUG-SESSION."
-  (setf (dap--debug-session-thread-id (dap--cur-session)) thread-id)
+  (setf (dap--debug-session-thread-id debug-session) thread-id)
   (dap--send-message
    (dap--make-request "stackTrace" (list :threadId thread-id))
    (-lambda ((&hash "body" (&hash "stackFrames" stack-frames)))
