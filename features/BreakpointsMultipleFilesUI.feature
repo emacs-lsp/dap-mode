@@ -59,4 +59,3 @@ Feature: Breakpoint UI tests
     And I call "dap-ui-mode"
     When I place the cursor before "System"
     Then I should see the following overlay "dap-ui-verified-breakpoint-face"
-    And I should see the following overlay "dap-ui-marker-face"

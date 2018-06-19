@@ -125,8 +125,7 @@ INHERIT-INPUT-METHOD will be proxied to `completing-read' without changes."
          (completion (completing-read prompt (-map 'first result)
                                       predicate require-match initial-input hist
                                       def inherit-input-method)))
-    (cdr (assoc completion
-                result))))
+    (cdr (assoc completion result))))
 
 (defun dap--plist-delete (plist property)
   "Delete PROPERTY from PLIST.
@@ -440,7 +439,7 @@ WORKSPACE will be used to calculate root folder."
 
 (defun dap--select-thread-id (debug-session thread-id)
   "Make the thread with id=THREAD-ID the active thread for DEBUG-SESSION."
-  (setf (dap--debug-session-thread-id (dap--cur-session)) thread-id)
+  (setf (dap--debug-session-thread-id debug-session) thread-id)
   (dap--send-message
    (dap--make-request "stackTrace" (list :threadId thread-id))
    (-lambda ((&hash "body" (&hash "stackFrames" stack-frames)))
@@ -757,6 +756,7 @@ ADAPTER-ID the id of the adapter."
          (dap--select-thread-id debug-session thread-id)))
      debug-session)))
 
+
 (defun dap--switch-to-session (new-session)
   "Make NEW-SESSION the active debug session."
   (dap--set-cur-session new-session)
@@ -767,9 +767,9 @@ ADAPTER-ID the id of the adapter."
   ;;              (dap--set-breakpoints-in-file file file-breakpoints))
   ;;            breakpoints)
   ;;   )
+
   (when-let ((stack-frame (dap--debug-session-active-frame new-session)))
     (dap--go-to-stack-frame stack-frame new-session)))
-
 
 (defun dap-switch-session ()
   "Switch current session interactively."

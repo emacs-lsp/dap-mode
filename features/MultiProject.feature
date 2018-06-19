@@ -36,24 +36,51 @@ Feature: Switching active session
     """
     And I call "save-buffer"
     And I start lsp-java
+    And I call "dap-ui-mode"
     And I switch to buffer "ProjectA.java"
     And I start lsp-java
+    And I call "dap-ui-mode"
     And The server status must become "LSP::Started"
 
   @MultiProject @SwitchSession @MultiSession @WIP
   Scenario: No active session
+    Given I attach handler "breakpoint" to hook "dap-stopped-hook"
+    # place breakpoints
+    And I switch to buffer "ProjectA.java"
+    And I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
+    And I switch to buffer "ProjectB.java"
+    And I place the cursor before "System"
+    And I call "dap-toggle-breakpoint"
     And I attach handler "terminated" to hook "dap-terminated-hook"
-    When I call "dap-java-debug"
+    # Start ProjectA
+    And I start an action chain
+    And I press "M-x"
+    And I type "dap-java-debug"
+    And I press "<return>"
+    And I type "projectA"
+    And I press "TAB"
+    And I press "RET"
+    And I execute the action chain
+    And The hook handler "breakpoint" would be called
+    # Start ProjectB
+    And I start an action chain
+    And I press "M-x"
+    And I type "dap-java-debug"
+    And I press "<return>"
+    And I type "projectB"
+    And I press "TAB"
+    And I press "RET"
+    And I execute the action chain
+    And The hook handler "breakpoint" would be called
 
-    # And I start an action chain
-    # And I press "M-x"
-    # When I type "dap-java-debug"
-    # And I press "<return>"
-    # When I type "projectA.ProjectA"
-    # And I press "<tab>"
-    # # # And I press "C-n"
-    # And I press "<return>"
-    # And I execute the action chain
-    # # When I call "dap-java-debug"
-    # Then The hook handler "terminated" would be called
-    # And I should see buffer "*out*" with content "123"
+    # Switch session
+    And I call "dap-switch-session"
+    Then I should be in buffer "ProjectA.java"
+    And I should see the following overlay "dap-ui-verified-breakpoint-face"
+    And I should see the following overlay "dap-ui-marker-face"
+
+    # Check markers the other buffer
+    And I switch to buffer "ProjectB.java"
+    And I should see the following overlay "dap-ui-verified-breakpoint-face"
+    And I should not see the following overlay "dap-ui-marker-face"

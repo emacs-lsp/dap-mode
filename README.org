@@ -16,7 +16,7 @@
   - Multiple simultaneous debug sessions
   - Evaluating statements
   - Debug/Run configurations
-** Launching
+** Launching [TBD]
 ** Debugger commands
    | Command                              | Description                        | Keybindings |
    |--------------------------------------+------------------------------------+-------------|
@@ -55,9 +55,9 @@
    |---------------------------+-----------------------------+-------------|
    | ~dap-ui-breakpoints-list~ | List current debug sessions |             |
 
-** Watches [WIP]
-** Value inspector [WIP]
-** Locals [WIP]
+** Watches [TBD]
+** Value inspector [TBD]
+** Locals [TBD]
 * Language integrations
 ** Java
 *** Installation

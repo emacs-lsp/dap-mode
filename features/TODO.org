@@ -23,7 +23,8 @@
    CLOSED: [2018-06-10 Sun 11:55]
 ** DONE Persistence
    CLOSED: [2018-06-16 Sat 09:56]
-** TODO Session selection and breakpoints
+** DONE Session selection and breakpoints
+   CLOSED: [2018-06-18 Mon 21:09]
 ** TODO Persist breakpoints using marker indicator.
 ** TODO Breakpoint conditions
 ** TODO Breakpoints hit count

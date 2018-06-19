@@ -77,6 +77,23 @@ linum, etc..)"
 (defconst dap-ui--loading-tree-widget
   (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
 
+(defun dap-ui-sessions-stack-frame ()
+  "XX"
+  (interactive)
+  (let ((tree (get-char-property (point) 'button)))
+    (dap--go-to-stack-frame
+     (widget-get tree :stack-frame)
+     (widget-get tree :session))))
+
+(defun dap-ui-sessions-thread ()
+  "XX"
+  (interactive)
+  (let* ((tree (get-char-property (point) 'button))
+         (session (widget-get tree :session))
+         (thread (widget-get tree :thread))
+         (thread-id (gethash "id" thread)))
+    (dap--select-thread-id session thread-id)))
+
 (defun dap-ui--stack-frames (thread-tree)
   "Method for expanding stackframe content.
 
@@ -87,13 +104,17 @@ THREAD-TREE will be widget element holding thread info."
          (stack-frames (gethash thread-id (dap--debug-session-thread-stack-frames session))))
     (if stack-frames
         ;; aldready loaded
-        (mapcar (lambda (stack-frame)
-                  `(tree-widget :tag ,(gethash "name" stack-frame)
+        (mapcar (-lambda ((stack-frame &as
+                                       &hash
+                                       "name" name
+                                       "line" line
+                                       "source" (&hash "name" source-name)))
+                  `(tree-widget :tag ,(format "%s (%s:%s)" name source-name line)
                                 :format "%[%t%]\n"
                                 :stack-frame ,stack-frame
                                 :session ,session
                                 :element-type :stack-frame
-                                :thread ,session
+                                :thread ,thread
                                 :dynargs dap-ui--stack-frames
                                 :open nil))
                 stack-frames)
@@ -149,6 +170,23 @@ SESSION-TREE will be the root of the threads(session holder)."
        debug-session)
       dap-ui--loading-tree-widget)))
 
+
+(defvar dap-ui-session-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "TAB") #'tree-mode-toggle-expand)
+    (define-key map (kbd "TAB") #'tree-mode-toggle-expand)
+    map))
+
+(define-minor-mode dap-ui-sessions-mode
+  "UI Session list minor mode."
+  :init-value nil
+  :group dap-ui
+  :keymap dap-ui-session-mode-map
+  (cond
+   (dap-ui-sessions-mode
+    (read-only-mode t))
+   (t)))
+
 ;;;###autoload
 (defun dap-ui-list-sessions ()
   "Show currently active sessions and it's threads."
@@ -167,11 +205,11 @@ SESSION-TREE will be the root of the threads(session holder)."
             :open nil
             :session ,session
             :dynargs dap-ui--load-threads)))
-       sessions))
+       sessions)
+      (dap-ui-sessions-mode t))
     (pop-to-buffer buf)))
 
 (defun dap--internalize-offset (offset)
-
   (if (eq 1 (coding-system-eol-type buffer-file-coding-system))
       (save-excursion
         (save-restriction
