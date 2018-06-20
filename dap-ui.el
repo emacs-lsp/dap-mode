@@ -78,7 +78,7 @@ linum, etc..)"
   (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
 
 (defun dap-ui-sessions-stack-frame ()
-  "XX"
+  "Switch to selected stackframe."
   (interactive)
   (let ((tree (get-char-property (point) 'button)))
     (dap--go-to-stack-frame
@@ -86,7 +86,7 @@ linum, etc..)"
      (widget-get tree :session))))
 
 (defun dap-ui-sessions-thread ()
-  "XX"
+  "Switch to selected thread."
   (interactive)
   (let* ((tree (get-char-property (point) 'button))
          (session (widget-get tree :session))

@@ -61,18 +61,18 @@ Feature: Breakpoint tests
 
   @Breakpoints
   Scenario: Step in
-    When I place the cursor before "System"
+    When I place the cursor before "foo()"
     And I call "dap-toggle-breakpoint"
     And I go to beginning of buffer
     And I attach handler "breakpoint" to hook "dap-stopped-hook"
     And I call "dap-java-debug"
     Then The hook handler "breakpoint" would be called
-    And the cursor should be before "System"
+    And the cursor should be before "foo()"
     And I call "dap-step-in"
     Then The hook handler "breakpoint" would be called
     When I go in active window
-    Then I should be in buffer "java.io.PrintStream.java"
-    And the cursor should be before "        write(String.valueOf(i));"
+    Then I should be in buffer "App.java"
+    And the cursor should be before "new App();"
     And I call "dap-continue"
     And I should see buffer "*out*" with content "123"
 

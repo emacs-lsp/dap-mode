@@ -29,7 +29,7 @@ script:
   - mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=com.microsoft.java -DartifactId=com.microsoft.java.debug.plugin -Dversion=0.9.0
   - cp ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.9.0/com.microsoft.java.debug.plugin-0.9.0.jar ~/.emacs.d/eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar
   # - cask exec ecukes --timeout 60 --tags ~@WIP
-  - cask exec ecukes --timeout 60 features/BreakpointsTwoFiles.feature
+  - cask exec ecukes --timeout 60 features/BreakpointsTwoFiles.feature features/Breakpoints.feature
 notifications:
   webhooks:
     urls:
