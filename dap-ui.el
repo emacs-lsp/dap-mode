@@ -342,7 +342,7 @@ BPS the new breakpoints for FILE."
         (push ov dap-ui--breakpoint-overlays)))))
 
 (defun dap-ui--clear-marker-overlay (debug-session)
-  "DEBUG-SESSION."
+  "Clear marker overlay for DEBUG-SESSION."
   (--map
    (with-current-buffer it
      (when dap-ui--cursor-overlay
