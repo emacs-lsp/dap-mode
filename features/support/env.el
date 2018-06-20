@@ -1,7 +1,7 @@
 (require 'f)
 
 (when (require 'undercover nil t)
-  (undercover "*.el" "*.el"))
+  (undercover "dap-mode.el" "*.el" "*.el"))
 
 (let* ((features-directory
         (file-name-directory
