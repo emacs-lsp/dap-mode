@@ -1,7 +1,7 @@
 (require 'f)
 
 (when (require 'undercover nil t)
-  (undercover "dap-mode.el" "*.el" "*.el"))
+  (undercover "*.el" (:report-file "/tmp/local-report.json")))
 
 (let* ((features-directory
         (file-name-directory

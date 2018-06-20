@@ -789,6 +789,11 @@ ADAPTER-ID the id of the adapter."
                                 target-debug-sessions
                                 (lambda (session)
                                   (process-name (dap--debug-session-proc session)))))))))
+(defun dap-debug-last-configuration ()
+  "Debug last configuration."
+  (interactive)
+
+  )
 
 (defun dap-turn-on-dap-mode ()
   "Turn on `dap-mode'."

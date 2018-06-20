@@ -397,7 +397,7 @@ DEBUG-SESSION is the debug session triggering the event."
     (add-hook 'dap-terminated-hook 'dap-ui--terminated)
     (add-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (add-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
-    (when-let (breakpoints (dap--active-get-breakpoints))
+    (-when-let (breakpoints (dap--active-get-breakpoints))
       (dap-ui--breakpoints-changed (dap--cur-session)
                                    buffer-file-name
                                    breakpoints))

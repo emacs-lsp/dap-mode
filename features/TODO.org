@@ -12,7 +12,8 @@
 *** EVAL
 *** Continue
 ** TODO Persistence of debug configurations
-** TODO Terminate to kill the tcp process.
+** DONE Terminate to kill the tcp process.
+   CLOSED: [2018-06-20 Wed 22:47]
 ** TODO Run in terminal
 ** TODO Run no debug.
 ** TODO Attach.
