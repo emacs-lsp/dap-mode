@@ -41,4 +41,4 @@ cache:
   directories:
   - $HOME/.m2
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash) -t ccd110b3-5669-4e48-bd4b-e6aebc8e8141
