@@ -573,7 +573,7 @@ ADAPTER-ID the id of the adapter."
 (defun dap--update-breakpoints (debug-session resp file-name file-breakpoints)
   "DEBUG-SESSION RESP FILE-BREAKPOINTS FILE-NAME."
   ;; update the breakpoints with the information from the server:
-  (when-let ((server-breakpoints (gethash "breakpoints" (gethash "body" resp))))
+  (-when-let ((server-breakpoints (gethash "breakpoints" (gethash "body" resp))))
     (cl-mapc (lambda (bkp update-bkp)
                (plist-put bkp :message (gethash "message" update-bkp))
                (plist-put bkp :verified (gethash "verified" update-bkp))

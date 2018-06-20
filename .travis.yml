@@ -1,18 +1,13 @@
 language: emacs-lisp
 sudo: required
 dist: trusty
-cache:
-  - directories:
-      - "$HOME/emacs/"
 matrix:
   fast_finish: true
-  allow_failures:
-    - env: EMACS_VERSION=snapshot
 env:
-  - EMACS_VERSION=25.1
-  - EMACS_VERSION=25.2
+  # - EMACS_VERSION=25.1
+  # - EMACS_VERSION=25.2
   - EMACS_VERSION=25.3
-  - EMACS_VERSION=snapshot
+   # - EMACS_VERSION=snapshot
 before_install:
   - export PATH="$HOME/bin:$PATH"
   - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
@@ -21,15 +16,14 @@ before_install:
 install:
   - cask install
 script:
-  - cask build
   - mkdir -p ~/.emacs.d/eclipse.jdt.ls/server/
   - mkdir -p ~/.emacs.d/eclipse.jdt.ls/plugins/
   - wget http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz -O /tmp/jdt-latest.tar
   - tar xf /tmp/jdt-latest.tar -C ~/.emacs.d/eclipse.jdt.ls/server/
   - mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=com.microsoft.java -DartifactId=com.microsoft.java.debug.plugin -Dversion=0.9.0
   - cp ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.9.0/com.microsoft.java.debug.plugin-0.9.0.jar ~/.emacs.d/eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar
-  # - cask exec ecukes --timeout 60 --tags ~@WIP
-  - cask exec ecukes --timeout 60 features/BreakpointsTwoFiles.feature features/Breakpoints.feature
+  - cask exec ecukes --timeout 60 features/BreakpointsTwoFiles.feature
+  # features/Breakpoints.feature
 notifications:
   webhooks:
     urls:
@@ -40,5 +34,5 @@ notifications:
 cache:
   directories:
   - $HOME/.m2
-after_success:
-  - bash <(curl -s https://codecov.io/bash) -t ccd110b3-5669-4e48-bd4b-e6aebc8e8141
+  - "$HOME/emacs/"
+  - "$HOME/.emacs.d/"
