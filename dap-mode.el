@@ -32,8 +32,12 @@
 (require 'json)
 (require 'f)
 (require 'dash)
+(require 'ht)
 
 (defconst dap--breakpoints-file ".breakpoints"
+  "Name of the file in which the breakpoints will be persisted.")
+
+(defconst dap--debug-configurations-file ".debug-configurations.el"
   "Name of the file in which the breakpoints will be persisted.")
 
 (defcustom dap-print-io t
@@ -84,10 +88,13 @@ The hook will be called with the session file and the new set of breakpoint loca
 
 (defvar dap--cur-session nil)
 
-(defvar dap--debug-providers (make-hash-table :test 'equals))
+(defvar dap--debug-providers (make-hash-table :test 'equal))
 
-(defvar dap--debug-template-configurations (make-hash-table :test 'equals)
-  "Template configurations for DEBUG/RUN.")
+(defvar dap--debug-configurations ()
+  "Debug configurations list.")
+
+(defvar dap--debug-template-configurations ()
+  "Plist Template configurations for DEBUG/RUN.")
 
 (defvar dap--debug-configuration ()
   "List of the previous configuration that have been executed.")
@@ -727,6 +734,21 @@ ADAPTER-ID the id of the adapter."
                           file
                           file-breakpoints))))
 
+;; load persisted debug configurations.
+(defun dap--debug-configurations ()
+  "Gets the stored configurations."
+  (dap--read-from-file
+   (dap--locate-workspace-file
+    lsp--cur-workspace
+    dap--debug-configurations-file)))
+
+(defun dap--read-from-file (file)
+  "Read FILE content."
+  (with-temp-buffer
+    (insert-file-contents-literally file)
+    (first (read-from-string
+            (buffer-substring-no-properties (point-min) (point-max))))))
+
 (defun dap--after-initialize ()
   "After initialize handler."
   (with-demoted-errors
@@ -735,10 +757,7 @@ ADAPTER-ID the id of the adapter."
                                                         dap--breakpoints-file))
           (workspace lsp--cur-workspace))
       (when (f-exists? breakpoints-file)
-        (-let [breakpoints (with-temp-buffer
-                             (insert-file-contents-literally breakpoints-file)
-                             (first (read-from-string
-                                     (buffer-substring-no-properties (point-min) (point-max)))))]
+        (-let [breakpoints (dap--read-from-file breakpoints-file)]
           (maphash (lambda (file file-breakpoints)
                      (dap--set-breakpoints-in-file file file-breakpoints))
                    breakpoints)
@@ -820,30 +839,35 @@ arguments which contain the debug port to use for opening TCP connection."
 
   (puthash language-id provide-configuration-fn dap--debug-providers))
 
+
 (defun dap-register-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
 
 CONFIGURATION-SETTINGS - plist containing the preset settings for the configuration."
-  (puthash configuration-name configuration-settings dap--debug-template-configurations ))
+  (plist-put dap--debug-template-configurations
+             configuration-name
+             configuration-settings))
 
-(defun dap--select-launch-configuration ()
-  (dap--completing-read "Select configuration to run:"))
+;; (defun dap-create-debug-configuration ()
+;;   "Debug configuration."
+;;   (interactive))
+
+(defun dap--select-template ()
+  "Select the configuration to launch."
+  (dap--completing-read "Select configuration to run:"
+                        ))
+
+(defun dap-edit-launch-configuration ()
+  "Select the configuration to launch."
+  (interactive))
 
 (defun dap-run-configuration (launch-args)
-  "Debug specfied configuration."
-  (interactive (list (dap--select-launch-configuration)))
-  (-let* [(&plist :language-id language-id) launch-args
-          (debug-provider (gethash language-id dap--debug-providers))]
-    (if debug-provider
-        (progn
-          ;; TODO run configuration
-          )
-      (error "There is no debug provider for language %s" language-id))))
-
-(defun dap-debug-configuration ()
-  ""
-  (interactive)
-  )
+  "Run debug configuration LAUNCH-ARGS."
+  (interactive (list (dap--select-template)))
+  (let ((language-id (plist-get launch-args :language-id)))
+    (if-let ((debug-provider (gethash language-id dap--debug-providers)))
+        (dap-start-debugging (funcall debug-provider launch-args))
+      (error "There is no debug provider for language %s" (or language-id "'Not specified'")))))
 
 (defun dap-debug-last-configuration ()
   "Debug last configuration."

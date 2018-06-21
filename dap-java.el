@@ -57,18 +57,18 @@
   (-let [(&plist :mainClass main-class :projectName project-name) conf]
     (dap--put-if-absent conf :args "")
     (dap--put-if-absent conf :cwd (lsp-java--get-root))
-    (dap--put-if-absent conf :stopOnEntry :json-false)
+    (dap--put-if-absent conf :stoponentry :json-false)
     (dap--put-if-absent conf :host "localhost")
     (dap--put-if-absent conf :request "launch")
-    (dap--put-if-absent conf :modulePaths (vector))
+    (dap--put-if-absent conf :modulepaths (vector))
     (dap--put-if-absent conf
-                        :classPaths
+                        :classpaths
                         (second
-                         (lsp-send-execute-command "vscode.java.resolveClasspath"
+                         (lsp-send-execute-command "vscode.java.resolveclasspath"
                                                    (list main-class project-name))))
     (dap--put-if-absent conf :name (format "%s (%s)"
-                                           (plist-get conf :mainClass)
-                                           (plist-get conf :projectName)))
+                                           (plist-get conf :mainclass)
+                                           (plist-get conf :projectname)))
 
     (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
     (plist-put conf :__sessionId (number-to-string (float-time)))
@@ -80,6 +80,24 @@
   "Start debug session with DEBUG-ARGS."
   (interactive (list (dap-java--populate-default-args  nil)))
   (dap-start-debugging debug-args))
+
+(eval-after-load "dap-mode"
+  '(progn
+     (dap-register-debug-provider "java" 'dap-java--populate-default-args)
+     (dap-register-debug-template "Java Run Configuration"
+                                  (list :language-id "java"
+                                        :request "launch"
+                                        :args ""
+                                        :cwd nil
+                                        :stoponentry :json-false
+                                        :host "localhost"
+                                        :request "launch"
+                                        :modulepaths (vector)
+                                        :classpaths nil
+                                        :name "Run Configuration"))
+     (dap-register-debug-template "Java Attach"
+                                  (list :language-id "java"
+                                        :request "attach"))))
 
 (provide 'dap-java)
 ;;; dap-java.el ends here
