@@ -67,9 +67,7 @@ g. after calling `dap-continue')"
   :type 'hook
   :group 'dap-mode)
 
-(defcustom dap-breakpoints-changed-hook nil
-  "List of functions that will be called after breakpoints have changed.
-
+(defcustom dap-breakpoints-changed-hook nil "List of functions that will be called after breakpoints have changed.
 The hook will be called with the session file and the new set of breakpoint locations."
   :type 'hook
   :group 'dap-mode)
@@ -86,10 +84,26 @@ The hook will be called with the session file and the new set of breakpoint loca
 
 (defvar dap--cur-session nil)
 
+(defvar dap--debug-providers (make-hash-table :test 'equals))
+
+(defvar dap--debug-template-configurations (make-hash-table :test 'equals)
+  "Template configurations for DEBUG/RUN.")
+
 (defun dap--cur-session ()
   "Get currently active `dap--debug-session'."
   (when lsp--cur-workspace
     (lsp-workspace-get-metadata "default-session" lsp--cur-workspace)))
+
+(defun dap--resp-handler (&optional success-callback)
+  "Generate response handler.
+
+The handler will call `error' on failure.
+SUCCESS-CALLBACK will be called if it is provided and if the call
+has succeeded."
+  (-lambda ((result &as &hash "success" success "message" msg))
+    (if success
+        (when success-callback (funcall  success-callback result))
+      (error msg))))
 
 (defun dap--cur-session-or-die ()
   "Get currently active `dap--debug-session' or die."
@@ -276,12 +290,12 @@ WORKSPACE will be used to calculate root folder."
                                 updated-file-breakpoints)))
       (mapc (lambda (debug-session)
               (dap--send-message set-breakpoints-req
-                                 (lambda (resp)
-                                   (dap--update-breakpoints
-                                    debug-session
-                                    resp
-                                    file-name
-                                    file-breakpoints))
+                                 (dap--resp-handler
+                                  (lambda (resp)
+                                    (dap--update-breakpoints debug-session
+                                                             resp
+                                                             file-name
+                                                             file-breakpoints)))
                                  debug-session))
             (--remove
              (eq 'terminated (dap--debug-session-state it))
@@ -367,63 +381,67 @@ WORKSPACE will be used to calculate root folder."
          (json-false nil))
     (json-read-from-string str)))
 
-
 (defun dap--resume-application (debug-session)
   "Resume DEBUG-SESSION."
+  (-let [thread-id (dap--debug-session-thread-id debug-session)]
+    (remhash thread-id (dap--debug-session-thread-states debug-session)))
+  (setf (dap--debug-session-active-frame debug-session) nil)
+  (setf (dap--debug-session-active-frame debug-session) nil)
+  (setf (dap--debug-session-thread-id debug-session) nil)
   (run-hook-with-args 'dap-continue-hook debug-session))
 
 ;;;###autoload
 (defun dap-continue ()
   "Call continue for the currently active session and thread."
   (interactive)
-  (dap--resume-application (dap--cur-session))
   (dap--send-message (dap--make-request
                       "continue"
                       (list :threadId (dap--debug-session-thread-id (dap--cur-session))))
-                     (lambda (_resp))
-                     (dap--cur-session)))
+                     (dap--resp-handler)
+                     (dap--cur-session))
+  (dap--resume-application (dap--cur-session)))
 
 ;;;###autoload
 (defun dap-disconnect ()
   "Disconnect from the currently active session."
   (interactive)
-  (dap--resume-application (dap--cur-session))
   (dap--send-message (dap--make-request "disconnect" (list :restart :json-false))
-                     (lambda (_resp))
-                     (dap--cur-session)))
+                     (dap--resp-handler)
+                     (dap--cur-session))
+  (dap--resume-application (dap--cur-session)))
 
 ;;;###autoload
 (defun dap-next ()
   "Debug next."
   (interactive)
-  (dap--resume-application (dap--cur-session))
   (dap--send-message (dap--make-request
                       "next"
                       (list :threadId (dap--debug-session-thread-id (dap--cur-session))))
-                     (lambda (_resp))
-                     (dap--cur-session)))
+                     (dap--resp-handler)
+                     (dap--cur-session))
+  (dap--resume-application (dap--cur-session)))
 
 ;;;###autoload
 (defun dap-step-in ()
   "Debug step in."
   (interactive)
-  (dap--resume-application (dap--cur-session))
   (dap--send-message (dap--make-request
                       "stepIn"
                       (list :threadId (dap--debug-session-thread-id (dap--cur-session))))
-                     (lambda (_resp))
-                     (dap--cur-session)))
+                     (dap--resp-handler)
+                     (dap--cur-session))
+  (dap--resume-application (dap--cur-session)))
 
 ;;;###autoload
 (defun dap-step-out ()
   "Debug step in."
   (interactive)
-  (dap--resume-application (dap--cur-session))
   (dap--send-message (dap--make-request
                       "stepOut"
                       (list :threadId (dap--debug-session-thread-id (dap--cur-session))))
-                     (lambda (_resp))
-                     (dap--cur-session)))
+                     (dap--resp-handler)
+                     (dap--cur-session))
+  (dap--resume-application (dap--cur-session)))
 
 (defun dap--go-to-stack-frame (stack-frame debug-session)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
@@ -571,7 +589,7 @@ ADAPTER-ID the id of the adapter."
                            :sourceModified :json-false)))
 
 (defun dap--update-breakpoints (debug-session resp file-name file-breakpoints)
-  "DEBUG-SESSION RESP FILE-BREAKPOINTS FILE-NAME."
+  "Update breakpoints in FILE-NAME."
   ;; update the breakpoints with the information from the server:
   (-when-let ((server-breakpoints (gethash "breakpoints" (gethash "body" resp))))
     (cl-mapc (lambda (bkp update-bkp)
@@ -628,8 +646,7 @@ ADAPTER-ID the id of the adapter."
 (defun dap-eval-dwim ()
   "Eval and print EXPRESSION."
   (interactive)
-  (dap-eval (thing-at-point 'symbol))
-  )
+  (dap-eval (thing-at-point 'symbol)))
 
 (defun dap-eval-region (start end)
   "Evaluate the region between START and END."
@@ -789,11 +806,20 @@ ADAPTER-ID the id of the adapter."
                                 target-debug-sessions
                                 (lambda (session)
                                   (process-name (dap--debug-session-proc session)))))))))
+
+(defun dap-register-debug-provider (language-id provide-configuration-fn)
+  "Register debug configuration provider for LANGUAGE-ID.
+
+PROVIDE-CONFIGURATION-FN is a function which will be called when
+`dap-mode' has received a request to start debug session which
+has language id = LANGUAGE-ID. The function must return debug
+arguments which contain the debug port to use for opening TCP connection."
+
+  (puthash language-id provide-configuration-fn dap--debug-providers))
+
 (defun dap-debug-last-configuration ()
   "Debug last configuration."
-  (interactive)
-
-  )
+  (interactive))
 
 (defun dap-turn-on-dap-mode ()
   "Turn on `dap-mode'."
