@@ -89,6 +89,9 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defvar dap--debug-template-configurations (make-hash-table :test 'equals)
   "Template configurations for DEBUG/RUN.")
 
+(defvar dap--debug-configuration ()
+  "List of the previous configuration that have been executed.")
+
 (defun dap--cur-session ()
   "Get currently active `dap--debug-session'."
   (when lsp--cur-workspace
@@ -817,9 +820,37 @@ arguments which contain the debug port to use for opening TCP connection."
 
   (puthash language-id provide-configuration-fn dap--debug-providers))
 
+(defun dap-register-debug-template (configuration-name configuration-settings)
+  "Register configuration template CONFIGURATION-NAME.
+
+CONFIGURATION-SETTINGS - plist containing the preset settings for the configuration."
+  (puthash configuration-name configuration-settings dap--debug-template-configurations ))
+
+(defun dap--select-launch-configuration ()
+  (dap--completing-read "Select configuration to run:"))
+
+(defun dap-run-configuration (launch-args)
+  "Debug specfied configuration."
+  (interactive (list (dap--select-launch-configuration)))
+  (-let* [(&plist :language-id language-id) launch-args
+          (debug-provider (gethash language-id dap--debug-providers))]
+    (if debug-provider
+        (progn
+          ;; TODO run configuration
+          )
+      (error "There is no debug provider for language %s" language-id))))
+
+(defun dap-debug-configuration ()
+  ""
+  (interactive)
+  )
+
 (defun dap-debug-last-configuration ()
   "Debug last configuration."
-  (interactive))
+  (interactive)
+  (if-let (configuration (car dap--debug-configuration ))
+      (dap-run-configuration configuration)
+    (funcall-interactively 'dap-debug-select-configuration)))
 
 (defun dap-turn-on-dap-mode ()
   "Turn on `dap-mode'."
