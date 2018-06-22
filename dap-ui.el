@@ -184,7 +184,7 @@ SESSION-TREE will be the root of the threads(session holder)."
   :keymap dap-ui-session-mode-map
   (cond
    (dap-ui-sessions-mode
-    (read-only-mode t))
+    (view-mode t))
    (t)))
 
 ;;;###autoload
@@ -193,7 +193,8 @@ SESSION-TREE will be the root of the threads(session holder)."
   (interactive)
   (lsp--cur-workspace-check)
   (let ((sessions (reverse (lsp-workspace-get-metadata "debug-sessions")))
-        (buf (get-buffer-create "*sessions*")))
+        (buf (get-buffer-create "*sessions*"))
+        (inhibit-read-only t))
     (with-current-buffer buf
       (erase-buffer)
       (mapc
@@ -201,7 +202,9 @@ SESSION-TREE will be the root of the threads(session holder)."
          (widget-create
           `(tree-widget
             :node (push-button :format "%[%t%]\n"
-                               :tag ,(dap--debug-session-name session))
+                               :tag ,(format "%s (%s)"
+                                             (dap--debug-session-name session)
+                                             (dap--debug-session-state session)))
             :open nil
             :session ,session
             :dynargs dap-ui--load-threads)))
