@@ -31,18 +31,23 @@
 
 (defun dap-java--select-main-class ()
   "Select main class from the current workspace."
-  (let ((main-classes (lsp-send-execute-command "vscode.java.resolveMainClass")))
-    (case (length main-classes)
-      (0 (error "Unable to find main class"))
-      (1 (car main-classes))
-      (t (dap--completing-read "Select main class to run: "
-                               main-classes
-                               (lambda (it)
-                                 (format "%s(%s)"
-                                         (gethash "mainClass" it)
-                                         (gethash "projectName" it)))
-                               nil
-                               t)))))
+  (let* ((main-classes (lsp-send-execute-command "vscode.java.resolveMainClass"))
+         (main-classes-count (length main-classes))
+         current-class)
+    (cond
+     ((= main-classes-count 0) (error "Unable to find main class"))
+     ((= main-classes-count 1) (car main-classes))
+     ((setq current-class (--first (string= buffer-file-name (gethash "filePath" it))
+                                   main-classes))
+      current-class)
+     (t (dap--completing-read "Select main class to run: "
+                              main-classes
+                              (lambda (it)
+                                (format "%s(%s)"
+                                        (gethash "mainClass" it)
+                                        (gethash "projectName" it)))
+                              nil
+                              t)))))
 
 (defun dap-java--populate-default-args (conf)
   "Populate all of the fields that are not present in CONF."
@@ -57,18 +62,18 @@
   (-let [(&plist :mainClass main-class :projectName project-name) conf]
     (dap--put-if-absent conf :args "")
     (dap--put-if-absent conf :cwd (lsp-java--get-root))
-    (dap--put-if-absent conf :stoponentry :json-false)
+    (dap--put-if-absent conf :stopOnEntry :json-false)
     (dap--put-if-absent conf :host "localhost")
     (dap--put-if-absent conf :request "launch")
-    (dap--put-if-absent conf :modulepaths (vector))
+    (dap--put-if-absent conf :modulePaths (vector))
     (dap--put-if-absent conf
-                        :classpaths
+                        :classPaths
                         (second
-                         (lsp-send-execute-command "vscode.java.resolveclasspath"
+                         (lsp-send-execute-command "vscode.java.resolveClasspath"
                                                    (list main-class project-name))))
     (dap--put-if-absent conf :name (format "%s (%s)"
-                                           (plist-get conf :mainclass)
-                                           (plist-get conf :projectname)))
+                                           (plist-get conf :mainClass)
+                                           (plist-get conf :projectName)))
 
     (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
     (plist-put conf :__sessionId (number-to-string (float-time)))

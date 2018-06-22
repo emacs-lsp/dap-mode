@@ -90,9 +90,6 @@ The hook will be called with the session file and the new set of breakpoint loca
 
 (defvar dap--debug-providers (make-hash-table :test 'equal))
 
-(defvar dap--debug-configurations ()
-  "Debug configurations list.")
-
 (defvar dap--debug-template-configurations ()
   "Plist Template configurations for DEBUG/RUN.")
 
@@ -704,21 +701,23 @@ ADAPTER-ID the id of the adapter."
         (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
     (dap--send-message
      (dap--initialize-message (plist-get launch-args :type))
-     (lambda (_initialize-result)
-       (lsp-workspace-set-metadata
-        "debug-sessions"
-        (cons debug-session (lsp-workspace-get-metadata "debug-sessions" workspace))
-        workspace)
-       (dap--send-message
-        (dap--make-request "launch" launch-args)
-        (apply-partially #'dap--configure-breakpoints
-                         debug-session
-                         breakpoints
-                         (apply-partially #'dap--send-configuration-done
-                                          debug-session))
-        debug-session))
+     (dap--resp-handler
+      (lambda (initialize-result)
+        (lsp-workspace-set-metadata
+         "debug-sessions"
+         (cons debug-session (lsp-workspace-get-metadata "debug-sessions" workspace))
+         workspace)
+        (dap--send-message
+         (dap--make-request "launch" launch-args)
+         (apply-partially #'dap--configure-breakpoints
+                          debug-session
+                          breakpoints
+                          (apply-partially #'dap--send-configuration-done
+                                           debug-session))
+         debug-session)))
      debug-session)
-    (dap--set-cur-session debug-session)))
+    (dap--set-cur-session debug-session)
+    (push launch-args dap--debug-configuration)))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
   "Establish markers for FILE-BREAKPOINTS in FILE."
@@ -844,18 +843,18 @@ arguments which contain the debug port to use for opening TCP connection."
   "Register configuration template CONFIGURATION-NAME.
 
 CONFIGURATION-SETTINGS - plist containing the preset settings for the configuration."
-  (plist-put dap--debug-template-configurations
-             configuration-name
-             configuration-settings))
-
-;; (defun dap-create-debug-configuration ()
-;;   "Debug configuration."
-;;   (interactive))
+  (push
+   (cons configuration-name
+         configuration-settings)
+   dap--debug-template-configurations))
 
 (defun dap--select-template ()
   "Select the configuration to launch."
   (dap--completing-read "Select configuration to run:"
-                        ))
+                        dap--debug-template-configurations
+                        'first
+                        nil
+                        t))
 
 (defun dap-edit-launch-configuration ()
   "Select the configuration to launch."
