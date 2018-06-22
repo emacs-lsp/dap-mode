@@ -640,15 +640,16 @@ ADAPTER-ID the id of the adapter."
 (defun dap-eval (expression)
   "Eval and print EXPRESSION."
   (interactive "sEval: ")
-  (dap--send-message (dap--make-request
-                      "evaluate"
-                      (list :expression expression
-                            :frameId (gethash "id" (dap--debug-session-active-frame (dap--cur-session)))))
-                     (lambda (result)
-                       (if (gethash "success" result)
-                           (message "=> %s" (gethash "result" (gethash "body" result)))
-                         (message (gethash "message" result))))
-                     (dap--cur-session)))
+  (let ((active-frame-id (gethash "id" (dap--debug-session-active-frame (dap--cur-session)))))
+    (dap--send-message (dap--make-request
+                        "evaluate"
+                        (list :expression expression
+                              :frameId active-frame-id))
+                       (lambda (result)
+                         (if (gethash "success" result)
+                             (message "=> %s" (gethash "result" (gethash "body" result)))
+                           (message (gethash "message" result))))
+                       (dap--cur-session))))
 
 (defun dap-eval-dwim ()
   "Eval and print EXPRESSION."
@@ -854,22 +855,25 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
   "Select the configuration to launch."
   (interactive))
 
-(defun dap-configuration-create (launch-args)
-  "Run debug configuration LAUNCH-ARGS."
+(defun dap-debug-configuration-add (launch-args)
+  "Run debug configuration LAUNCH-ARGS.
+
+If LAUNCH-ARGS is not specified the configuration is generated
+after selecting configuration template."
   (interactive (list (dap--select-template)))
   (let ((language-id (plist-get launch-args :type)))
     (if-let ((debug-provider (gethash language-id dap--debug-providers)))
         (dap-start-debugging (funcall debug-provider launch-args))
       (error "There is no debug provider for language %s" (or language-id "'Not specified'")))))
 
-(defun dap-debug-last-configuration ()
+(defun dap-debug-configuration-run-last ()
   "Debug last configuration."
   (interactive)
   (if-let (configuration (cdr (car dap--debug-configuration)))
       (dap-run-configuration configuration)
     (funcall-interactively 'dap-debug-select-configuration)))
 
-(defun dap-debug-recent-configurations ()
+(defun dap-debug-configuration-debug-recent ()
   "Debug last configuration."
   (interactive)
   (dap-run-configuration
