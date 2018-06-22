@@ -579,7 +579,7 @@ ADAPTER-ID the id of the adapter."
 (defun dap--send-configuration-done (debug-session _)
   "Send 'configurationDone' message for DEBUG-SESSION."
   (dap--send-message (dap--make-request "configurationDone")
-                     (lambda (_))
+                     (dap--resp-handler)
                      debug-session))
 
 (defun dap--set-breakpoints-request (file-name file-breakpoints)
@@ -629,11 +629,12 @@ ADAPTER-ID the id of the adapter."
          (let ((file-breakpoints (copy-tree file-breakpoints-original)))
            (dap--send-message
             (dap--set-breakpoints-request file-name file-breakpoints)
-            (lambda (resp)
-              (setf finished (1+ finished))
-              (dap--update-breakpoints debug-session resp file-name file-breakpoints)
-              (when (= finished breakpoint-count)
-                (funcall callback '_)))
+            (dap--resp-handler
+             (lambda (resp)
+               (setf finished (1+ finished))
+               (dap--update-breakpoints debug-session resp file-name file-breakpoints)
+               (when (= finished breakpoint-count)
+                 (funcall callback '_))))
             debug-session)))
        breakpoints))))
 
@@ -695,6 +696,16 @@ ADAPTER-ID the id of the adapter."
       (format "Current session %s is not stopped")
       error)))
 
+(defun dap--calculate-unique-name (debug-session-name debug-sessions)
+  "Calculate unique name with prefix DEBUG-SESSION-NAME.
+DEBUG-SESSIONS - list of the currently active sessions."
+  (let ((session-name debug-session-name)
+        (counter 1))
+    (while (--first (string= session-name (dap--debug-session-name it)) debug-sessions)
+      (setq session-name (format "%s<%s>" debug-session-name counter))
+      (setq counter (1+ counter)))
+    session-name))
+
 (defun dap-start-debugging (launch-args)
   "Start debug session with LAUNCH-ARGS."
   (let ((debug-session (dap--create-session launch-args))
@@ -704,10 +715,13 @@ ADAPTER-ID the id of the adapter."
      (dap--initialize-message (plist-get launch-args :type))
      (dap--resp-handler
       (lambda (initialize-result)
-        (lsp-workspace-set-metadata
-         "debug-sessions"
-         (cons debug-session (lsp-workspace-get-metadata "debug-sessions" workspace))
-         workspace)
+        (-let [debug-sessions (lsp-workspace-get-metadata "debug-sessions" workspace)]
+          (lsp-workspace-set-metadata "debug-sessions"
+                                      (cons debug-session debug-sessions)
+                                      workspace)
+          ;; update session name accordingly
+          (setf (dap--debug-session-name debug-session)
+                (dap--calculate-unique-name (dap--debug-session-name debug-session) debug-sessions)))
         (dap--send-message
          (dap--make-request "launch" launch-args)
          (apply-partially #'dap--configure-breakpoints
@@ -769,7 +783,7 @@ ADAPTER-ID the id of the adapter."
   "Calculate DAP modeline."
   (-when-let (debug-session (dap--cur-session))
     (format "%s - %s::"
-            (process-name (dap--debug-session-proc debug-session))
+            (dap--debug-session-name debug-session)
             (dap--debug-session-state debug-session))))
 
 (define-minor-mode dap-mode
@@ -827,7 +841,7 @@ ADAPTER-ID the id of the adapter."
           (dap--completing-read "Select session: "
                                 target-debug-sessions
                                 (lambda (session)
-                                  (process-name (dap--debug-session-proc session)))))))))
+                                  (dap--debug-session-name session))))))))
 
 (defun dap-register-debug-provider (language-id provide-configuration-fn)
   "Register debug configuration provider for LANGUAGE-ID.

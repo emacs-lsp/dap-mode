@@ -201,7 +201,7 @@ SESSION-TREE will be the root of the threads(session holder)."
          (widget-create
           `(tree-widget
             :node (push-button :format "%[%t%]\n"
-                               :tag ,(process-name (dap--debug-session-proc session)))
+                               :tag ,(dap--debug-session-name session))
             :open nil
             :session ,session
             :dynargs dap-ui--load-threads)))
