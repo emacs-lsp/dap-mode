@@ -717,7 +717,7 @@ ADAPTER-ID the id of the adapter."
          debug-session)))
      debug-session)
     (dap--set-cur-session debug-session)
-    (push launch-args dap--debug-configuration)))
+    (push (cons (plist-get launch-args :name) launch-args) dap--debug-configuration)))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
   "Establish markers for FILE-BREAKPOINTS in FILE."
@@ -835,35 +835,29 @@ PROVIDE-CONFIGURATION-FN is a function which will be called when
 `dap-mode' has received a request to start debug session which
 has language id = LANGUAGE-ID. The function must return debug
 arguments which contain the debug port to use for opening TCP connection."
-
   (puthash language-id provide-configuration-fn dap--debug-providers))
-
 
 (defun dap-register-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
 
 CONFIGURATION-SETTINGS - plist containing the preset settings for the configuration."
-  (push
-   (cons configuration-name
-         configuration-settings)
-   dap--debug-template-configurations))
+  (push (cons configuration-name configuration-settings)
+        dap--debug-template-configurations))
 
 (defun dap--select-template ()
   "Select the configuration to launch."
-  (dap--completing-read "Select configuration to run:"
-                        dap--debug-template-configurations
-                        'first
-                        nil
-                        t))
+  (rest (dap--completing-read "Select configuration template:"
+                              dap--debug-template-configurations
+                              'first nil t)))
 
-(defun dap-edit-launch-configuration ()
+(defun dap-configuration-edit-configurations ()
   "Select the configuration to launch."
   (interactive))
 
-(defun dap-run-configuration (launch-args)
+(defun dap-configuration-create (launch-args)
   "Run debug configuration LAUNCH-ARGS."
   (interactive (list (dap--select-template)))
-  (let ((language-id (plist-get launch-args :language-id)))
+  (let ((language-id (plist-get launch-args :type)))
     (if-let ((debug-provider (gethash language-id dap--debug-providers)))
         (dap-start-debugging (funcall debug-provider launch-args))
       (error "There is no debug provider for language %s" (or language-id "'Not specified'")))))
@@ -871,10 +865,18 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
 (defun dap-debug-last-configuration ()
   "Debug last configuration."
   (interactive)
-  (if-let (configuration (car dap--debug-configuration ))
+  (if-let (configuration (cdr (car dap--debug-configuration)))
       (dap-run-configuration configuration)
     (funcall-interactively 'dap-debug-select-configuration)))
 
+(defun dap-debug-recent-configurations ()
+  "Debug last configuration."
+  (interactive)
+  (dap-run-configuration
+   (rest
+    (dap--completing-read "Select configuration: "
+                          dap--debug-configuration
+                          'first nil t))))
 (defun dap-turn-on-dap-mode ()
   "Turn on `dap-mode'."
   (interactive)

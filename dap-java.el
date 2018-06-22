@@ -71,9 +71,7 @@
                         (second
                          (lsp-send-execute-command "vscode.java.resolveClasspath"
                                                    (list main-class project-name))))
-    (dap--put-if-absent conf :name (format "%s (%s)"
-                                           (plist-get conf :mainClass)
-                                           (plist-get conf :projectName)))
+    (dap--put-if-absent conf :name (format "%s (%s)" main-class project-name))
 
     (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
     (plist-put conf :__sessionId (number-to-string (float-time)))
@@ -90,7 +88,7 @@
   '(progn
      (dap-register-debug-provider "java" 'dap-java--populate-default-args)
      (dap-register-debug-template "Java Run Configuration"
-                                  (list :language-id "java"
+                                  (list :type "java"
                                         :request "launch"
                                         :args ""
                                         :cwd nil
@@ -101,7 +99,7 @@
                                         :classpaths nil
                                         :name "Run Configuration"))
      (dap-register-debug-template "Java Attach"
-                                  (list :language-id "java"
+                                  (list :type "java"
                                         :request "attach"))))
 
 (provide 'dap-java)
