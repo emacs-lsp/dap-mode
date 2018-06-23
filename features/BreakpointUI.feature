@@ -89,7 +89,7 @@ Feature: Breakpoint UI tests
     And I call "dap-step-out"
     Then I should not see the following overlay "dap-ui-marker-face"
 
-  @Breakpoints @UI
+  @Breakpoints @UI @WIP
   Scenario: Verified breakpoint
     Given I place the cursor before "System"
     And I call "dap-toggle-breakpoint"

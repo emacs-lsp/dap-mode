@@ -32,7 +32,6 @@
 (require 'json)
 (require 'f)
 (require 'dash)
-(require 'ht)
 
 (defconst dap--breakpoints-file ".breakpoints"
   "Name of the file in which the breakpoints will be persisted.")
@@ -71,7 +70,8 @@ g. after calling `dap-continue')"
   :type 'hook
   :group 'dap-mode)
 
-(defcustom dap-breakpoints-changed-hook nil "List of functions that will be called after breakpoints have changed.
+(defcustom dap-breakpoints-changed-hook nil
+  "List of functions that will be called after breakpoints have changed.
 The hook will be called with the session file and the new set of breakpoint locations."
   :type 'hook
   :group 'dap-mode)
@@ -118,7 +118,7 @@ has succeeded."
 
 (defun dap-breakpoint-get-point (breakpoint)
   "Get position of BREAKPOINT."
-  (or (marker-position (plist-get breakpoint :marker))
+  (or (-some-> breakpoint (plist-get :marker) marker-position)
       (plist-get breakpoint :point)))
 
 (defun dap--set-cur-session (debug-session)
@@ -197,7 +197,7 @@ This is in contrast to merely setting it to 0."
   (session-breakpoints (make-hash-table :test 'equal) :read-only t)
   ;; one of 'started
   (state 'pending)
-  (breakpoints nil)
+  (breakpoints (make-hash-table :test 'equal) :read-only t)
   (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
   (launch-args nil))
 
@@ -295,18 +295,17 @@ WORKSPACE will be used to calculate root folder."
     (let ((set-breakpoints-req (dap--set-breakpoints-request
                                 file-name
                                 updated-file-breakpoints)))
-      (mapc (lambda (debug-session)
-              (dap--send-message set-breakpoints-req
-                                 (dap--resp-handler
-                                  (lambda (resp)
-                                    (dap--update-breakpoints debug-session
-                                                             resp
-                                                             file-name
-                                                             file-breakpoints)))
-                                 debug-session))
-            (--remove
-             (eq 'terminated (dap--debug-session-state it))
-             (dap--get-sessions lsp--cur-workspace))))
+      (->> lsp--cur-workspace
+           dap--get-sessions
+           (--remove (eq 'terminated (dap--debug-session-state it)))
+           (--map (dap--send-message set-breakpoints-req
+                                     (dap--resp-handler
+                                      (lambda (resp)
+                                        (dap--update-breakpoints it
+                                                                 resp
+                                                                 file-name
+                                                                 file-breakpoints)))
+                                     it))))
     ;; filter markers before persisting the breakpoints (they are not writeable)
     (-let [filtered-breakpoints (make-hash-table :test 'equal)]
       (maphash (lambda (k v)
@@ -464,14 +463,20 @@ WORKSPACE will be used to calculate root folder."
 
 (defun dap--select-thread-id (debug-session thread-id)
   "Make the thread with id=THREAD-ID the active thread for DEBUG-SESSION."
-  (setf (dap--debug-session-thread-id debug-session) thread-id)
+  ;; make the thread the active session only if there is no active debug
+  ;; session.
+  (when (not (dap--debug-session-thread-id debug-session))
+    (setf (dap--debug-session-thread-id debug-session) thread-id))
+
   (dap--send-message
    (dap--make-request "stackTrace" (list :threadId thread-id))
-   (-lambda ((&hash "body" (&hash "stackFrames" stack-frames)))
-     (puthash thread-id
-              stack-frames
-              (dap--debug-session-thread-stack-frames debug-session))
-     (dap--go-to-stack-frame (car stack-frames) debug-session))
+   (dap--resp-handler
+    (-lambda ((&hash "body" (&hash "stackFrames" stack-frames)))
+      (puthash thread-id
+               stack-frames
+               (dap--debug-session-thread-stack-frames debug-session))
+      (when (eq debug-session (dap--cur-session))
+        (dap--go-to-stack-frame (car stack-frames) debug-session))))
    debug-session)
   (run-hook-with-args 'dap-stopped-hook debug-session))
 
@@ -580,32 +585,33 @@ ADAPTER-ID the id of the adapter."
   "Send 'configurationDone' message for DEBUG-SESSION."
   (dap--send-message (dap--make-request "configurationDone")
                      (dap--resp-handler
-                      (lambda (resp)
+                      (lambda (_)
                         (setf (dap--debug-session-state debug-session) 'running)))
                      debug-session))
 
 (defun dap--set-breakpoints-request (file-name file-breakpoints)
-  "TODO FILE-BREAKPOINTS FILE-NAME."
+  "Make `setBreakpoints' request for FILE-NAME.
+FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
   (dap--make-request "setBreakpoints"
                      (list :source (list :name (f-filename file-name)
                                          :path file-name)
-                           :breakpoints (cl-map
-                                         'vector
-                                         (lambda (br)
-                                           (list :line (line-number-at-pos
-                                                        (marker-position (plist-get br :marker)))))
-                                         file-breakpoints)
+                           :breakpoints (->> file-breakpoints
+                                             (--map (->> it
+                                                         dap-breakpoint-get-point
+                                                         line-number-at-pos
+                                                         (list :line)))
+                                             (apply 'vector))
+
                            :sourceModified :json-false)))
 
 (defun dap--update-breakpoints (debug-session resp file-name file-breakpoints)
   "Update breakpoints in FILE-NAME."
   ;; update the breakpoints with the information from the server:
-  (-when-let ((server-breakpoints (gethash "breakpoints" (gethash "body" resp))))
-    (cl-mapc (lambda (bkp update-bkp)
+  (-when-let (server-breakpoints (gethash "breakpoints" (gethash "body" resp)))
+    (cl-mapc (-lambda (bkp update-bkp)
                (plist-put bkp :message (gethash "message" update-bkp))
                (plist-put bkp :verified (gethash "verified" update-bkp))
                ;; TODO update point
-               ;; (plist-put bkp :line (gethash "verified" update-bkp))
                (plist-put bkp :id (gethash "id" update-bkp)))
              file-breakpoints
              server-breakpoints))
@@ -689,14 +695,15 @@ ADAPTER-ID the id of the adapter."
                                                        nil
                                                        t)))
             (dap--go-to-stack-frame new-stack-frame (dap--cur-session)))
-        (thread-last (dap--cur-session)
-          dap--debug-session-name
-          (format "Current session %s is not stopped")
-          error))
-    (thread-last (dap--cur-session)
-      dap--debug-session-name
-      (format "Current session %s is not stopped")
-      error)))
+        (->> (dap--cur-session)
+             dap--debug-session-name
+             (format "Current session %s is not stopped")
+             error))
+
+    (->> (dap--cur-session)
+         dap--debug-session-name
+         (format "Current session %s is not stopped")
+         error)))
 
 (defun dap--calculate-unique-name (debug-session-name debug-sessions)
   "Calculate unique name with prefix DEBUG-SESSION-NAME.
@@ -811,17 +818,15 @@ DEBUG-SESSIONS - list of the currently active sessions."
          (dap--select-thread-id debug-session thread-id)))
      debug-session)))
 
-
 (defun dap--switch-to-session (new-session)
   "Make NEW-SESSION the active debug session."
   (dap--set-cur-session new-session)
 
-  ;; TODO multi project setup
-  ;; (let ((buffers (lsp--workspace-buffers (dap--debug-session-workspace new-session))))
-  ;;   (maphash (lambda (file file-breakpoints)
-  ;;              (dap--set-breakpoints-in-file file file-breakpoints))
-  ;;            breakpoints)
-  ;;   )
+  (-when-let (session-breakpoints (dap--debug-session-session-breakpoints new-session))
+    (maphash
+     (lambda (file file-breakpoints)
+       (dap--set-breakpoints-in-file file file-breakpoints))
+     session-breakpoints))
 
   (when-let ((stack-frame (dap--debug-session-active-frame new-session)))
     (dap--go-to-stack-frame stack-frame new-session)))

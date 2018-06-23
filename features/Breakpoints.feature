@@ -33,7 +33,7 @@ Feature: Breakpoint tests
     And I start lsp-java
     And The server status must become "LSP::Started"
 
-  @Breakpoints
+  @Breakpoints @WIP
   Scenario: Breakpoint + continue
     When I place the cursor before "System"
     And I call "dap-toggle-breakpoint"
