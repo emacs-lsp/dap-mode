@@ -795,14 +795,6 @@ DEBUG-SESSIONS - list of the currently active sessions."
             (dap--debug-session-name debug-session)
             (dap--debug-session-state debug-session))))
 
-(define-minor-mode dap-mode
-  "Global minor mode for DAP mode."
-  :init-value nil
-  :group 'dap-mode
-  :global t
-  :lighter (:eval (dap-mode-line))
-  (add-hook 'lsp-after-initialize-hook 'dap--after-initialize))
-
 (defun dap-switch-thread ()
   "Switch current thread."
   (interactive)
@@ -902,6 +894,22 @@ after selecting configuration template."
     (dap--completing-read "Select configuration: "
                           dap--debug-configuration
                           'first nil t))))
+
+(defun dap-go-to-output-buffer ()
+  "Go to output buffer."
+  (interactive)
+  (if-let (debug-session (dap--cur-session))
+      (pop-to-buffer (dap--debug-session-output-buffer debug-session))
+    (error "No current debug session")))
+
+(define-minor-mode dap-mode
+  "Global minor mode for DAP mode."
+  :init-value nil
+  :group 'dap-mode
+  :global t
+  :lighter (:eval (dap-mode-line))
+  (add-hook 'lsp-after-initialize-hook 'dap--after-initialize))
+
 (defun dap-turn-on-dap-mode ()
   "Turn on `dap-mode'."
   (interactive)
