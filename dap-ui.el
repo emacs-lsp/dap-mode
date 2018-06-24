@@ -216,8 +216,12 @@ SESSION-TREE will be the root of the threads(session holder)."
   :keymap dap-ui-session-mode-map
   (cond
    (dap-ui-sessions-mode
+    (add-hook 'dap-terminated-hook 'dap-ui-sessions--refresh )
+    (add-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh )
     (view-mode t))
-   (t)))
+   (t
+    (remove-hook 'dap-terminated-hook 'dap-ui-sessions--refresh )
+    (remove-hook 'dap-session-changed-hook  'dap-ui-sessions--refresh ))))
 
 (defun dap-ui--session-calculate-face (debug-session)
   "Calculate the face of DEBUG-SESSION based on its state."
@@ -225,6 +229,65 @@ SESSION-TREE will be the root of the threads(session holder)."
    ((eq debug-session (dap--cur-session)) 'dap-ui-sessions-current-session-face)
    ((not (dap--session-running debug-session)) 'dap-ui-sessions-terminated-face)
    (t 'dap-ui-pending-breakpoint-face)))
+
+(defun dap-ui--nearest-widget ()
+  "Return widget at point or next nearest widget."
+  (or (widget-at)
+      (ignore-errors
+        (let ((pos (point)))
+          (widget-forward 1)
+          (and (< pos (point))
+               (widget-at))))))
+
+(defun dap-ui-sessions--render-session-node (session)
+  "Render SESSION node."
+  `(push-button :format "%[%t%]\n"
+                :tag ,(format "%s (%s)"
+                              (dap--debug-session-name session)
+                              (dap--debug-session-state session))
+                :button-face ,(dap-ui--session-calculate-face session)))
+
+(defun dap-ui-sessions--render-session (session)
+  "Render SESSION."
+  (widget-create
+   `(tree-widget
+     :node ,(dap-ui-sessions--render-session-node session)
+     :open nil
+     :session ,session
+     :dynargs ,(when (dap--session-running session)
+                 'dap-ui--load-threads))))
+
+(defun dap-ui-sessions--refresh (&rest _args)
+  "Refresh ressions view."
+  (with-current-buffer (get-buffer-create "*sessions*")
+    (let ((debug-sessions (dap--get-sessions lsp--cur-workspace))
+          (inhibit-read-only t)
+          present-sessions parent session present-widgets)
+      ;; delete redundant sessions
+      (save-excursion
+        (goto-char (point-min))
+        (let ((widget (dap-ui--nearest-widget)))
+          (while widget
+            (if (and (tree-widget-p (setq parent (widget-get widget :parent)))
+                     (not (-contains? debug-sessions
+                                      (setq session (widget-get parent :session)))))
+                (widget-delete parent)
+              (goto-char (widget-get (or parent widget) :to))
+              (push session present-sessions)
+              (push parent present-widgets))
+            (setq widget (dap-ui--nearest-widget)))))
+
+      ;; update present session
+      (dolist (tree present-widgets)
+        (let ((session (widget-get tree :session)))
+          (widget-put tree :node (dap-ui-sessions--render-session-node session))
+          (widget-value-set tree "_")))
+
+      ;; add missing sessions
+      (save-excursion
+        (goto-char (point-max))
+        (-each (cl-set-difference debug-sessions present-sessions)
+          'dap-ui-sessions--render-session)))))
 
 ;;;###autoload
 (defun dap-ui-sessions ()
@@ -240,18 +303,7 @@ SESSION-TREE will be the root of the threads(session holder)."
       (kill-all-local-variables)
       (setq-local lsp--cur-workspace workspace)
       (mapc
-       (lambda (session)
-         (widget-create
-          `(tree-widget
-            :node (push-button :format "%[%t%]\n"
-                               :tag ,(format "%s (%s)"
-                                             (dap--debug-session-name session)
-                                             (dap--debug-session-state session))
-                               :button-face ,(dap-ui--session-calculate-face session))
-            :open nil
-            :session ,session
-            :dynargs ,(when (dap--session-running session)
-                        'dap-ui--load-threads))))
+       'dap-ui-sessions--render-session
        sessions)
       (dap-ui-sessions-mode t))
     (pop-to-buffer buf)))

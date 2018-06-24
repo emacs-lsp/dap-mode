@@ -57,6 +57,11 @@ has been terminated."
   :type 'hook
   :group 'dap-mode)
 
+(defcustom dap-session-changed-hook nil
+  "List of functions to be called after sessions have changed."
+  :type 'hook
+  :group 'dap-mode)
+
 (defcustom dap-continue-hook nil
   "List of functions to be called after application started.
 
@@ -271,7 +276,8 @@ WORKSPACE will be used to calculate root folder."
 
 (defun dap--set-sessions (workspace debug-sessions)
   "Update list of debug sessions for WORKSPACE to DEBUG-SESSIONS."
-  (lsp-workspace-set-metadata "debug-sessions" debug-sessions workspace))
+  (lsp-workspace-set-metadata "debug-sessions" debug-sessions workspace)
+  (run-hook-with-args 'dap-session-changed-hook workspace))
 
 (defun dap-toggle-breakpoint ()
   "Toggle breakpoint on the current line."
