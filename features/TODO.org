@@ -1,8 +1,12 @@
 * Sessions
-** TODO Switch session
-*** TODO EVAL
-*** TODO Continue
-*** TODO Visual indication
+** DONE Switch session
+   CLOSED: [2018-06-23 Sat 21:52]
+*** DONE EVAL
+    CLOSED: [2018-06-23 Sat 21:52]
+*** DONE Continue
+    CLOSED: [2018-06-23 Sat 21:52]
+*** DONE Visual indication
+    CLOSED: [2018-06-23 Sat 21:52]
 **** TODO Session stopped
 **** TODO session deleted
 **** TODO Thread active
@@ -33,12 +37,14 @@
 * Stepping
 ** DONE Visual indication
    CLOSED: [2018-06-16 Sat 09:57]
-** TODO Invalidation
+** DONE Invalidation
+   CLOSED: [2018-06-23 Sat 21:53]
 ** DONE Multiple breakpoints hit
    CLOSED: [2018-06-16 Sat 23:56]
-** TODO Switching
+** DONE Switching
+   CLOSED: [2018-06-23 Sat 21:54]
    - Frames [Done]
-   - Session
+   - Session [Done]
    - Threads [Done]
 * Breakpoints list
 ** TODO implementation
@@ -50,7 +56,8 @@
 * Java
 ** TODO Build before runnning
 * General
-** TODO Error handlers
+** DONE Error handlers
+   CLOSED: [2018-06-23 Sat 21:54]
 ** TODO Request timeouts
 ** TODO Checking server supports the call.
 * Watches

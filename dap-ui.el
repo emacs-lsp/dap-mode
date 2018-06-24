@@ -77,6 +77,12 @@ linum, etc..)"
 (defconst dap-ui--loading-tree-widget
   (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
 
+(defconst dap-ui--brekapoint-priority 200)
+
+;; define debug marker priority so it will be over the breakpoint marker if
+;; there is such on the current line.
+(defconst dap-ui--marker-priority 300)
+
 (defun dap-ui-sessions-stack-frame ()
   "Switch to selected stackframe."
   (interactive)
@@ -93,6 +99,17 @@ linum, etc..)"
          (thread (widget-get tree :thread))
          (thread-id (gethash "id" thread)))
     (dap--select-thread-id session thread-id)))
+
+(defun dap-ui-sessions-select-session ()
+  "Switch to selected session."
+  (interactive)
+  (if-let ((session (-some-> (point)
+                             (get-char-property 'button)
+                             (widget-get :session))))
+      (if (not-eq session (dap--cur-session))
+          (error "Session %s is already selected" (dap--debug-session-name session))
+        (dap--switch-to-session session))
+    (error "No session under point")))
 
 (defun dap-ui--stack-frames (thread-tree)
   "Method for expanding stackframe content.
@@ -188,15 +205,17 @@ SESSION-TREE will be the root of the threads(session holder)."
    (t)))
 
 ;;;###autoload
-(defun dap-ui-list-sessions ()
-  "Show currently active sessions and it's threads."
+(defun dap-ui-sessions ()
+  "Show currently active sessions."
   (interactive)
   (lsp--cur-workspace-check)
   (let ((sessions (reverse (lsp-workspace-get-metadata "debug-sessions")))
         (buf (get-buffer-create "*sessions*"))
-        (inhibit-read-only t))
+        (inhibit-read-only t)
+        (workspace lsp--cur-workspace))
     (with-current-buffer buf
       (erase-buffer)
+      (setq-local lsp--cur-workspace workspace)
       (mapc
        (lambda (session)
          (widget-create
@@ -322,12 +341,16 @@ BREAKPOINTS list of the active breakpoints."
     (list :face 'dap-ui-verified-breakpoint-face
           :char "."
           :bitmap 'breakpoint
-          :fringe 'dap-ui-breakpoint-verified-fringe))
+          :fringe 'dap-ui-breakpoint-verified-fringe
+          ;; :priority 'dap-ui--brekapoint-priority
+          ))
    (t
     (list :face 'dap-ui-pending-breakpoint-face
           :char "."
           :bitmap 'breakpoint
-          :fringe 'breakpoint-disabled))))
+          :fringe 'breakpoint-disabled
+          ;; :priority dap-ui--brekapoint-priority
+          ))))
 
 (defun dap-ui--refresh-breakpoints (file bps)
   "Refresh all breakpoints in FILE.
@@ -359,6 +382,7 @@ BPS the new breakpoints for FILE."
   :group 'dap-ui)
 
 (defun dap-ui--set-debug-marker (debug-session file point)
+  "Set debug marker for DEBUG-SESSION in FILE at POINT."
   (dap-ui--clear-marker-overlay debug-session)
 
   (setq-local dap-ui--cursor-overlay
@@ -368,7 +392,9 @@ BPS the new breakpoints for FILE."
                (list :face 'dap-ui-marker-face
                      :char ">"
                      :bitmap 'right-triangle
-                     :fringe 'dap-ui-compile-errline))))
+                     :fringe 'dap-ui-compile-errline
+                     ;; :priority 'dap-ui--marker-priority
+                     ))))
 
 (defun dap-ui--terminated (debug-session)
   "DEBUG-SESSION."

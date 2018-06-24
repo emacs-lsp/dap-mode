@@ -52,8 +52,7 @@
                           locate-user-emacs-file
                           expand-file-name
                           list)
-       lsp-response-timeout 60
-       dap--cur-session nil)
+       lsp-response-timeout 60)
  (when (file-exists-p dap-java-test-root)
    (delete-directory dap-java-test-root t)))
 
