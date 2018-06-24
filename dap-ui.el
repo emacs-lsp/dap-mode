@@ -158,36 +158,37 @@ THREAD-TREE will be widget element holding thread info."
 
 SESSION-TREE will be the root of the threads(session holder)."
   (let ((debug-session (widget-get session-tree :session)))
-    (if-let (threads (dap--debug-session-threads debug-session))
-        (mapcar (-lambda ((thread &as &hash "name" name "id" thread-id))
-                  (-let [label (-if-let (status (gethash
-                                                 thread-id
-                                                 (dap--debug-session-thread-states debug-session)))
-                                   (format "%s (%s)" name status)
-                                 name)]
-                    `(tree-widget
-                      :node (push-button :tag ,label
-                                         :format "%[%t%]\n")
-                      :thread ,thread
-                      :session ,debug-session
-                      :dynargs dap-ui--stack-frames
-                      :element-type :thread
-                      :open nil)))
-                threads)
-      (dap--send-message
-       (dap--make-request "threads")
-       (dap--resp-handler
-        (lambda (threads-resp)
-          (let ((threads (gethash "threads" (gethash "body" threads-resp))))
+    (when (dap--session-running debug-session)
+      (if-let (threads (dap--debug-session-threads debug-session))
+          (mapcar (-lambda ((thread &as &hash "name" name "id" thread-id))
+                    (-let [label (-if-let (status (gethash
+                                                   thread-id
+                                                   (dap--debug-session-thread-states debug-session)))
+                                     (format "%s (%s)" name status)
+                                   name)]
+                      `(tree-widget
+                        :node (push-button :tag ,label
+                                           :format "%[%t%]\n")
+                        :thread ,thread
+                        :session ,debug-session
+                        :dynargs dap-ui--stack-frames
+                        :element-type :thread
+                        :open nil)))
+                  threads)
+        (dap--send-message
+         (dap--make-request "threads")
+         (dap--resp-handler
+          (lambda (threads-resp)
+            (let ((threads (gethash "threads" (gethash "body" threads-resp))))
 
-            (setf (dap--debug-session-threads debug-session) threads)
+              (setf (dap--debug-session-threads debug-session) threads)
 
-            (tree-mode-reflesh-tree session-tree)
-            (run-hook-with-args 'dap-ui-stack-frames-loaded
-                                debug-session
-                                threads))))
-       debug-session)
-      dap-ui--loading-tree-widget)))
+              (tree-mode-reflesh-tree session-tree)
+              (run-hook-with-args 'dap-ui-stack-frames-loaded
+                                  debug-session
+                                  threads))))
+         debug-session)
+        dap-ui--loading-tree-widget))))
 
 (defvar dap-ui-session-mode-map
   (let ((map (make-sparse-keymap)))
@@ -215,6 +216,7 @@ SESSION-TREE will be the root of the threads(session holder)."
         (workspace lsp--cur-workspace))
     (with-current-buffer buf
       (erase-buffer)
+
       (setq-local lsp--cur-workspace workspace)
       (mapc
        (lambda (session)
@@ -226,7 +228,8 @@ SESSION-TREE will be the root of the threads(session holder)."
                                              (dap--debug-session-state session)))
             :open nil
             :session ,session
-            :dynargs dap-ui--load-threads)))
+            :dynargs ,(when (dap--session-running session)
+                        'dap-ui--load-threads))))
        sessions)
       (dap-ui-sessions-mode t))
     (pop-to-buffer buf)))
@@ -342,14 +345,14 @@ BREAKPOINTS list of the active breakpoints."
           :char "."
           :bitmap 'breakpoint
           :fringe 'dap-ui-breakpoint-verified-fringe
-          ;; :priority 'dap-ui--brekapoint-priority
+          :priority 'dap-ui--brekapoint-priority
           ))
    (t
     (list :face 'dap-ui-pending-breakpoint-face
           :char "."
           :bitmap 'breakpoint
           :fringe 'breakpoint-disabled
-          ;; :priority dap-ui--brekapoint-priority
+          :priority dap-ui--brekapoint-priority
           ))))
 
 (defun dap-ui--refresh-breakpoints (file bps)
@@ -393,7 +396,7 @@ BPS the new breakpoints for FILE."
                      :char ">"
                      :bitmap 'right-triangle
                      :fringe 'dap-ui-compile-errline
-                     ;; :priority 'dap-ui--marker-priority
+                     :priority 'dap-ui--marker-priority
                      ))))
 
 (defun dap-ui--terminated (debug-session)

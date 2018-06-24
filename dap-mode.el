@@ -162,8 +162,8 @@ INHERIT-INPUT-METHOD will be proxied to `completing-read' without changes."
 This is in contrast to merely setting it to 0."
   (let (p)
     (while plist
-      (if (not (eq property (car plist)))
-          (setq p (plist-put p (car plist) (nth 1 plist))))
+      (if (not (eq property (first plist)))
+          (setq p (plist-put p (first plist) (nth 1 plist))))
       (setq plist (cddr plist)))
     p))
 
@@ -489,7 +489,7 @@ WORKSPACE will be used to calculate root folder."
                stack-frames
                (dap--debug-session-thread-stack-frames debug-session))
       (when (eq debug-session (dap--cur-session))
-        (dap--go-to-stack-frame (car stack-frames) debug-session))))
+        (dap--go-to-stack-frame (first stack-frames) debug-session))))
    debug-session)
   (run-hook-with-args 'dap-stopped-hook debug-session))
 
@@ -898,7 +898,7 @@ after selecting configuration template."
 (defun dap-debug-configuration-run-last ()
   "Debug last configuration."
   (interactive)
-  (if-let (configuration (cdr (car dap--debug-configuration)))
+  (if-let (configuration (cdr (first dap--debug-configuration)))
       (dap-run-configuration configuration)
     (funcall-interactively 'dap-debug-select-configuration)))
 
@@ -918,28 +918,28 @@ after selecting configuration template."
        dap--debug-session-output-buffer
        pop-to-buffer))
 
-
-
 (defun dap-delete-session (debug-session)
-  "Remove the current session.
+  "Remove DEBUG-SESSION.
 If the current session it will be terminated."
-  (interactive ((list (dap--cur-session-or-die))))
+  (interactive (list (dap--cur-session-or-die)))
   (let* ((cleanup-fn (lambda ()
-                       (-remove-item debug-session (dap--get-sessions lsp--cur-workspace))
+                       (->> lsp--cur-workspace
+                            dap--get-sessions
+                            (-remove-item debug-session)
+                            (dap--set-sessions lsp--cur-workspace))
                        (-when-let (buffer (dap--debug-session-output-buffer debug-session))
-                         (kill-buffer buffer)))))
+                         (kill-buffer buffer))
+                       (message "Session %s deleted." (dap--debug-session-name debug-session)))))
     (if (eq 'terminated (dap--debug-session-state debug-session))
         (funcall cleanup-fn)
       (dap--send-message (dap--make-request "disconnect"
                                             (list :restart :json-false))
                          (dap--resp-handler
-                          (lambda (_resp)
-                            (funcall cleanup-fn)))
+                          (lambda (_resp) (funcall cleanup-fn)))
                          debug-session))))
 
 (defun dap-delete-all-sessions ()
-  "Remove the current session.
-If the current session it will be terminated."
+  "Terminate/remove all sessions."
   (interactive)
   (->> lsp--cur-workspace
        dap--get-sessions
@@ -950,6 +950,12 @@ If the current session it will be terminated."
                                  it)))
   (dap--set-sessions lsp--cur-workspace ())
   (dap--switch-to-session nil))
+
+(defun dap-delete-all-breakpoints ()
+  "Delete all breakpoints."
+  (interactive)
+  ;; TODO
+  )
 
 (define-minor-mode dap-mode
   "Global minor mode for DAP mode."
