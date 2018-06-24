@@ -23,7 +23,6 @@
 ;;
 
 ;;; Code:
-
 (require 'dap-mode)
 (require 'tree-widget)
 (require 'wid-edit)
@@ -37,6 +36,21 @@
 (defface dap-ui-breakpoint-face
   '((t ()))
   "Face used for marking lines with breakpoints."
+  :group 'dap-ui)
+
+(defface dap-ui-sessions-current-session-face
+  '((t :inherit bold))
+  "Face used for marking current session in sessions list."
+  :group 'dap-ui)
+
+(defface dap-ui-sessions-terminated-face
+  '((t :inherit italic))
+  "Face used for marking terminated session."
+  :group 'dap-ui)
+
+(defface dap-ui-sessions-running-face
+  '((t :inherit default))
+  "Face used for marking terminated session."
   :group 'dap-ui)
 
 (defface dap-ui-pending-breakpoint-face
@@ -205,6 +219,13 @@ SESSION-TREE will be the root of the threads(session holder)."
     (view-mode t))
    (t)))
 
+(defun dap-ui--session-calculate-face (debug-session)
+  "Calculate the face of DEBUG-SESSION based on its state."
+  (cond
+   ((eq debug-session (dap--cur-session)) 'dap-ui-sessions-current-session-face)
+   ((not (dap--session-running debug-session)) 'dap-ui-sessions-terminated-face)
+   (t 'dap-ui-pending-breakpoint-face)))
+
 ;;;###autoload
 (defun dap-ui-sessions ()
   "Show currently active sessions."
@@ -216,7 +237,7 @@ SESSION-TREE will be the root of the threads(session holder)."
         (workspace lsp--cur-workspace))
     (with-current-buffer buf
       (erase-buffer)
-
+      (kill-all-local-variables)
       (setq-local lsp--cur-workspace workspace)
       (mapc
        (lambda (session)
@@ -225,7 +246,8 @@ SESSION-TREE will be the root of the threads(session holder)."
             :node (push-button :format "%[%t%]\n"
                                :tag ,(format "%s (%s)"
                                              (dap--debug-session-name session)
-                                             (dap--debug-session-state session)))
+                                             (dap--debug-session-state session))
+                               :button-face ,(dap-ui--session-calculate-face session))
             :open nil
             :session ,session
             :dynargs ,(when (dap--session-running session)
