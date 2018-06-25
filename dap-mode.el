@@ -818,7 +818,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
 (defun dap-switch-thread ()
   "Switch current thread."
   (interactive)
-  (let ((debug-session (dap--cur-session)))
+  (let ((debug-session (dap--cur-active-session-or-die)))
     (dap--send-message
      (dap--make-request "threads")
      (-lambda ((&hash "body" (&hash "threads" threads)))
@@ -828,6 +828,26 @@ DEBUG-SESSIONS - list of the currently active sessions."
                                       threads
                                       (apply-partially 'gethash "name"))]
          (dap--select-thread-id debug-session thread-id)))
+     debug-session)))
+
+(defun dap-stop-thread ()
+  "Stop selected thread."
+  (interactive)
+  (let ((debug-session (dap--cur-active-session-or-die)))
+    (dap--send-message
+     (dap--make-request "threads")
+     (-lambda ((&hash "body" (&hash "threads" threads)))
+       (setf (dap--debug-session-threads debug-session) threads)
+       (-let [(&hash "id" thread-id) (dap--completing-read
+                                      "Select active thread: "
+                                      threads
+                                      (apply-partially 'gethash "name"))]
+         (dap--send-message
+          (dap--make-request
+           "pause"
+           (list :threadId thread-id))
+          (dap--resp-handler)
+          debug-session)))
      debug-session)))
 
 (defun dap--switch-to-session (new-session)

@@ -1,5 +1,6 @@
 ;;; dap-ui.el --- Debug Adapter Protocol for Emacs UI  -*- lexical-binding: t; -*-
 
+
 ;; Copyright (C) 2018  Ivan
 
 ;; Author: Ivan <kyoncho@myoncho>
@@ -108,7 +109,7 @@ linum, etc..)"
 (defun dap-ui-sessions-thread ()
   "Switch to selected thread."
   (interactive)
-  (let* ((tree (get-char-property (point) 'button))
+  (let* ((tree (widget-get (get-char-property (point) 'button) :parent))
          (session (widget-get tree :session))
          (thread (widget-get tree :thread))
          (thread-id (gethash "id" thread)))
@@ -207,6 +208,7 @@ SESSION-TREE will be the root of the threads(session holder)."
 (defvar dap-ui-session-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "TAB") #'tree-mode-toggle-expand)
+    (define-key map (kbd "RET") #'dap-ui-sessions-select-session)
     map))
 
 (define-minor-mode dap-ui-sessions-mode
@@ -218,10 +220,10 @@ SESSION-TREE will be the root of the threads(session holder)."
    (dap-ui-sessions-mode
     (add-hook 'dap-terminated-hook 'dap-ui-sessions--refresh )
     (add-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh )
-    (view-mode t))
+    (setq buffer-read-only t))
    (t
     (remove-hook 'dap-terminated-hook 'dap-ui-sessions--refresh )
-    (remove-hook 'dap-session-changed-hook  'dap-ui-sessions--refresh ))))
+    (remove-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh))))
 
 (defun dap-ui-session--calculate-face (debug-session)
   "Calculate the face of DEBUG-SESSION based on its state."
@@ -261,6 +263,8 @@ SESSION-TREE will be the root of the threads(session holder)."
       :open t
       :open-icon tree-widget-leaf-icon
       :close-icon tree-widget-leaf-icon
+      :empty-icon tree-widget-leaf-icon
+      :children nil
       :session ,session))))
 
 (defun dap-ui-sessions--refresh (&rest _args)
