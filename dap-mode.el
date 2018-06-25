@@ -315,7 +315,7 @@ WORKSPACE will be used to calculate root folder."
                                 updated-file-breakpoints)))
       (->> lsp--cur-workspace
            dap--get-sessions
-           (--remove (eq 'terminated (dap--debug-session-state it)))
+           (-keep 'dap--session-running)
            (--map (dap--send-message set-breakpoints-req
                                      (dap--resp-handler
                                       (lambda (resp)
@@ -576,7 +576,7 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--send-message (message callback debug-session)
   "MESSAGE DEBUG-SESSION CALLBACK."
-  (if (not (eq 'terminated (dap--debug-session-state debug-session)))
+  (if (dap--session-running debug-session)
       (let* ((request-id (cl-incf (dap--debug-session-last-id debug-session)))
              (message (plist-put message :seq request-id)))
         (puthash request-id callback (dap--debug-session-response-handlers debug-session))
@@ -605,7 +605,8 @@ ADAPTER-ID the id of the adapter."
   (dap--send-message (dap--make-request "configurationDone")
                      (dap--resp-handler
                       (lambda (_)
-                        (setf (dap--debug-session-state debug-session) 'running)))
+                        (setf (dap--debug-session-state debug-session) 'running)
+                        (run-hook-with-args )))
                      debug-session))
 
 (defun dap--set-breakpoints-request (file-name file-breakpoints)
@@ -852,7 +853,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
   (let* ((current-session (dap--cur-session))
          (target-debug-sessions (reverse
                                  (--remove
-                                  (or (eq 'terminated (dap--debug-session-state it))
+                                  (or (not (dap--session-running it))
                                       (eq it current-session))
                                   (dap--get-sessions lsp--cur-workspace)))))
     (case (length target-debug-sessions)
@@ -861,8 +862,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
       (t (dap--switch-to-session
           (dap--completing-read "Select session: "
                                 target-debug-sessions
-                                (lambda (session)
-                                  (dap--debug-session-name session))))))))
+                                'dap--debug-session-name))))))
 
 (defun dap-register-debug-provider (language-id provide-configuration-fn)
   "Register debug configuration provider for LANGUAGE-ID.

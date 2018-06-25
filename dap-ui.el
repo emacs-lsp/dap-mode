@@ -250,12 +250,18 @@ SESSION-TREE will be the root of the threads(session holder)."
 (defun dap-ui-sessions--render-session (session)
   "Render SESSION."
   (widget-create
-   `(tree-widget
-     :node ,(dap-ui-sessions--render-session-node session)
-     :open nil
-     :session ,session
-     :dynargs ,(when (dap--session-running session)
-                 'dap-ui--load-threads))))
+   (if (dap--session-running session)
+    `(tree-widget
+      :node ,(dap-ui-sessions--render-session-node session)
+      :open nil
+      :session ,session
+      :dynargs dap-ui--load-threads)
+    `(tree-widget
+      :node ,(dap-ui-sessions--render-session-node session)
+      :open t
+      :open-icon tree-widget-leaf-icon
+      :close-icon tree-widget-leaf-icon
+      :session ,session))))
 
 (defun dap-ui-sessions--refresh (&rest _args)
   "Refresh ressions view."

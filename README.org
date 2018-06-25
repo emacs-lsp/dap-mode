@@ -17,7 +17,7 @@
   - Multiple simultaneous debug sessions
   - Evaluating statements
   - Debug/Run configurations
-** Launching [TBD]
+
 ** Debugger commands
    | Command                                | Description                        | Keybindings |
    |----------------------------------------+------------------------------------+-------------|
@@ -50,15 +50,7 @@
     | ~dap-ui-session-select~      | Select object at point                                      | <return>    |
     | ~dap-ui-session-toggle-node~ | Toggle node expand state                                    | <tab>       |
     | ~dap-ui-session-eval~        | Eval statement in current context                           | e           |
-** Breakpoints view
-   | Command                   | Description                 | Keybindings |
-   |---------------------------+-----------------------------+-------------|
-   | ~dap-ui-breakpoints-list~ | List current debug sessions |             |
-
-** Watches [TBD]
-** Value inspector [TBD]
-** Locals [TBD]
-* Language integrations
+* Configuration
 ** Java
 *** Installation
     Make sure that you have properly installed and configured [[https://github.com/emacs-lsp/lsp-java][LSP Java]]. Download
@@ -66,9 +58,9 @@
     ~.emacs.d/eclipse.jdt.ls/plugins~. On linux you can do that by running the
     following command:
     #+BEGIN_SRC bash
-mkdir -p ~/.emacs.d/eclipse.jdt.ls/plugins/
-mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=com.microsoft.java -DartifactId=com.microsoft.java.debug.plugin -Dversion=0.9.0
-cp ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.9.0/com.microsoft.java.debug.plugin-0.9.0.jar ~/.emacs.d/eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar
+      mkdir -p ~/.emacs.d/eclipse.jdt.ls/plugins/
+      mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=com.microsoft.java -DartifactId=com.microsoft.java.debug.plugin -Dversion=0.9.0
+      cp ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.9.0/com.microsoft.java.debug.plugin-0.9.0.jar ~/.emacs.d/eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar
     #+END_SRC
     Then add the following settings in your emacs config file:
     #+BEGIN_SRC elisp
@@ -82,9 +74,15 @@ cp ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.9.0/com
     | ~dap-java-debug~                      | Debug java                         |
     | ~dap-java-run~                        | Run Java debug process             |
     | ~dap-java-attach~                     | Attach to running java process     |
-** Extending DAP with new Debug servers [WIP]
+* Extending DAP with new Debug servers [TBD]
 * Links
   - [[https://github.com/emacs-lsp/lsp-java][LSP Java]]
   - [[https://github.com/Microsoft/vscode-debugadapter-node/wiki/VS-Code-Debug-Protocol-Implementations][Debug Adapter Protocol Server Implementations]]
 * Troubleshooting
   If you notice a bug, open an issue on Github Issues
+* What's next
+  - Breakpoints list
+  - Watches
+  - Value inspector
+  - Locals
+  - Debug console
