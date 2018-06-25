@@ -30,33 +30,33 @@ Feature: Threads
 
   @Threads
   Scenario: Listing sessions
-    When I call "dap-ui-list-sessions"
+    When I call "dap-ui-sessions"
     Then I should be in buffer "*sessions*"
     Then I should see:
     """
-    [+] temp.App (test-project)
+    [+] temp.App (m) (running)
     """
 
   @Threads
   Scenario: Listing sessions - listing threads
-    When I call "dap-ui-list-sessions"
+    When I call "dap-ui-sessions"
     Then I should be in buffer "*sessions*"
     And I should see:
     """
-    [+] temp.App (test-project)
+    [+] temp.App (m) (running)
     """
     When I place the cursor before "temp"
     And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
     And I call "tree-mode-expand-level"
     Then I should see:
     """
-    [-] temp.App (test-project)
+    [-] temp.App (m) (running)
      ‘-Loading...
     """
     And The hook handler "threads-expanded" would be called
     Then I should see:
     """
-    [-] temp.App (test-project)
+    [-] temp.App (m) (running)
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
@@ -65,11 +65,11 @@ Feature: Threads
 
   @Threads @UI @Stackframes
   Scenario: Stackframes
-    When I call "dap-ui-list-sessions"
+    When I call "dap-ui-sessions"
     Then I should be in buffer "*sessions*"
     And I should see:
     """
-    [+] temp.App (test-project)
+    [+] temp.App (m) (running)
     """
     When I place the cursor before "temp"
     And I attach handler "threads-expanded" to hook "dap-ui-stack-frames-loaded"
@@ -77,7 +77,7 @@ Feature: Threads
     And The hook handler "threads-expanded" would be called
     And I should see:
     """
-    [-] temp.App (test-project)
+    [-] temp.App (m) (running)
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
@@ -87,11 +87,11 @@ Feature: Threads
     And I call "tree-mode-expand-level"
     And I should see:
     """
-    [-] temp.App (test-project)
+    [-] temp.App (m) (running)
      |-[+] Thread [Signal Dispatcher]
      |-[+] Thread [Finalizer]
      |-[+] Thread [Reference Handler]
      ‘-[-] Thread [main] (stopped)
-        |-App.foo()
-        ‘-App.main(String[])
+        |-App.foo() (App.java:8)
+        ‘-App.main(String[]) (App.java:5)
     """

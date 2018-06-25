@@ -1,10 +1,7 @@
 (require 'f)
 
 (require 'undercover nil t)
-(undercover "*.el"
-            (:exclude "*-test.el")
-            (:send-report nil)
-            (:report-file "/tmp/undercover-report.json"))
+(undercover "*.el" (:exclude "*-test.el"))
 
 (let* ((features-directory
         (file-name-directory

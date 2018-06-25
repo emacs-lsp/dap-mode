@@ -184,7 +184,7 @@ This is in contrast to merely setting it to 0."
     (format "Content-Length: %d\r\n\r\n%s" (string-bytes body) body)))
 
 (cl-defstruct dap--debug-session
-  (name)
+  (name nil)
   ;; ‘last-id’ is the last JSON-RPC identifier used.
   (last-id 0)
 
@@ -315,7 +315,7 @@ WORKSPACE will be used to calculate root folder."
                                 updated-file-breakpoints)))
       (->> lsp--cur-workspace
            dap--get-sessions
-           (-keep 'dap--session-running)
+           (-filter 'dap--session-running)
            (--map (dap--send-message set-breakpoints-req
                                      (dap--resp-handler
                                       (lambda (resp)
@@ -420,9 +420,9 @@ WORKSPACE will be used to calculate root folder."
   (interactive)
   (let ((debug-session (dap--cur-active-session-or-die)))
     (dap--send-message (dap--make-request "continue"
-                                          (list :threadId debug-session))
+                                          (list :threadId (dap--debug-session-thread-id debug-session)))
                        (dap--resp-handler)
-                       (dap--debug-session-thread-id debug-session))
+                       debug-session)
     (dap--resume-application debug-session)))
 
 ;;;###autoload
@@ -606,7 +606,7 @@ ADAPTER-ID the id of the adapter."
                      (dap--resp-handler
                       (lambda (_)
                         (setf (dap--debug-session-state debug-session) 'running)
-                        (run-hook-with-args )))
+                        (run-hook-with-args 'dap-session-changed-hook)))
                      debug-session))
 
 (defun dap--set-breakpoints-request (file-name file-breakpoints)
