@@ -314,7 +314,11 @@ SESSION-TREE will be the root of the threads(session holder)."
       (setq-local lsp--cur-workspace workspace)
       (mapc 'dap-ui-sessions--render-session sessions)
       (dap-ui-sessions-mode t))
-    (pop-to-buffer buf)))
+    (let ((win (display-buffer-in-side-window
+                buf`((side . left) (slot . 5) (window-width . 0.20)))))
+      (set-window-dedicated-p win t)
+      (select-window win)
+      (fit-window-to-buffer nil nil 10))))
 
 (defun dap-ui--internalize-offset (offset)
   (if (eq 1 (coding-system-eol-type buffer-file-coding-system))
