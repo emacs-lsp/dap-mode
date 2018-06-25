@@ -38,7 +38,7 @@
   "Face used for marking lines with breakpoints."
   :group 'dap-ui)
 
-(defface dap-ui-sessions-current-session-face
+(defface dap-ui-sessions-active-session-face
   '((t :inherit bold))
   "Face used for marking current session in sessions list."
   :group 'dap-ui)
@@ -223,10 +223,10 @@ SESSION-TREE will be the root of the threads(session holder)."
     (remove-hook 'dap-terminated-hook 'dap-ui-sessions--refresh )
     (remove-hook 'dap-session-changed-hook  'dap-ui-sessions--refresh ))))
 
-(defun dap-ui--session-calculate-face (debug-session)
+(defun dap-ui-session--calculate-face (debug-session)
   "Calculate the face of DEBUG-SESSION based on its state."
   (cond
-   ((eq debug-session (dap--cur-session)) 'dap-ui-sessions-current-session-face)
+   ((eq debug-session (dap--cur-session)) 'dap-ui-sessions-active-session-face)
    ((not (dap--session-running debug-session)) 'dap-ui-sessions-terminated-face)
    (t 'dap-ui-pending-breakpoint-face)))
 
@@ -245,7 +245,7 @@ SESSION-TREE will be the root of the threads(session holder)."
                 :tag ,(format "%s (%s)"
                               (dap--debug-session-name session)
                               (dap--debug-session-state session))
-                :button-face ,(dap-ui--session-calculate-face session)))
+                :button-face ,(dap-ui-session--calculate-face session)))
 
 (defun dap-ui-sessions--render-session (session)
   "Render SESSION."
@@ -277,7 +277,7 @@ SESSION-TREE will be the root of the threads(session holder)."
               (push parent present-widgets))
             (setq widget (dap-ui--nearest-widget)))))
 
-      ;; update present session
+      ;; update present sessions
       (dolist (tree present-widgets)
         (let ((session (widget-get tree :session)))
           (widget-put tree :node (dap-ui-sessions--render-session-node session))
@@ -302,13 +302,11 @@ SESSION-TREE will be the root of the threads(session holder)."
       (erase-buffer)
       (kill-all-local-variables)
       (setq-local lsp--cur-workspace workspace)
-      (mapc
-       'dap-ui-sessions--render-session
-       sessions)
+      (mapc 'dap-ui-sessions--render-session sessions)
       (dap-ui-sessions-mode t))
     (pop-to-buffer buf)))
 
-(defun dap--internalize-offset (offset)
+(defun dap-ui--internalize-offset (offset)
   (if (eq 1 (coding-system-eol-type buffer-file-coding-system))
       (save-excursion
         (save-restriction
@@ -336,7 +334,7 @@ SESSION-TREE will be the root of the threads(session holder)."
                  ((< diff 0) (forward-char step))))))))
     (+ offset 1)))
 
-(defun dap--before-string (sign face)
+(defun dap-ui--before-string (sign face)
   (propertize " "
               'display
               `((margin left-margin)
@@ -348,9 +346,9 @@ SESSION-TREE will be the root of the threads(session holder)."
 
 (defun dap--show-sign-overlay (sign face ov)
   (save-excursion
-    (overlay-put ov 'before-string (dap--before-string sign face))))
+    (overlay-put ov 'before-string (dap-ui--before-string sign face))))
 
-(defun dap--make-overlay (beg end tooltip-text visuals &optional mouse-face buf)
+(defun dap-ui--make-overlay (beg end tooltip-text visuals &optional mouse-face buf)
   "Allocate a DAP UI overlay in range BEG and END."
   (let ((ov (make-overlay beg end buf t t)))
     (overlay-put ov 'face           (plist-get visuals :face))
@@ -384,15 +382,15 @@ SESSION-TREE will be the root of the threads(session holder)."
       (with-current-buffer buf
         (if (and (integerp beg) (integerp end))
             (progn
-              (setq beg (dap--internalize-offset beg))
-              (setq end (dap--internalize-offset end)))
+              (setq beg (dap-ui--internalize-offset beg))
+              (setq end (dap-ui--internalize-offset end)))
           ;; If line provided, use line to define region
           (save-excursion
             (goto-char point)
             (setq beg (point-at-bol))
             (setq end (point-at-eol)))))
 
-      (dap--make-overlay beg end msg visuals nil buf))))
+      (dap-ui--make-overlay beg end msg visuals nil buf))))
 
 (defvar-local dap-ui--breakpoint-overlays '())
 

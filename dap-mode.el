@@ -933,6 +933,8 @@ If the current session it will be terminated."
                             dap--get-sessions
                             (-remove-item debug-session)
                             (dap--set-sessions lsp--cur-workspace))
+                       (when (eq (dap--cur-session) debug-session)
+                         (dap--switch-to-session nil))
                        (-when-let (buffer (dap--debug-session-output-buffer debug-session))
                          (kill-buffer buffer))
                        (message "Session %s deleted." (dap--debug-session-name debug-session)))))
