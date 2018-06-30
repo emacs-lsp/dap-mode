@@ -468,7 +468,7 @@ WORKSPACE will be used to calculate root folder."
                      (dap--cur-active-session-or-die))
   (dap--resume-application (dap--cur-active-session-or-die)))
 
-(defun dap--go-to-stack-frame (stack-frame debug-session)
+(defun dap--go-to-stack-frame (debug-session stack-frame)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
   (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
     (when stack-frame
@@ -495,7 +495,7 @@ WORKSPACE will be used to calculate root folder."
                stack-frames
                (dap--debug-session-thread-stack-frames debug-session))
       (when (eq debug-session (dap--cur-session))
-        (dap--go-to-stack-frame (first stack-frames) debug-session))))
+        (dap--go-to-stack-frame debug-session (first stack-frames)))))
    debug-session)
   (run-hook-with-args 'dap-stopped-hook debug-session))
 
@@ -713,7 +713,7 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
                                                        (lambda (it) (gethash "name" it))
                                                        nil
                                                        t)))
-            (dap--go-to-stack-frame new-stack-frame (dap--cur-session)))
+            (dap--go-to-stack-frame (dap--cur-session) new-stack-frame))
         (->> (dap--cur-session)
              dap--debug-session-name
              (format "Current session %s is not stopped")
@@ -721,7 +721,7 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
 
     (->> (dap--cur-session)
          dap--debug-session-name
-         (format "Current session %s is not stopped")
+         "No thread is currently active"
          error)))
 
 (defun dap--calculate-unique-name (debug-session-name debug-sessions)
@@ -862,9 +862,9 @@ DEBUG-SESSIONS - list of the currently active sessions."
         (lsp--cur-workspace (dap--get-breakpoints lsp--cur-workspace)))
        (make-hash-table)))
 
-  (-some-> new-session
-           dap--debug-session-active-frame
-           (dap--go-to-stack-frame new-session)))
+  (-some->> new-session
+            dap--debug-session-active-frame
+            (dap--go-to-stack-frame new-session)))
 
 (defun dap-switch-session ()
   "Switch current session interactively."

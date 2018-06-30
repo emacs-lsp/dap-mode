@@ -34,6 +34,11 @@
   :type 'hook
   :group 'dap-ui)
 
+(defface dap-ui-compile-errline
+  '((t (:inherit compilation-error)))
+  "Face used for marking the line on which an error occurs."
+  :group 'dap-ui)
+
 (defface dap-ui-breakpoint-face
   '((t ()))
   "Face used for marking lines with breakpoints."
@@ -98,33 +103,27 @@ linum, etc..)"
 ;; there is such on the current line.
 (defconst dap-ui--marker-priority 300)
 
-(defun dap-ui-sessions-stack-frame ()
-  "Switch to selected stackframe."
+(defun dap-ui-sessions-select ()
+  "Select the element under cursor."
   (interactive)
-  (let ((tree (get-char-property (point) 'button)))
-    (dap--go-to-stack-frame
-     (widget-get tree :stack-frame)
-     (widget-get tree :session))))
+  (when-let (widget (-when-let (widget-under-cursor (dap-ui--nearest-widget))
+                      (if (tree-widget-p widget-under-cursor )
+                          widget-under-cursor
+                        (widget-get widget-under-cursor :parent))))
 
-(defun dap-ui-sessions-thread ()
-  "Switch to selected thread."
-  (interactive)
-  (let* ((tree (widget-get (get-char-property (point) 'button) :parent))
-         (session (widget-get tree :session))
-         (thread (widget-get tree :thread))
-         (thread-id (gethash "id" thread)))
-    (dap--select-thread-id session thread-id)))
+    (-let [session (widget-get widget :session)]
+      (case (widget-get widget :element-type)
+        (:session (dap--switch-to-session session))
+        (:thread (-let ((thread  (widget-get widget :thread)))
+                   (setf (dap--debug-session-thread-id session) (gethash "id" thread) )
+                   (dap--switch-to-session session)
+                   (dap--select-thread-id session (gethash "id" thread))))
+        (:stack-frame (-let ((thread (widget-get widget :thread))
+                             (stack-frame (widget-get widget :stack-frame)))
 
-(defun dap-ui-sessions-select-session ()
-  "Switch to selected session."
-  (interactive)
-  (if-let ((session (-some-> (point)
-                             (get-char-property 'button)
-                             (widget-get :session))))
-      (if (not-eq session (dap--cur-session))
-          (error "Session %s is already selected" (dap--debug-session-name session))
-        (dap--switch-to-session session))
-    (error "No session under point")))
+                        (setf (dap--debug-session-thread-id session) (gethash "id" thread) )
+                        (setf (dap--debug-session-active-frame session) stack-frame)
+                        (dap--switch-to-session session)))))))
 
 (defun dap-ui--stack-frames (thread-tree)
   "Method for expanding stackframe content.
@@ -208,7 +207,7 @@ SESSION-TREE will be the root of the threads(session holder)."
 (defvar dap-ui-session-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "TAB") #'tree-mode-toggle-expand)
-    (define-key map (kbd "RET") #'dap-ui-sessions-select-session)
+    (define-key map (kbd "RET") #'dap-ui-sessions-select)
     map))
 
 (define-minor-mode dap-ui-sessions-mode
@@ -253,19 +252,21 @@ SESSION-TREE will be the root of the threads(session holder)."
   "Render SESSION."
   (widget-create
    (if (dap--session-running session)
-    `(tree-widget
-      :node ,(dap-ui-sessions--render-session-node session)
-      :open nil
-      :session ,session
-      :dynargs dap-ui--load-threads)
-    `(tree-widget
-      :node ,(dap-ui-sessions--render-session-node session)
-      :open t
-      :open-icon tree-widget-leaf-icon
-      :close-icon tree-widget-leaf-icon
-      :empty-icon tree-widget-leaf-icon
-      :children nil
-      :session ,session))))
+       `(tree-widget
+         :node ,(dap-ui-sessions--render-session-node session)
+         :open nil
+         :session ,session
+         :element-type 'session
+         :dynargs dap-ui--load-threads)
+     `(tree-widget
+       :node ,(dap-ui-sessions--render-session-node session)
+       :open t
+       :open-icon tree-widget-leaf-icon
+       :close-icon tree-widget-leaf-icon
+       :empty-icon tree-widget-leaf-icon
+       :children nil
+       :element-type :session
+       :session ,session))))
 
 (defun dap-ui-sessions--refresh (&rest _args)
   "Refresh ressions view."
@@ -465,10 +466,7 @@ BPS the new breakpoints for FILE."
        (setq-local dap-ui--cursor-overlay nil)))
    (lsp--workspace-buffers (dap--debug-session-workspace debug-session))))
 
-(defface dap-ui-compile-errline
-  '((t (:inherit compilation-error)))
-  "Face used for marking the line on which an error occurs."
-  :group 'dap-ui)
+
 
 (defun dap-ui--set-debug-marker (debug-session file point)
   "Set debug marker for DEBUG-SESSION in FILE at POINT."
