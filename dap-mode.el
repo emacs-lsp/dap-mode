@@ -293,7 +293,9 @@ WORKSPACE will be used to calculate root folder."
                                                                  file-breakpoints))
                                        ;; delete if already exists
                                        (progn
-                                         (set-marker (plist-get existing-breakpoint :marker) nil)
+                                         (-some-> existing-breakpoint
+                                                  (plist-get :marker)
+                                                  (set-marker nil))
                                          (cl-remove existing-breakpoint file-breakpoints))
                                      ;; add if does not exist
                                      (push (list :marker (point-marker)
@@ -861,6 +863,8 @@ DEBUG-SESSIONS - list of the currently active sessions."
         (new-session (dap--debug-session-session-breakpoints new-session))
         (lsp--cur-workspace (dap--get-breakpoints lsp--cur-workspace)))
        (make-hash-table)))
+
+  (run-hook-with-args 'dap-session-changed-hook lsp--cur-workspace)
 
   (-some->> new-session
             dap--debug-session-active-frame

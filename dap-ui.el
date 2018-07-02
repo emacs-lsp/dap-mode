@@ -103,14 +103,17 @@ linum, etc..)"
 ;; there is such on the current line.
 (defconst dap-ui--marker-priority 300)
 
+(defun dap-ui-sessions--tree-under-cursor ()
+  "Get tree under cursor."
+  (-when-let (widget-under-cursor (dap-ui--nearest-widget))
+    (if (tree-widget-p widget-under-cursor )
+        widget-under-cursor
+      (widget-get widget-under-cursor :parent))))
+
 (defun dap-ui-sessions-select ()
   "Select the element under cursor."
   (interactive)
-  (when-let (widget (-when-let (widget-under-cursor (dap-ui--nearest-widget))
-                      (if (tree-widget-p widget-under-cursor )
-                          widget-under-cursor
-                        (widget-get widget-under-cursor :parent))))
-
+  (if-let (widget (dap-ui-sessions--tree-under-cursor))
     (-let [session (widget-get widget :session)]
       (case (widget-get widget :element-type)
         (:session (dap--switch-to-session session))
@@ -123,7 +126,8 @@ linum, etc..)"
 
                         (setf (dap--debug-session-thread-id session) (gethash "id" thread) )
                         (setf (dap--debug-session-active-frame session) stack-frame)
-                        (dap--switch-to-session session)))))))
+                        (dap--switch-to-session session)))))
+    (message "Nothing under cursor.")))
 
 (defun dap-ui--stack-frames (thread-tree)
   "Method for expanding stackframe content.
@@ -166,6 +170,16 @@ THREAD-TREE will be widget element holding thread info."
                               (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames))))
                          session)
       dap-ui--loading-tree-widget)))
+
+
+
+;;;###autoload
+(defun dap-ui-sessions-delete-session ()
+  "Delete session under cursor."
+  (interactive)
+  (-> (dap-ui-sessions--tree-under-cursor)
+      (widget-get :session)
+      dap-delete-session))
 
 (defun dap-ui--load-threads (session-tree)
   "Method for expanding threads.
@@ -217,12 +231,15 @@ SESSION-TREE will be the root of the threads(session holder)."
   :keymap dap-ui-session-mode-map
   (cond
    (dap-ui-sessions-mode
-    (add-hook 'dap-terminated-hook 'dap-ui-sessions--refresh )
-    (add-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh )
+    (add-hook 'dap-terminated-hook 'dap-ui-sessions--refresh)
+    (add-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
+    (add-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
     (setq buffer-read-only t))
    (t
-    (remove-hook 'dap-terminated-hook 'dap-ui-sessions--refresh )
-    (remove-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh))))
+    (remove-hook 'dap-terminated-hook 'dap-ui-sessions--refresh)
+    (remove-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
+    (remove-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
+    (message "Cleaned up"))))
 
 (defun dap-ui-session--calculate-face (debug-session)
   "Calculate the face of DEBUG-SESSION based on its state."
@@ -292,7 +309,7 @@ SESSION-TREE will be the root of the threads(session holder)."
       (dolist (tree present-widgets)
         (let ((session (widget-get tree :session)))
           (widget-put tree :node (dap-ui-sessions--render-session-node session))
-          (widget-value-set tree "_")))
+          (tree-mode-reflesh-tree tree)))
 
       ;; add missing sessions
       (save-excursion
