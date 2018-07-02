@@ -69,7 +69,11 @@
                         (second
                          (lsp-send-execute-command "vscode.java.resolveClasspath"
                                                    (list main-class project-name))))
-    (dap--put-if-absent conf :name (format "%s (%s)" main-class project-name))
+    (dap--put-if-absent conf :name (format "%s (%s)"
+                                           (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
+                                               (match-string 1 main-class)
+                                             main-class)
+                                           project-name))
 
     (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
     (plist-put conf :__sessionId (number-to-string (float-time)))
