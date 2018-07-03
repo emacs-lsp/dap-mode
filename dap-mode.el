@@ -286,11 +286,12 @@ WORKSPACE will be used to calculate root folder."
   (let* ((file-name (buffer-file-name))
          (breakpoints (dap--get-breakpoints lsp--cur-workspace))
          (file-breakpoints (gethash file-name breakpoints))
-         (updated-file-breakpoints (if-let (existing-breakpoint (cl-find-if
-                                                                 (lambda (existing)
-                                                                   (= (line-number-at-pos (plist-get existing :marker))
-                                                                      (line-number-at-pos (point))))
-                                                                 file-breakpoints))
+         (updated-file-breakpoints (if-let (existing-breakpoint
+                                            (cl-find-if
+                                             (lambda (existing)
+                                               (= (line-number-at-pos (plist-get existing :marker))
+                                                  (line-number-at-pos (point))))
+                                             file-breakpoints))
                                        ;; delete if already exists
                                        (progn
                                          (-some-> existing-breakpoint
@@ -306,10 +307,11 @@ WORKSPACE will be used to calculate root folder."
         (puthash file-name updated-file-breakpoints breakpoints)
       (remhash file-name breakpoints))
 
-    (run-hook-with-args 'dap-breakpoints-changed-hook
-                        (dap--cur-session)
-                        file-name
-                        updated-file-breakpoints)
+    (when (not (and (dap--cur-session) (dap--session-running (dap--cur-session))))
+      (run-hook-with-args 'dap-breakpoints-changed-hook
+                          nil
+                          file-name
+                          updated-file-breakpoints))
 
     ;; Update all of the active sessions with the list of breakpoints.
     (let ((set-breakpoints-req (dap--set-breakpoints-request
@@ -693,12 +695,15 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
 
 (defun dap--active-get-breakpoints ()
   "Get breakpoints either from debug session or from workspace in case the debug session is not present."
-  (gethash buffer-file-name
-           (if  (or (not (dap--cur-session))
-                    (eq 'terminated (dap--debug-session-state (dap--cur-session))))
-               (dap--get-breakpoints lsp--cur-workspace)
-             (dap--debug-session-session-breakpoints (dap--cur-session)))
-           nil))
+  (let ((debug-session (dap--cur-session)))
+    (gethash buffer-file-name
+             (cond
+              ((and debug-session (dap--session-running debug-session))
+               (dap--debug-session-session-breakpoints debug-session))
+
+              (lsp--cur-workspace  (dap--get-breakpoints lsp--cur-workspace))
+              (t (make-hash-table)))
+             nil)))
 
 (defun dap-switch-stack-frame ()
   "Switch stackframe by selecting another stackframe stackframes from current thread."
@@ -813,7 +818,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
 (defun dap-mode-line ()
   "Calculate DAP modeline."
   (-when-let (debug-session (dap--cur-session))
-    (format "%s - %s::"
+    (format "%s - %s|"
             (dap--debug-session-name debug-session)
             (dap--debug-session-state debug-session))))
 

@@ -114,19 +114,19 @@ linum, etc..)"
   "Select the element under cursor."
   (interactive)
   (if-let (widget (dap-ui-sessions--tree-under-cursor))
-    (-let [session (widget-get widget :session)]
-      (case (widget-get widget :element-type)
-        (:session (dap--switch-to-session session))
-        (:thread (-let ((thread  (widget-get widget :thread)))
-                   (setf (dap--debug-session-thread-id session) (gethash "id" thread) )
-                   (dap--switch-to-session session)
-                   (dap--select-thread-id session (gethash "id" thread))))
-        (:stack-frame (-let ((thread (widget-get widget :thread))
-                             (stack-frame (widget-get widget :stack-frame)))
+      (-let [session (widget-get widget :session)]
+        (case (widget-get widget :element-type)
+          (:session (dap--switch-to-session session))
+          (:thread (-let ((thread  (widget-get widget :thread)))
+                     (setf (dap--debug-session-thread-id session) (gethash "id" thread) )
+                     (dap--switch-to-session session)
+                     (dap--select-thread-id session (gethash "id" thread))))
+          (:stack-frame (-let ((thread (widget-get widget :thread))
+                               (stack-frame (widget-get widget :stack-frame)))
 
-                        (setf (dap--debug-session-thread-id session) (gethash "id" thread) )
-                        (setf (dap--debug-session-active-frame session) stack-frame)
-                        (dap--switch-to-session session)))))
+                          (setf (dap--debug-session-thread-id session) (gethash "id" thread) )
+                          (setf (dap--debug-session-active-frame session) stack-frame)
+                          (dap--switch-to-session session)))))
     (message "Nothing under cursor.")))
 
 (defun dap-ui--stack-frames (thread-tree)
@@ -501,10 +501,11 @@ BPS the new breakpoints for FILE."
                      ))))
 
 (defun dap-ui--terminated (debug-session)
-  "DEBUG-SESSION."
-  (maphash (lambda (file-name breakpoints)
-             (dap-ui--breakpoints-changed debug-session file-name breakpoints))
-           (dap--get-breakpoints (dap--debug-session-workspace debug-session))))
+  "Handler for `dap-terminated-hook'."
+  (->> debug-session
+       dap--debug-session-workspace
+       dap--get-breakpoints
+       (maphash (apply-partially 'dap-ui--breakpoints-changed debug-session))))
 
 (defun dap-ui--stack-frame-changed (debug-session)
   "Handler for `dap-stack-frame-changed-hook'.
@@ -519,31 +520,34 @@ DEBUG-SESSION is the debug session triggering the event."
                               (lsp--uri-to-path path)
                               (point))))
 
+(defun dap-ui--after-open ()
+  (-when-let (breakpoints (dap--active-get-breakpoints))
+    (dap-ui--breakpoints-changed (dap--cur-session)
+                                 buffer-file-name
+                                 breakpoints))
+  (when-let (debug-session (dap--cur-session))
+    (-let [(&hash "source" (&hash "path" path)) (dap--debug-session-active-frame (dap--cur-session))]
+      (when (string= buffer-file-name path)
+        (dap-ui--stack-frame-changed debug-session)))))
+
 ;;;###autoload
 (define-minor-mode dap-ui-mode
   "Displaying DAP visuals."
   :init-value nil
-  :group dap-ui
+  :global t
   (cond
    (dap-ui-mode
     (add-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
     (add-hook 'dap-terminated-hook 'dap-ui--terminated)
     (add-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (add-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
-    (-when-let (breakpoints (dap--active-get-breakpoints))
-      (dap-ui--breakpoints-changed (dap--cur-session)
-                                   buffer-file-name
-                                   breakpoints))
-
-    (when (dap--cur-session)
-      (-let [(&hash "source" (&hash "path" path)) (dap--debug-session-active-frame (dap--cur-session))]
-        (when (string= buffer-file-name path)
-          (dap-ui--stack-frame-changed (dap--cur-session))))))
+    (add-hook 'lsp-after-open-hook 'dap-ui--after-open))
    (t
     (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
     (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (remove-hook 'dap-terminated-hook 'dap-ui--terminated)
-    (remove-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed))))
+    (remove-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
+    (remove-hook 'lsp-after-open-hook 'dap-ui--after-open))))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here
