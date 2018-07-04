@@ -1,9 +1,9 @@
 ;;; dap-mode.el --- Debug Adapter Protocol mode      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018  Ivan
+;; Copyright (C) 2018  Ivan Yonchovski
 
-;; Author: Ivan <kyoncho@myoncho>
-;; Keywords:
+;; Author: Ivan Yonchovski <yyoncho@gmail.com>
+;; Keywords: languages, debug
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -509,7 +509,9 @@ WORKSPACE will be used to calculate root folder."
   (let ((event-type (gethash "event" event)))
     (pcase event-type
       ("output" (with-current-buffer (dap--debug-session-output-buffer debug-session)
-                  (insert (gethash "output" (gethash "body" event)))))
+                  (save-excursion
+                    (goto-char (point-max))
+                    (insert (gethash "output" (gethash "body" event))))))
       ("breakpoint" ())
       ("thread" (-let [(&hash "body" (&hash "threadId" id "reason" reason)) event]
                   (puthash id reason (dap--debug-session-thread-states debug-session))))

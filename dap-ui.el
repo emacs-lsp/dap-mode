@@ -1,10 +1,10 @@
 ;;; dap-ui.el --- Debug Adapter Protocol for Emacs UI  -*- lexical-binding: t; -*-
 
 
-;; Copyright (C) 2018  Ivan
+;; Copyright (C) 2018  Ivan Yonchovski
 
-;; Author: Ivan <kyoncho@myoncho>
-;; Keywords: languages
+;; Author: Ivan Yonchovski <yyoncho@gmail.com>
+;; Keywords: languages, debug
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

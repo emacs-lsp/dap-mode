@@ -1,8 +1,8 @@
 ;;; dap-java.el --- DAP Adapter for Java        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018  Ivan
+;; Copyright (C) 2018  Ivan Yonchovski
 
-;; Author: Ivan <kyoncho@myoncho>
+;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
