@@ -32,6 +32,7 @@
 (require 'json)
 (require 'f)
 (require 'dash)
+(require 'dap-overlays)
 
 (defconst dap--breakpoints-file ".breakpoints"
   "Name of the file in which the breakpoints will be persisted.")
@@ -678,9 +679,11 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
                         (list :expression expression
                               :frameId active-frame-id))
                        (lambda (result)
-                         (if (gethash "success" result)
-                             (message "=> %s" (gethash "result" (gethash "body" result)))
-                           (message (gethash "message" result))))
+                         (-let [msg (if (gethash "success" result)
+                                        (gethash "result" (gethash "body" result))
+                                      (gethash "message" result))]
+                           (message msg)
+                           (dap--display-interactive-eval-result msg (point))))
                        (dap--cur-session))))
 
 (defun dap-eval-dwim ()

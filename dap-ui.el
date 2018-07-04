@@ -86,6 +86,10 @@
   "Face for enabled breakpoint icon in fringe."
   :group 'dap-ui)
 
+(with-eval-after-load 'winum
+  (when (boundp 'winum-ignored-buffers)
+    (add-to-list 'winum-ignored-buffers "*sessions*")))
+
 (defcustom dap-left-margin-gutter t
   "If non-nil, DAP UI will show the compilation and warning icons
 in the left margin, when in terminal mode. These icons can
@@ -224,22 +228,23 @@ SESSION-TREE will be the root of the threads(session holder)."
     (define-key map (kbd "RET") #'dap-ui-sessions-select)
     map))
 
+(defun dap-ui-sessions--cleanup-hooks ()
+  "Remove UI sessions related hooks."
+  (remove-hook 'dap-terminated-hook 'dap-ui-sessions--refresh)
+  (remove-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
+  (remove-hook 'dap-continue-hook 'dap-ui-sessions--refresh))
+
 (define-minor-mode dap-ui-sessions-mode
   "UI Session list minor mode."
   :init-value nil
   :group dap-ui
   :keymap dap-ui-session-mode-map
-  (cond
-   (dap-ui-sessions-mode
-    (add-hook 'dap-terminated-hook 'dap-ui-sessions--refresh)
-    (add-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
-    (add-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
-    (setq buffer-read-only t))
-   (t
-    (remove-hook 'dap-terminated-hook 'dap-ui-sessions--refresh)
-    (remove-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
-    (remove-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
-    (message "Cleaned up"))))
+
+  (add-hook 'dap-terminated-hook 'dap-ui-sessions--refresh )
+  (add-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
+  (add-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
+  (add-hook 'kill-buffer-hook 'dap-ui-sessions--cleanup-hooks nil t)
+  (setq buffer-read-only t))
 
 (defun dap-ui-session--calculate-face (debug-session)
   "Calculate the face of DEBUG-SESSION based on its state."
@@ -333,7 +338,7 @@ SESSION-TREE will be the root of the threads(session holder)."
       (mapc 'dap-ui-sessions--render-session sessions)
       (dap-ui-sessions-mode t))
     (let ((win (display-buffer-in-side-window
-                buf`((side . left) (slot . 5) (window-width . 0.20)))))
+                buf `((side . right) (slot . 5) (window-width . 0.20)))))
       (set-window-dedicated-p win t)
       (select-window win)
       (fit-window-to-buffer nil nil 10))))
@@ -497,8 +502,7 @@ BPS the new breakpoints for FILE."
                      :char ">"
                      :bitmap 'right-triangle
                      :fringe 'dap-ui-compile-errline
-                     :priority 'dap-ui--marker-priority
-                     ))))
+                     :priority 'dap-ui--marker-priority))))
 
 (defun dap-ui--terminated (debug-session)
   "Handler for `dap-terminated-hook'."
