@@ -51,6 +51,12 @@
     | ~dap-ui-session-toggle-node~ | Toggle node expand state                                    | <tab>       |
     | ~dap-ui-session-eval~        | Eval statement in current context                           | e           |
 * Configuration
+** DAP mode configuration
+   Enable both ~dap-mode~ and ~dap-ui-mode~.
+   #+BEGIN_SRC emacs-lisp
+     (dap-mode 1)
+     (dap-ui-mode 1)
+   #+END_SRC
 ** Java
 *** Installation
     Make sure that you have properly installed and configured [[https://github.com/emacs-lsp/lsp-java][LSP Java]]. Download
@@ -64,6 +70,9 @@
     #+END_SRC
     Then add the following settings in your emacs config file:
     #+BEGIN_SRC elisp
+      (dap-mode 1)
+      (dap-ui-mode 1)
+
       (add-to-list 'lsp-java-bundles (expand-file-name
                                       (locate-user-emacs-file
                                        "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar")))
