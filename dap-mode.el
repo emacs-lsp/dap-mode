@@ -329,7 +329,7 @@ WORKSPACE will be used to calculate root folder."
                                                              file-name
                                                              file-breakpoints)))
                                    it))))
-    ;; filter markers before persisting the breakpoints (they are not writeable)
+    ;; filter markers before persisting the breakpoints (markers are not writeable)
     (-let [filtered-breakpoints (make-hash-table :test 'equal)]
       (maphash (lambda (k v)
                  (puthash k (--map (dap--plist-delete it :marker) v) filtered-breakpoints))
@@ -525,6 +525,7 @@ WORKSPACE will be used to calculate root folder."
       ("terminated"
        (setf (dap--debug-session-state debug-session) 'terminated)
        (delete-process (dap--debug-session-proc debug-session))
+       (clrhash (dap--debug-session-breakpoints debug-session))
        (run-hook-with-args 'dap-terminated-hook debug-session))
       (_ (message (format "No messages handler for %s" event-type))))))
 
@@ -632,19 +633,9 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
 
 (defun dap--update-breakpoints (debug-session resp file-name file-breakpoints)
   "Update breakpoints in FILE-NAME."
-  ;; update the breakpoints with the information from the server:
-  (-when-let (server-breakpoints (gethash "breakpoints" (gethash "body" resp)))
-    (cl-mapc (-lambda (bkp update-bkp)
-               (plist-put bkp :message (gethash "message" update-bkp))
-               (plist-put bkp :verified (gethash "verified" update-bkp))
-               ;; TODO update point
-               (plist-put bkp :id (gethash "id" update-bkp)))
-             file-breakpoints
-             server-breakpoints))
-
-  (puthash file-name
-           file-breakpoints
-           (dap--debug-session-session-breakpoints debug-session))
+  (-if-let (server-breakpoints (gethash "breakpoints" (gethash "body" resp)))
+      (->> debug-session dap--debug-session-breakpoints (puthash file-name server-breakpoints))
+    (->> debug-session dap--debug-session-breakpoints (remhash file-name)))
 
   (when (eq debug-session (dap--cur-session))
     (run-hook-with-args 'dap-breakpoints-changed-hook
@@ -698,18 +689,6 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
   "Evaluate the region between START and END."
   (interactive "r")
   (dap-eval (buffer-substring-no-properties start end)))
-
-(defun dap--active-get-breakpoints ()
-  "Get breakpoints either from debug session or from workspace in case the debug session is not present."
-  (let ((debug-session (dap--cur-session)))
-    (gethash buffer-file-name
-             (cond
-              ((and debug-session (dap--session-running debug-session))
-               (dap--debug-session-session-breakpoints debug-session))
-
-              (lsp--cur-workspace  (dap--get-breakpoints lsp--cur-workspace))
-              (t (make-hash-table)))
-             nil)))
 
 (defun dap-switch-stack-frame ()
   "Switch stackframe by selecting another stackframe stackframes from current thread."
@@ -818,8 +797,8 @@ DEBUG-SESSIONS - list of the currently active sessions."
                      (dap--set-breakpoints-in-file file file-breakpoints))
                    breakpoints)
           (lsp-workspace-set-metadata "Breakpoints"
-                                      breakpoints
-                                      workspace))))))
+                                     breakpoints
+                                     workspace))))))
 
 (defun dap-mode-line ()
   "Calculate DAP modeline."
@@ -867,13 +846,13 @@ DEBUG-SESSIONS - list of the currently active sessions."
   "Make NEW-SESSION the active debug session."
   (dap--set-cur-session new-session)
 
-  ;; update breakpoints
-  (maphash
-   'dap--set-breakpoints-in-file
-   (or (cond
-        (new-session (dap--debug-session-session-breakpoints new-session))
-        (lsp--cur-workspace (dap--get-breakpoints lsp--cur-workspace)))
-       (make-hash-table)))
+  (->> new-session
+       dap--debug-session-workspace
+       lsp--workspace-buffers
+       (--map (with-current-buffer it
+                (dap--set-breakpoints-in-file
+                 buffer-file-name
+                 (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))))
 
   (run-hook-with-args 'dap-session-changed-hook lsp--cur-workspace)
 

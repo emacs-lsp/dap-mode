@@ -159,20 +159,20 @@ THREAD-TREE will be widget element holding thread info."
                 stack-frames)
 
       (dap--send-message (dap--make-request "stackTrace"
-                                            (list :threadId thread-id))
-                         (dap--resp-handler
-                          (lambda (stack-frames-resp)
-                            (let ((stack-frames (or (gethash "stackFrames"
-                                                             (gethash "body" stack-frames-resp))
-                                                    (vector))))
+                                          (list :threadId thread-id))
+                        (dap--resp-handler
+                         (lambda (stack-frames-resp)
+                           (let ((stack-frames (or (gethash "stackFrames"
+                                                            (gethash "body" stack-frames-resp))
+                                                   (vector))))
 
-                              (puthash thread-id
-                                       stack-frames
-                                       (dap--debug-session-thread-stack-frames session))
+                             (puthash thread-id
+                                      stack-frames
+                                      (dap--debug-session-thread-stack-frames session))
 
-                              (tree-mode-reflesh-tree thread-tree)
-                              (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames))))
-                         session)
+                             (tree-mode-reflesh-tree thread-tree)
+                             (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames))))
+                        session)
       dap-ui--loading-tree-widget)))
 
 
@@ -438,46 +438,45 @@ SESSION-TREE will be the root of the threads(session holder)."
   (mapc #'delete-overlay dap-ui--breakpoint-overlays)
   (setq dap-ui--breakpoint-overlays '()))
 
-(defun dap-ui--breakpoints-changed (_debug-session file-name breakpoints)
+(defun dap-ui--breakpoints-changed (debug-session file-name breakpoints)
   "Handler for breakpoints changed.
 
 FILE-NAME the name in which the breakpoints has changed.
 BREAKPOINTS list of the active breakpoints."
+  (dap-ui--refresh-breakpoints))
 
-  (dap-ui--refresh-breakpoints file-name breakpoints))
-
-(defun dap-ui--breakpoint-visuals (breakpoint)
+(defun dap-ui--breakpoint-visuals (breakpoint breakpoint-dap)
   "Calculate visuals for BREAKPOINT."
   (cond
-   ((plist-get breakpoint :verified)
+   ((and breakpoint-dap (gethash "verified" breakpoint-dap))
     (list :face 'dap-ui-verified-breakpoint-face
           :char "."
           :bitmap 'breakpoint
           :fringe 'dap-ui-breakpoint-verified-fringe
-          :priority 'dap-ui--brekapoint-priority
-          ))
+          :priority 'dap-ui--brekapoint-priority))
    (t
     (list :face 'dap-ui-pending-breakpoint-face
           :char "."
           :bitmap 'breakpoint
           :fringe 'breakpoint-disabled
-          :priority dap-ui--brekapoint-priority
-          ))))
+          :priority dap-ui--brekapoint-priority))))
 
-(defun dap-ui--refresh-breakpoints (file bps)
-  "Refresh all breakpoints in FILE.
+(defun dap-ui--refresh-breakpoints ()
+  "Refresh breakpoints in FILE-NAME.
 
-BPS the new breakpoints for FILE."
-  (when (string= file buffer-file-name)
-    (dap-ui--clear-breakpoint-overlays)
-    (dolist (bp bps)
-      (-when-let (ov (dap-ui--make-overlay-at
-                      file
-                      (dap-breakpoint-get-point bp)
-                      nil nil
-                      "Breakpoint"
-                      (dap-ui--breakpoint-visuals bp)))
-        (push ov dap-ui--breakpoint-overlays)))))
+DEBUG-SESSION the new breakpoints for FILE-NAME."
+  (dap-ui--clear-breakpoint-overlays)
+  (-map (-lambda ((bp . remote-bp))
+          (push (dap-ui--make-overlay-at buffer-file-name
+                                    (dap-breakpoint-get-point bp)
+                                    nil nil
+                                    "Breakpoint"
+                                    (dap-ui--breakpoint-visuals bp remote-bp))
+                dap-ui--breakpoint-overlays))
+        (-zip-fill
+         nil
+         (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))
+         (-some->> (dap--cur-session) dap--debug-session-breakpoints (gethash buffer-file-name)))))
 
 (defun dap-ui--clear-marker-overlay (debug-session)
   "Clear marker overlay for DEBUG-SESSION."
@@ -487,8 +486,6 @@ BPS the new breakpoints for FILE."
        (delete-overlay dap-ui--cursor-overlay)
        (setq-local dap-ui--cursor-overlay nil)))
    (lsp--workspace-buffers (dap--debug-session-workspace debug-session))))
-
-
 
 (defun dap-ui--set-debug-marker (debug-session file point)
   "Set debug marker for DEBUG-SESSION in FILE at POINT."
@@ -521,14 +518,11 @@ DEBUG-SESSION is the debug session triggering the event."
     (forward-line (1- line))
     (forward-char column)
     (dap-ui--set-debug-marker debug-session
-                              (lsp--uri-to-path path)
-                              (point))))
+                         (lsp--uri-to-path path)
+                         (point))))
 
 (defun dap-ui--after-open ()
-  (-when-let (breakpoints (dap--active-get-breakpoints))
-    (dap-ui--breakpoints-changed (dap--cur-session)
-                                 buffer-file-name
-                                 breakpoints))
+  (dap-ui--refresh-breakpoints)
   (when-let (debug-session (dap--cur-session))
     (-let [(&hash "source" (&hash "path" path)) (dap--debug-session-active-frame (dap--cur-session))]
       (when (string= buffer-file-name path)
