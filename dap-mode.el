@@ -324,8 +324,7 @@ WORKSPACE will be used to calculate root folder."
                                     (lambda (resp)
                                       (dap--update-breakpoints it
                                                              resp
-                                                             file-name
-                                                             file-breakpoints)))
+                                                             file-name)))
                                    it))))
     ;; filter markers before persisting the breakpoints (markers are not writeable)
     (-let [filtered-breakpoints (make-hash-table :test 'equal)]
@@ -642,7 +641,7 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
                                              (apply 'vector))
                            :sourceModified :json-false))))
 
-(defun dap--update-breakpoints (debug-session resp file-name file-breakpoints)
+(defun dap--update-breakpoints (debug-session resp file-name)
   "Update breakpoints in FILE-NAME."
   (-if-let (server-breakpoints (gethash "breakpoints" (gethash "body" resp)))
       (->> debug-session dap--debug-session-breakpoints (puthash file-name server-breakpoints))
@@ -661,17 +660,16 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
         ;; no breakpoints to set
         (funcall callback result)
       (maphash
-       (lambda (file-name file-breakpoints-original)
-         (let ((file-breakpoints (copy-tree file-breakpoints-original)))
-           (dap--send-message
-            (dap--set-breakpoints-request file-name file-breakpoints)
-            (dap--resp-handler
-             (lambda (resp)
-               (setf finished (1+ finished))
-               (dap--update-breakpoints debug-session resp file-name file-breakpoints)
-               (when (= finished breakpoint-count)
-                 (funcall callback '_))))
-            debug-session)))
+       (lambda (file-name file-breakpoints)
+         (dap--send-message
+          (dap--set-breakpoints-request file-name file-breakpoints)
+          (dap--resp-handler
+           (lambda (resp)
+             (setf finished (1+ finished))
+             (dap--update-breakpoints debug-session resp file-name)
+             (when (= finished breakpoint-count)
+               (funcall callback '_))))
+          debug-session))
        breakpoints))))
 
 (defun dap-eval (expression)
