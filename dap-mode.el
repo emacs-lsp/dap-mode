@@ -308,11 +308,9 @@ WORKSPACE will be used to calculate root folder."
         (puthash file-name updated-file-breakpoints breakpoints)
       (remhash file-name breakpoints))
 
+    ;; do not update the breakpoints represenations if there is active session.
     (when (not (and (dap--cur-session) (dap--session-running (dap--cur-session))))
-      (run-hook-with-args 'dap-breakpoints-changed-hook
-                          nil
-                          file-name
-                          updated-file-breakpoints))
+      (run-hooks 'dap-breakpoints-changed-hook))
 
     ;; Update all of the active sessions with the list of breakpoints.
     (let ((set-breakpoints-req (dap--set-breakpoints-request
@@ -504,6 +502,16 @@ WORKSPACE will be used to calculate root folder."
    debug-session)
   (run-hook-with-args 'dap-stopped-hook debug-session))
 
+(defun dap--refresh-breakpoints (debug-session)
+  "Refresh breakpoints for DEBUG-SESSION."
+  (->> debug-session
+       dap--debug-session-workspace
+       lsp--workspace-buffers
+       (--map (with-current-buffer it
+                (dap--set-breakpoints-in-file
+                 buffer-file-name
+                 (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name)))))))
+
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."
   (let ((event-type (gethash "event" event)))
@@ -526,6 +534,7 @@ WORKSPACE will be used to calculate root folder."
        (setf (dap--debug-session-state debug-session) 'terminated)
        (delete-process (dap--debug-session-proc debug-session))
        (clrhash (dap--debug-session-breakpoints debug-session))
+       (dap--refresh-breakpoints debug-session)
        (run-hook-with-args 'dap-terminated-hook debug-session))
       (_ (message (format "No messages handler for %s" event-type))))))
 
@@ -620,16 +629,18 @@ ADAPTER-ID the id of the adapter."
 (defun dap--set-breakpoints-request (file-name file-breakpoints)
   "Make `setBreakpoints' request for FILE-NAME.
 FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
-  (dap--make-request "setBreakpoints"
-                   (list :source (list :name (f-filename file-name)
-                                       :path file-name)
-                         :breakpoints (->> file-breakpoints
-                                           (--map (->> it
-                                                       dap-breakpoint-get-point
-                                                       line-number-at-pos
-                                                       (list :line)))
-                                           (apply 'vector))
-                         :sourceModified :json-false)))
+  (with-temp-buffer
+    (insert-file-contents-literally file-name)
+    (dap--make-request "setBreakpoints"
+                     (list :source (list :name (f-filename file-name)
+                                         :path file-name)
+                           :breakpoints (->> file-breakpoints
+                                             (--map (->> it
+                                                         dap-breakpoint-get-point
+                                                         line-number-at-pos
+                                                         (list :line)))
+                                             (apply 'vector))
+                           :sourceModified :json-false))))
 
 (defun dap--update-breakpoints (debug-session resp file-name file-breakpoints)
   "Update breakpoints in FILE-NAME."
@@ -638,10 +649,9 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
     (->> debug-session dap--debug-session-breakpoints (remhash file-name)))
 
   (when (eq debug-session (dap--cur-session))
-    (run-hook-with-args 'dap-breakpoints-changed-hook
-                        debug-session
-                        file-name
-                        file-breakpoints)))
+    (-when-let (buffer (find-buffer-visiting file-name))
+      (with-current-buffer buffer
+        (run-hooks 'dap-breakpoints-changed-hook)))))
 
 (defun dap--configure-breakpoints (debug-session breakpoints callback result)
   "TODO DEBUG-SESSION BREAKPOINTS CALLBACK RESULT."
@@ -764,10 +774,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
                 (set-marker marker (plist-get bkp :point))
                 (plist-put bkp :marker marker)))
             file-breakpoints)
-      (run-hook-with-args 'dap-breakpoints-changed-hook
-                          nil
-                          file
-                          file-breakpoints))))
+      (run-hooks 'dap-breakpoints-changed-hook))))
 
 ;; load persisted debug configurations.
 (defun dap--debug-configurations ()
@@ -975,9 +982,7 @@ If the current session it will be terminated."
 
 (defun dap-delete-all-breakpoints ()
   "Delete all breakpoints."
-  (interactive)
-  ;; TODO
-  )
+  (interactive))
 
 (define-minor-mode dap-mode
   "Global minor mode for DAP mode."

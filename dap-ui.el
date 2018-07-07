@@ -86,10 +86,6 @@
   "Face for enabled breakpoint icon in fringe."
   :group 'dap-ui)
 
-(with-eval-after-load 'winum
-  (when (boundp 'winum-ignored-buffers)
-    (add-to-list 'winum-ignored-buffers "*sessions*")))
-
 (defcustom dap-left-margin-gutter t
   "If non-nil, DAP UI will show the compilation and warning icons
 in the left margin, when in terminal mode. These icons can
@@ -278,7 +274,7 @@ SESSION-TREE will be the root of the threads(session holder)."
          :node ,(dap-ui-sessions--render-session-node session)
          :open nil
          :session ,session
-         :element-type 'session
+         :element-type :session
          :dynargs dap-ui--load-threads)
      `(tree-widget
        :node ,(dap-ui-sessions--render-session-node session)
@@ -438,13 +434,6 @@ SESSION-TREE will be the root of the threads(session holder)."
   (mapc #'delete-overlay dap-ui--breakpoint-overlays)
   (setq dap-ui--breakpoint-overlays '()))
 
-(defun dap-ui--breakpoints-changed (debug-session file-name breakpoints)
-  "Handler for breakpoints changed.
-
-FILE-NAME the name in which the breakpoints has changed.
-BREAKPOINTS list of the active breakpoints."
-  (dap-ui--refresh-breakpoints))
-
 (defun dap-ui--breakpoint-visuals (breakpoint breakpoint-dap)
   "Calculate visuals for BREAKPOINT."
   (cond
@@ -501,13 +490,6 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
                      :fringe 'dap-ui-compile-errline
                      :priority 'dap-ui--marker-priority))))
 
-(defun dap-ui--terminated (debug-session)
-  "Handler for `dap-terminated-hook'."
-  (->> debug-session
-       dap--debug-session-workspace
-       dap--get-breakpoints
-       (maphash (apply-partially 'dap-ui--breakpoints-changed debug-session))))
-
 (defun dap-ui--stack-frame-changed (debug-session)
   "Handler for `dap-stack-frame-changed-hook'.
 DEBUG-SESSION is the debug session triggering the event."
@@ -535,15 +517,13 @@ DEBUG-SESSION is the debug session triggering the event."
   :global t
   (cond
    (dap-ui-mode
-    (add-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
-    (add-hook 'dap-terminated-hook 'dap-ui--terminated)
+    (add-hook 'dap-breakpoints-changed-hook 'dap-ui--refresh-breakpoints)
     (add-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (add-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
     (add-hook 'lsp-after-open-hook 'dap-ui--after-open))
    (t
-    (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
+    (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--refresh-breakpoints)
     (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
-    (remove-hook 'dap-terminated-hook 'dap-ui--terminated)
     (remove-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
     (remove-hook 'lsp-after-open-hook 'dap-ui--after-open))))
 
