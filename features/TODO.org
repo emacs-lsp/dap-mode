@@ -15,7 +15,8 @@
    CLOSED: [2018-06-16 Sat 10:03]
 *** EVAL
 *** Continue
-** TODO Persistence of debug configurations
+** DONE Persistence of debug configurations
+   CLOSED: [2018-07-04 Wed 08:26]
 ** DONE Terminate to kill the tcp process.
    CLOSED: [2018-06-20 Wed 22:47]
 ** TODO Run in terminal
