@@ -667,8 +667,7 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
            (lambda (resp)
              (setf finished (1+ finished))
              (dap--update-breakpoints debug-session resp file-name)
-             (when (= finished breakpoint-count)
-               (funcall callback '_))))
+             (when (= finished breakpoint-count) (funcall callback '_))))
           debug-session))
        breakpoints))))
 
@@ -896,8 +895,9 @@ arguments which contain the debug port to use for opening TCP connection."
   "Register configuration template CONFIGURATION-NAME.
 
 CONFIGURATION-SETTINGS - plist containing the preset settings for the configuration."
-  (push (cons configuration-name configuration-settings)
-        dap--debug-template-configurations))
+  (add-to-list
+   'dap--debug-template-configurations
+   (cons configuration-name configuration-settings)))
 
 (defun dap--select-template ()
   "Select the configuration to launch."
@@ -909,7 +909,7 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
   "Select the configuration to launch."
   (interactive))
 
-(defun dap-debug-configuration-add (launch-args)
+(defun dap-debug (launch-args)
   "Run debug configuration LAUNCH-ARGS.
 
 If LAUNCH-ARGS is not specified the configuration is generated

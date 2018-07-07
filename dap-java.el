@@ -30,25 +30,27 @@
 (require 'tree-mode)
 
 (defun dap-java--select-main-class ()
-  "Select main class from the current workspace." (let* ((main-classes (lsp-send-execute-command "vscode.java.resolveMainClass")) (main-classes-count (length main-classes))
-                                                         current-class)
-                                                    (cond
-                                                     ((= main-classes-count 0) (error "Unable to find main class"))
-                                                     ((= main-classes-count 1) (first main-classes))
-                                                     ((setq current-class (--first (string= buffer-file-name (gethash "filePath" it))
-                                                                                   main-classes))
-                                                      current-class)
-                                                     (t (dap--completing-read "Select main class to run: "
-                                                                             main-classes
-                                                                             (lambda (it)
-                                                                               (format "%s(%s)"
-                                                                                       (gethash "mainClass" it)
-                                                                                       (gethash "projectName" it)))
-                                                                             nil
-                                                                             t)))))
+  "Select main class from the current workspace."
+  (let* ((main-classes (lsp-send-execute-command "vscode.java.resolveMainClass"))
+         (main-classes-count (length main-classes))
+         current-class)
+    (cond
+     ((= main-classes-count 0) (error "Unable to find main class"))
+     ((= main-classes-count 1) (first main-classes))
+     ((setq current-class (--first (string= buffer-file-name (gethash "filePath" it))
+                                   main-classes))
+      current-class)
+     (t (dap--completing-read "Select main class to run: "
+                             main-classes
+                             (lambda (it)
+                               (format "%s(%s)"
+                                       (gethash "mainClass" it)
+                                       (gethash "projectName" it)))
+                             nil
+                             t)))))
 
-(defun dap-java--populate-default-args (conf)
-  "Populate all of the fields that are not present in CONF."
+(defun dap-java--populate-launch-args (conf)
+  "Populate CONF with launch related configurations."
   (when (not (and (plist-get conf :mainClass)
                   (plist-get conf :projectName)))
     (-let [(&hash "mainClass" main-class "projectName" project-name) (dap-java--select-main-class)]
@@ -79,9 +81,29 @@
 
     conf))
 
+(defun dap-java--populate-attach-args (conf)
+  "Populate attach arguments.
+CONF - the startup configuration."
+  (dap--put-if-absent conf :hostName (read-string "Enter host: " "localhost"))
+  (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "1024")))
+  (dap--put-if-absent conf :host "localhost")
+  (dap--put-if-absent conf :name (format "%s(%s)"
+                                        (plist-get conf :host)
+                                        (plist-get conf :port)))
+  (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
+  (plist-put conf :__sessionId (number-to-string (float-time)))
+  conf)
+
+(defun dap-java--populate-default-args (conf)
+  "Populate all of the fields that are not present in CONF."
+  (pcase (plist-get conf :request)
+    ("launch" (dap-java--populate-launch-args conf))
+    ("attach" (dap-java--populate-attach-args conf))
+    (_ (dap-java--populate-launch-args conf))))
+
 (defun dap-java-debug (debug-args)
   "Start debug session with DEBUG-ARGS."
-  (interactive (list (dap-java--populate-default-args  nil)))
+  (interactive (list (dap-java--populate-default-args nil)))
   (lsp-send-execute-command "java/buildWorkspace")
   (dap-start-debugging debug-args))
 
@@ -101,7 +123,9 @@
                                        :name "Run Configuration"))
      (dap-register-debug-template "Java Attach"
                                  (list :type "java"
-                                       :request "attach"))))
+                                       :request "attach"
+                                       :hostName "localhost"
+                                       :port nil))))
 
 (provide 'dap-java)
 ;;; dap-java.el ends here
