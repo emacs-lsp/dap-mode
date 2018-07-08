@@ -74,37 +74,34 @@
                                               (match-string 1 main-class)
                                             main-class)
                                           project-name))
-
-    (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
-    (plist-put conf :__sessionId (number-to-string (float-time)))
-    (plist-put conf :type "java")
-
     conf))
 
 (defun dap-java--populate-attach-args (conf)
   "Populate attach arguments.
 CONF - the startup configuration."
   (dap--put-if-absent conf :hostName (read-string "Enter host: " "localhost"))
-  (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "1024")))
+  (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "1044")))
   (dap--put-if-absent conf :host "localhost")
   (dap--put-if-absent conf :name (format "%s(%s)"
                                         (plist-get conf :host)
                                         (plist-get conf :port)))
-  (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
-  (plist-put conf :__sessionId (number-to-string (float-time)))
   conf)
 
 (defun dap-java--populate-default-args (conf)
   "Populate all of the fields that are not present in CONF."
+  (setq conf (plist-put conf :type "java"))
+
   (pcase (plist-get conf :request)
     ("launch" (dap-java--populate-launch-args conf))
     ("attach" (dap-java--populate-attach-args conf))
-    (_ (dap-java--populate-launch-args conf))))
+    (_ (dap-java--populate-launch-args conf)))
+  (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
+  (plist-put conf :__sessionId (number-to-string (float-time)))
+  conf)
 
 (defun dap-java-debug (debug-args)
   "Start debug session with DEBUG-ARGS."
   (interactive (list (dap-java--populate-default-args nil)))
-  (lsp-send-execute-command "java/buildWorkspace")
   (dap-start-debugging debug-args))
 
 (eval-after-load "dap-mode"

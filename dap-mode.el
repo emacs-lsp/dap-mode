@@ -751,7 +751,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
 
           (dap--set-sessions workspace (cons debug-session debug-sessions)))
         (dap--send-message
-         (dap--make-request "launch" launch-args)
+         (dap--make-request (plist-get launch-args :request) launch-args)
          (apply-partially #'dap--configure-breakpoints
                           debug-session
                           breakpoints
@@ -901,9 +901,9 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
 
 (defun dap--select-template ()
   "Select the configuration to launch."
-  (rest (dap--completing-read "Select configuration template:"
-                            dap--debug-template-configurations
-                            'first nil t)))
+  (copy-tree (rest (dap--completing-read "Select configuration template:"
+                                       dap--debug-template-configurations
+                                       'first nil t))))
 
 (defun dap-configuration-edit-configurations ()
   "Select the configuration to launch."
@@ -920,21 +920,21 @@ after selecting configuration template."
         (dap-start-debugging (funcall debug-provider launch-args))
       (error "There is no debug provider for language %s" (or language-id "'Not specified'")))))
 
-(defun dap-debug-configuration-run-last ()
+(defun dap-debug-last ()
   "Debug last configuration."
   (interactive)
   (if-let (configuration (cdr (first dap--debug-configuration)))
-      (dap-run-configuration configuration)
+      (dap-debug configuration)
     (funcall-interactively 'dap-debug-select-configuration)))
 
-(defun dap-debug-configuration-debug-recent ()
+(defun dap-debug-recent ()
   "Debug last configuration."
   (interactive)
   (->> (dap--completing-read "Select configuration: "
                            dap--debug-configuration
                            'first nil t)
        rest
-       dap-run-configuration))
+       dap-debug))
 
 (defun dap-go-to-output-buffer ()
   "Go to output buffer."
