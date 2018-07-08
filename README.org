@@ -17,25 +17,26 @@
   - Multiple simultaneous debug sessions
   - Evaluating statements
   - Debug/Run configurations
-
 ** Debugger commands
-   | Command                                | Description                        | Keybindings |
-   |----------------------------------------+------------------------------------+-------------|
-   | ~dap-toggle-breakpoint~                | Toggle java breakpoint at line     |             |
-   | ~dap-eval~                             | Eval string                        |             |
-   | ~dap-eval-region~                      | Eval region string                 |             |
-   | ~dap-eval-dwim~                        | Eval symbol at point               |             |
-   | ~dap-step-in~                          | Debug step in                      |             |
-   | ~dap-step-out~                         | Debug step out                     |             |
-   | ~dap-next~                             | Debug next                         |             |
-   | ~dap-continue~                         | Debug continue                     |             |
-   | ~dap-disconnect~                       | Cancel current debug session       |             |
-   | ~dap-switch-stack-frame~               | Switch active stack frame          |             |
-   | ~dap-switch-thread~                    | Switch active thread               |             |
-   | ~dap-switch-session~                   | Switch active session              |             |
-   | ~dap-debug-configuration-add~          | Add new debug/run configuration    |             |
-   | ~dap-debug-configuration-run-last~     | Debug previous configuration       |             |
-   | ~dap-debug-configuration-debug-recent~ | Run previous configuration         |             |
+   | Command                   | Description                                                    | Keybindings |
+   |---------------------------+----------------------------------------------------------------+-------------|
+   | ~dap-toggle-breakpoint~   | Toggle java breakpoint at line                                 |             |
+   | ~dap-eval~                | Eval string                                                    |             |
+   | ~dap-eval-region~         | Eval region string                                             |             |
+   | ~dap-eval-dwim~           | Eval symbol at point                                           |             |
+   | ~dap-step-in~             | Debug step in                                                  |             |
+   | ~dap-next~                | Debug next                                                     |             |
+   | ~dap-step-out~            | Debug step out                                                 |             |
+   | ~dap-stop-thread~         | Stop thread                                                    |             |
+   | ~dap-continue~            | Debug continue                                                 |             |
+   | ~dap-disconnect~          | Cancel current debug session                                   |             |
+   | ~dap-switch-stack-frame~  | Switch active stack frame                                      |             |
+   | ~dap-switch-thread~       | Switch active thread                                           |             |
+   | ~dap-switch-session~      | Switch active session                                          |             |
+   | ~dap-debug~               | Create and run new configuration using the available templates |             |
+   | ~dap-debug-last~          | Debug previous configuration                                   |             |
+   | ~dap-debug-recent~        | Run previous configuration                                     |             |
+   | ~dap-go-to-output-buffer~ | Go output buffer                                               |             |
 ** Sessions
    | Command               | Description                 | Keybindings |
    |-----------------------+-----------------------------+-------------|

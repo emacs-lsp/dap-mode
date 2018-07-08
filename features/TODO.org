@@ -61,6 +61,8 @@
    CLOSED: [2018-06-23 Sat 21:54]
 ** TODO Request timeouts
 ** TODO Checking server supports the call.
+** TODO Initialized message
+*** TODO - prohibit operations that are not permitted.
 * Watches
 ** TODO full implementation
 * Locals

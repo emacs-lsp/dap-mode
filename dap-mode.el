@@ -654,7 +654,10 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
                            :sourceModified :json-false))))
 
 (defun dap--update-breakpoints (debug-session resp file-name)
-  "Update breakpoints in FILE-NAME."
+  "Update breakpoints in FILE-NAME.
+
+RESP is the result from the `setBreakpoints' request.
+DEBUG-SESSION is the active debug session."
   (-if-let (server-breakpoints (gethash "breakpoints" (gethash "body" resp)))
       (->> debug-session dap--debug-session-breakpoints (puthash file-name server-breakpoints))
     (->> debug-session dap--debug-session-breakpoints (remhash file-name)))
@@ -665,7 +668,11 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
         (run-hooks 'dap-breakpoints-changed-hook)))))
 
 (defun dap--configure-breakpoints (debug-session breakpoints callback result)
-  "TODO DEBUG-SESSION BREAKPOINTS CALLBACK RESULT."
+  "Configure breakpoints for DEBUG-SESSION.
+
+BREAKPOINTS is the list of breakpoints to set.
+CALLBACK will be called once configure is finished.
+RESULT to use for the callback."
   (let ((breakpoint-count (hash-table-count breakpoints))
         (finished 0))
     (if (zerop breakpoint-count)
@@ -679,7 +686,7 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
            (lambda (resp)
              (setf finished (1+ finished))
              (dap--update-breakpoints debug-session resp file-name)
-             (when (= finished breakpoint-count) (funcall callback '_))))
+             (when (= finished breakpoint-count) (funcall callback result))))
           debug-session))
        breakpoints))))
 
@@ -926,10 +933,6 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
   (copy-tree (rest (dap--completing-read "Select configuration template:"
                                        dap--debug-template-configurations
                                        'first nil t))))
-
-(defun dap-configuration-edit-configurations ()
-  "Select the configuration to launch."
-  (interactive))
 
 (defun dap-debug (launch-args)
   "Run debug configuration LAUNCH-ARGS.
