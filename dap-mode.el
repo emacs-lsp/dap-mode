@@ -472,14 +472,18 @@ WORKSPACE will be used to calculate root folder."
 
 (defun dap--go-to-stack-frame (debug-session stack-frame)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
-  (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
+  (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session))
+        (source (gethash "source" stack-frame)))
     (when stack-frame
-      (find-file (lsp--uri-to-path (gethash "path" (gethash "source" stack-frame))))
-      (setf (dap--debug-session-active-frame debug-session) stack-frame)
+      (-let [(&hash "line" line "column" column "name" name) stack-frame]
+        (if source
+            (progn (find-file (lsp--uri-to-path (gethash "path" source)))
+                   (setf (dap--debug-session-active-frame debug-session) stack-frame)
 
-      (goto-char (point-min))
-      (forward-line (1- (gethash "line" stack-frame)))
-      (forward-char (gethash "column" stack-frame)))
+                   (goto-char (point-min))
+                   (forward-line (1- (gethash "line" stack-frame)))
+                   (forward-char (gethash "column" stack-frame)))
+          (message "No source code for %s. Cursor at %s:%s." name line column))))
     (run-hook-with-args 'dap-stack-frame-changed-hook debug-session)))
 
 (defun dap--select-thread-id (debug-session thread-id)
