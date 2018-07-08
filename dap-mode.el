@@ -410,7 +410,7 @@ WORKSPACE will be used to calculate root folder."
 (defun dap--resume-application (debug-session)
   "Resume DEBUG-SESSION."
   (-let [thread-id (dap--debug-session-thread-id debug-session)]
-    (remhash thread-id (dap--debug-session-thread-states debug-session)))
+    (puthash thread-id "started" (dap--debug-session-thread-states debug-session)))
   (setf (dap--debug-session-active-frame debug-session) nil)
   (setf (dap--debug-session-thread-id debug-session) nil)
   (run-hook-with-args 'dap-continue-hook debug-session))
@@ -472,10 +472,10 @@ WORKSPACE will be used to calculate root folder."
 
 (defun dap--go-to-stack-frame (debug-session stack-frame)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
-  (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session))
-        (source (gethash "source" stack-frame)))
+  (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
     (when stack-frame
-      (-let [(&hash "line" line "column" column "name" name) stack-frame]
+      (-let (((&hash "line" line "column" column "name" name) stack-frame)
+             (source (gethash "source" stack-frame)))
         (if source
             (progn (find-file (lsp--uri-to-path (gethash "path" source)))
                    (setf (dap--debug-session-active-frame debug-session) stack-frame)
@@ -815,6 +815,16 @@ DEBUG-SESSIONS - list of the currently active sessions."
             (dap--debug-session-name debug-session)
             (dap--debug-session-state debug-session))))
 
+(defun dap--thread-label (debug-session thread)
+  "Calculate thread name for THREAD from DEBUG-SESSION."
+  (let ((thread-id (gethash "id" thread))
+        (name (gethash "name" thread)))
+    (-if-let (status (gethash
+                      thread-id
+                      (dap--debug-session-thread-states debug-session)))
+        (format "%s (%s)" name status)
+      name)))
+
 (defun dap-switch-thread ()
   "Switch current thread."
   (interactive)
@@ -826,7 +836,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
        (-let [(&hash "id" thread-id) (dap--completing-read
                                       "Select active thread: "
                                       threads
-                                      (apply-partially 'gethash "name"))]
+                                      (apply-partially 'dap--thread-label debug-session))]
          (dap--select-thread-id debug-session thread-id)))
      debug-session)))
 

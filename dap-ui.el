@@ -143,15 +143,18 @@ THREAD-TREE will be widget element holding thread info."
                                        &hash
                                        "name" name
                                        "line" line
-                                       "source" (&hash "name" source-name)))
-                  `(tree-widget :tag ,(format "%s (%s:%s)" name source-name line)
-                                :format "%[%t%]\n"
-                                :stack-frame ,stack-frame
-                                :session ,session
-                                :element-type :stack-frame
-                                :thread ,thread
-                                :dynargs dap-ui--stack-frames
-                                :open nil))
+                                       "source" source))
+                  (let ((tag (if source
+                                 (format "%s (%s:%s)" name (gethash "name" source) line)
+                               (format "%s (Unknown source)" name))))
+                    `(tree-widget :tag ,tag
+                                  :format "%[%t%]\n"
+                                  :stack-frame ,stack-frame
+                                  :session ,session
+                                  :element-type :stack-frame
+                                  :thread ,thread
+                                  :dynargs dap-ui--stack-frames
+                                  :open nil)))
                 stack-frames)
 
       (dap--send-message (dap--make-request "stackTrace"
@@ -228,7 +231,8 @@ SESSION-TREE will be the root of the threads(session holder)."
   "Remove UI sessions related hooks."
   (remove-hook 'dap-terminated-hook 'dap-ui-sessions--refresh)
   (remove-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
-  (remove-hook 'dap-continue-hook 'dap-ui-sessions--refresh))
+  (remove-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
+  (remove-hook 'dap-stack-frame-changed-hook  'dap-ui-sessions--refresh))
 
 (define-minor-mode dap-ui-sessions-mode
   "UI Session list minor mode."
@@ -239,6 +243,7 @@ SESSION-TREE will be the root of the threads(session holder)."
   (add-hook 'dap-terminated-hook 'dap-ui-sessions--refresh )
   (add-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
   (add-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
+  (add-hook 'dap-stack-frame-changed-hook 'dap-ui-sessions--refresh)
   (add-hook 'kill-buffer-hook 'dap-ui-sessions--cleanup-hooks nil t)
   (setq buffer-read-only t))
 
