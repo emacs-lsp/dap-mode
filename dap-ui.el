@@ -162,10 +162,10 @@ THREAD-TREE will be widget element holding thread info."
                         (dap--resp-handler
                          (lambda (stack-frames-resp)
                            (with-current-buffer "*sessions*"
-                             (let ((stack-frames (when stack-frames-resp
-                                                   (or (gethash "stackFrames"
-                                                                (gethash "body" stack-frames-resp))
-                                                       (vector)))))
+                             (let ((stack-frames (or (-some->> stack-frames-resp
+                                                               (gethash "body")
+                                                               (gethash "stackFrames"))
+                                                     (vector))))
 
                                (puthash thread-id
                                         stack-frames

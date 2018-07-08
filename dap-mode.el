@@ -526,7 +526,13 @@ WORKSPACE will be used to calculate root folder."
       ("breakpoint" ())
       ("thread" (-let [(&hash "body" (&hash "threadId" id "reason" reason)) event]
                   (puthash id reason (dap--debug-session-thread-states debug-session))
-                  (run-hooks 'dap-session-changed-hook)))
+                  (run-hooks 'dap-session-changed-hook)
+                  (dap--send-message
+                   (dap--make-request "threads")
+                   (-lambda ((&hash "body" (&hash "threads" threads)))
+                     (setf (dap--debug-session-threads debug-session) threads)
+                     (run-hooks 'dap-session-changed-hook))
+                   debug-session)))
       ("exited" (with-current-buffer (dap--debug-session-output-buffer debug-session)
                   ;; (insert (gethash "body" (gethash "body" event)))
                   ))
