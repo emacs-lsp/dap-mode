@@ -410,11 +410,11 @@ WORKSPACE will be used to calculate root folder."
 (defun dap--resume-application (debug-session)
   "Resume DEBUG-SESSION."
   (-let [thread-id (dap--debug-session-thread-id debug-session)]
-    (puthash thread-id "started" (dap--debug-session-thread-states debug-session)))
+    (puthash thread-id "running" (dap--debug-session-thread-states debug-session))
+    (puthash thread-id nil (dap--debug-session-thread-stack-frames debug-session)))
   (setf (dap--debug-session-active-frame debug-session) nil)
   (setf (dap--debug-session-thread-id debug-session) nil)
   (run-hook-with-args 'dap-continue-hook debug-session))
-
 
 ;;;###autoload
 (defun dap-continue ()
@@ -525,7 +525,8 @@ WORKSPACE will be used to calculate root folder."
                     (insert (gethash "output" (gethash "body" event))))))
       ("breakpoint" ())
       ("thread" (-let [(&hash "body" (&hash "threadId" id "reason" reason)) event]
-                  (puthash id reason (dap--debug-session-thread-states debug-session))))
+                  (puthash id reason (dap--debug-session-thread-states debug-session))
+                  (run-hooks 'dap-session-changed-hook)))
       ("exited" (with-current-buffer (dap--debug-session-output-buffer debug-session)
                   ;; (insert (gethash "body" (gethash "body" event)))
                   ))
@@ -550,8 +551,8 @@ WORKSPACE will be used to calculate root folder."
               (let* ((parsed-msg (dap--read-json m))
                      (key (gethash "request_seq" parsed-msg nil)))
                 (when dap-print-io
-                  (message "Received:\n%s"
-                           (dap--json-encode parsed-msg)))
+                  (let ((inhibit-message t))
+                    (message "Received:\n%s" (dap--json-encode parsed-msg))))
                 (pcase (gethash "type" parsed-msg)
                   ("event" (dap--on-event debug-session parsed-msg))
                   ("response" (if-let (callback (gethash key handlers nil))
@@ -601,7 +602,8 @@ ADAPTER-ID the id of the adapter."
              (message (plist-put message :seq request-id)))
         (puthash request-id callback (dap--debug-session-response-handlers debug-session))
         (when dap-print-io
-          (message "Sending: \n%s" (dap--json-encode message)))
+          (let ((inhibit-message t))
+            (message "Sending: \n%s" (dap--json-encode message))))
         (process-send-string (dap--debug-session-proc debug-session)
                              (dap--make-message message)))
     (error "Session %s is already terminated" (dap--debug-session-name debug-session))))

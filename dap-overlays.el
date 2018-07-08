@@ -224,9 +224,7 @@ overlay at the end of the line containing POINT.
 Note that, while POINT can be a number, it's preferable to be a marker, as
 that will better handle some corner cases where the original buffer is not
 focused."
-  (let* ((font-value (if dap-result-use-clojure-font-lock
-                         (cider-font-lock-as-clojure value)
-                       value))
+  (let* ((font-value value)
          (used-overlay (when (and point dap-use-overlays)
                          (dap--make-result-overlay font-value
                            :where point

@@ -161,16 +161,18 @@ THREAD-TREE will be widget element holding thread info."
                                           (list :threadId thread-id))
                         (dap--resp-handler
                          (lambda (stack-frames-resp)
-                           (let ((stack-frames (or (gethash "stackFrames"
-                                                            (gethash "body" stack-frames-resp))
-                                                   (vector))))
+                           (with-current-buffer "*sessions*"
+                             (let ((stack-frames (when stack-frames-resp
+                                                   (or (gethash "stackFrames"
+                                                                (gethash "body" stack-frames-resp))
+                                                       (vector)))))
 
-                             (puthash thread-id
-                                      stack-frames
-                                      (dap--debug-session-thread-stack-frames session))
+                               (puthash thread-id
+                                        stack-frames
+                                        (dap--debug-session-thread-stack-frames session))
 
-                             (tree-mode-reflesh-tree thread-tree)
-                             (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames))))
+                               (tree-mode-reflesh-tree thread-tree)
+                               (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames)))))
                         session)
       dap-ui--loading-tree-widget)))
 
@@ -204,7 +206,7 @@ SESSION-TREE will be the root of the threads(session holder)."
                         :session ,debug-session
                         :dynargs dap-ui--stack-frames
                         :element-type :thread
-                        :open nil)))
+                        :open t)))
                   threads)
         (dap--send-message
          (dap--make-request "threads")
@@ -509,11 +511,12 @@ DEBUG-SESSION is the debug session triggering the event."
                          (point))))
 
 (defun dap-ui--after-open ()
+  "Handler for `lsp-after-open-hook'."
   (dap-ui--refresh-breakpoints)
-  (when-let (debug-session (dap--cur-session))
-    (-let [(&hash "source" (&hash "path" path)) (dap--debug-session-active-frame (dap--cur-session))]
-      (when (string= buffer-file-name path)
-        (dap-ui--stack-frame-changed debug-session)))))
+  (-when-let* ((debug-session (dap--cur-session))
+               (source (dap--debug-session-active-frame debug-session)))
+    (when (string= buffer-file-name (gethash "path" source))
+      (dap-ui--stack-frame-changed debug-session))))
 
 ;;;###autoload
 (define-minor-mode dap-ui-mode
