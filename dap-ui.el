@@ -1,10 +1,10 @@
 ;;; dap-ui.el --- Debug Adapter Protocol for Emacs UI  -*- lexical-binding: t; -*-
 
 
-;; Copyright (C) 2018  Ivan
+;; Copyright (C) 2018  Ivan Yonchovski
 
-;; Author: Ivan <kyoncho@myoncho>
-;; Keywords: languages
+;; Author: Ivan Yonchovski <yyoncho@gmail.com>
+;; Keywords: languages, debug
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -143,32 +143,37 @@ THREAD-TREE will be widget element holding thread info."
                                        &hash
                                        "name" name
                                        "line" line
-                                       "source" (&hash "name" source-name)))
-                  `(tree-widget :tag ,(format "%s (%s:%s)" name source-name line)
-                                :format "%[%t%]\n"
-                                :stack-frame ,stack-frame
-                                :session ,session
-                                :element-type :stack-frame
-                                :thread ,thread
-                                :dynargs dap-ui--stack-frames
-                                :open nil))
+                                       "source" source))
+                  (let ((tag (if source
+                                 (format "%s (%s:%s)" name (gethash "name" source) line)
+                               (format "%s (Unknown source)" name))))
+                    `(tree-widget :tag ,tag
+                                  :format "%[%t%]\n"
+                                  :stack-frame ,stack-frame
+                                  :session ,session
+                                  :element-type :stack-frame
+                                  :thread ,thread
+                                  :dynargs dap-ui--stack-frames
+                                  :open nil)))
                 stack-frames)
 
       (dap--send-message (dap--make-request "stackTrace"
-                                            (list :threadId thread-id))
-                         (dap--resp-handler
-                          (lambda (stack-frames-resp)
-                            (let ((stack-frames (or (gethash "stackFrames"
-                                                             (gethash "body" stack-frames-resp))
-                                                    (vector))))
+                                          (list :threadId thread-id))
+                        (dap--resp-handler
+                         (lambda (stack-frames-resp)
+                           (with-current-buffer "*sessions*"
+                             (let ((stack-frames (or (-some->> stack-frames-resp
+                                                               (gethash "body")
+                                                               (gethash "stackFrames"))
+                                                     (vector))))
 
-                              (puthash thread-id
-                                       stack-frames
-                                       (dap--debug-session-thread-stack-frames session))
+                               (puthash thread-id
+                                        stack-frames
+                                        (dap--debug-session-thread-stack-frames session))
 
-                              (tree-mode-reflesh-tree thread-tree)
-                              (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames))))
-                         session)
+                               (tree-mode-reflesh-tree thread-tree)
+                               (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames)))))
+                        session)
       dap-ui--loading-tree-widget)))
 
 
@@ -201,7 +206,7 @@ SESSION-TREE will be the root of the threads(session holder)."
                         :session ,debug-session
                         :dynargs dap-ui--stack-frames
                         :element-type :thread
-                        :open nil)))
+                        :open t)))
                   threads)
         (dap--send-message
          (dap--make-request "threads")
@@ -224,22 +229,25 @@ SESSION-TREE will be the root of the threads(session holder)."
     (define-key map (kbd "RET") #'dap-ui-sessions-select)
     map))
 
+(defun dap-ui-sessions--cleanup-hooks ()
+  "Remove UI sessions related hooks."
+  (remove-hook 'dap-terminated-hook 'dap-ui-sessions--refresh)
+  (remove-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
+  (remove-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
+  (remove-hook 'dap-stack-frame-changed-hook  'dap-ui-sessions--refresh))
+
 (define-minor-mode dap-ui-sessions-mode
   "UI Session list minor mode."
   :init-value nil
   :group dap-ui
   :keymap dap-ui-session-mode-map
-  (cond
-   (dap-ui-sessions-mode
-    (add-hook 'dap-terminated-hook 'dap-ui-sessions--refresh)
-    (add-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
-    (add-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
-    (setq buffer-read-only t))
-   (t
-    (remove-hook 'dap-terminated-hook 'dap-ui-sessions--refresh)
-    (remove-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
-    (remove-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
-    (message "Cleaned up"))))
+
+  (add-hook 'dap-terminated-hook 'dap-ui-sessions--refresh )
+  (add-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
+  (add-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
+  (add-hook 'dap-stack-frame-changed-hook 'dap-ui-sessions--refresh)
+  (add-hook 'kill-buffer-hook 'dap-ui-sessions--cleanup-hooks nil t)
+  (setq buffer-read-only t))
 
 (defun dap-ui-session--calculate-face (debug-session)
   "Calculate the face of DEBUG-SESSION based on its state."
@@ -273,7 +281,7 @@ SESSION-TREE will be the root of the threads(session holder)."
          :node ,(dap-ui-sessions--render-session-node session)
          :open nil
          :session ,session
-         :element-type 'session
+         :element-type :session
          :dynargs dap-ui--load-threads)
      `(tree-widget
        :node ,(dap-ui-sessions--render-session-node session)
@@ -333,7 +341,7 @@ SESSION-TREE will be the root of the threads(session holder)."
       (mapc 'dap-ui-sessions--render-session sessions)
       (dap-ui-sessions-mode t))
     (let ((win (display-buffer-in-side-window
-                buf`((side . left) (slot . 5) (window-width . 0.20)))))
+                buf `((side . right) (slot . 5) (window-width . 0.20)))))
       (set-window-dedicated-p win t)
       (select-window win)
       (fit-window-to-buffer nil nil 10))))
@@ -433,46 +441,38 @@ SESSION-TREE will be the root of the threads(session holder)."
   (mapc #'delete-overlay dap-ui--breakpoint-overlays)
   (setq dap-ui--breakpoint-overlays '()))
 
-(defun dap-ui--breakpoints-changed (_debug-session file-name breakpoints)
-  "Handler for breakpoints changed.
-
-FILE-NAME the name in which the breakpoints has changed.
-BREAKPOINTS list of the active breakpoints."
-
-  (dap-ui--refresh-breakpoints file-name breakpoints))
-
-(defun dap-ui--breakpoint-visuals (breakpoint)
+(defun dap-ui--breakpoint-visuals (breakpoint breakpoint-dap)
   "Calculate visuals for BREAKPOINT."
   (cond
-   ((plist-get breakpoint :verified)
+   ((and breakpoint-dap (gethash "verified" breakpoint-dap))
     (list :face 'dap-ui-verified-breakpoint-face
           :char "."
           :bitmap 'breakpoint
           :fringe 'dap-ui-breakpoint-verified-fringe
-          :priority 'dap-ui--brekapoint-priority
-          ))
+          :priority 'dap-ui--brekapoint-priority))
    (t
     (list :face 'dap-ui-pending-breakpoint-face
           :char "."
           :bitmap 'breakpoint
           :fringe 'breakpoint-disabled
-          :priority dap-ui--brekapoint-priority
-          ))))
+          :priority dap-ui--brekapoint-priority))))
 
-(defun dap-ui--refresh-breakpoints (file bps)
-  "Refresh all breakpoints in FILE.
+(defun dap-ui--refresh-breakpoints ()
+  "Refresh breakpoints in FILE-NAME.
 
-BPS the new breakpoints for FILE."
-  (when (string= file buffer-file-name)
-    (dap-ui--clear-breakpoint-overlays)
-    (dolist (bp bps)
-      (-when-let (ov (dap-ui--make-overlay-at
-                      file
-                      (dap-breakpoint-get-point bp)
-                      nil nil
-                      "Breakpoint"
-                      (dap-ui--breakpoint-visuals bp)))
-        (push ov dap-ui--breakpoint-overlays)))))
+DEBUG-SESSION the new breakpoints for FILE-NAME."
+  (dap-ui--clear-breakpoint-overlays)
+  (-map (-lambda ((bp . remote-bp))
+          (push (dap-ui--make-overlay-at buffer-file-name
+                                    (dap-breakpoint-get-point bp)
+                                    nil nil
+                                    "Breakpoint"
+                                    (dap-ui--breakpoint-visuals bp remote-bp))
+                dap-ui--breakpoint-overlays))
+        (-zip-fill
+         nil
+         (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))
+         (-some->> (dap--cur-session) dap--debug-session-breakpoints (gethash buffer-file-name)))))
 
 (defun dap-ui--clear-marker-overlay (debug-session)
   "Clear marker overlay for DEBUG-SESSION."
@@ -482,8 +482,6 @@ BPS the new breakpoints for FILE."
        (delete-overlay dap-ui--cursor-overlay)
        (setq-local dap-ui--cursor-overlay nil)))
    (lsp--workspace-buffers (dap--debug-session-workspace debug-session))))
-
-
 
 (defun dap-ui--set-debug-marker (debug-session file point)
   "Set debug marker for DEBUG-SESSION in FILE at POINT."
@@ -497,15 +495,7 @@ BPS the new breakpoints for FILE."
                      :char ">"
                      :bitmap 'right-triangle
                      :fringe 'dap-ui-compile-errline
-                     :priority 'dap-ui--marker-priority
-                     ))))
-
-(defun dap-ui--terminated (debug-session)
-  "Handler for `dap-terminated-hook'."
-  (->> debug-session
-       dap--debug-session-workspace
-       dap--get-breakpoints
-       (maphash (apply-partially 'dap-ui--breakpoints-changed debug-session))))
+                     :priority 'dap-ui--marker-priority))))
 
 (defun dap-ui--stack-frame-changed (debug-session)
   "Handler for `dap-stack-frame-changed-hook'.
@@ -517,18 +507,16 @@ DEBUG-SESSION is the debug session triggering the event."
     (forward-line (1- line))
     (forward-char column)
     (dap-ui--set-debug-marker debug-session
-                              (lsp--uri-to-path path)
-                              (point))))
+                         (lsp--uri-to-path path)
+                         (point))))
 
 (defun dap-ui--after-open ()
-  (-when-let (breakpoints (dap--active-get-breakpoints))
-    (dap-ui--breakpoints-changed (dap--cur-session)
-                                 buffer-file-name
-                                 breakpoints))
-  (when-let (debug-session (dap--cur-session))
-    (-let [(&hash "source" (&hash "path" path)) (dap--debug-session-active-frame (dap--cur-session))]
-      (when (string= buffer-file-name path)
-        (dap-ui--stack-frame-changed debug-session)))))
+  "Handler for `lsp-after-open-hook'."
+  (dap-ui--refresh-breakpoints)
+  (-when-let* ((debug-session (dap--cur-session))
+               (source (dap--debug-session-active-frame debug-session)))
+    (when (string= buffer-file-name (gethash "path" source))
+      (dap-ui--stack-frame-changed debug-session))))
 
 ;;;###autoload
 (define-minor-mode dap-ui-mode
@@ -537,15 +525,13 @@ DEBUG-SESSION is the debug session triggering the event."
   :global t
   (cond
    (dap-ui-mode
-    (add-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
-    (add-hook 'dap-terminated-hook 'dap-ui--terminated)
+    (add-hook 'dap-breakpoints-changed-hook 'dap-ui--refresh-breakpoints)
     (add-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (add-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
     (add-hook 'lsp-after-open-hook 'dap-ui--after-open))
    (t
-    (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--breakpoints-changed)
+    (remove-hook 'dap-breakpoints-changed-hook 'dap-ui--refresh-breakpoints)
     (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
-    (remove-hook 'dap-terminated-hook 'dap-ui--terminated)
     (remove-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
     (remove-hook 'lsp-after-open-hook 'dap-ui--after-open))))
 

@@ -1,8 +1,8 @@
 ;;; dap-java.el --- DAP Adapter for Java        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018  Ivan
+;; Copyright (C) 2018  Ivan Yonchovski
 
-;; Author: Ivan <kyoncho@myoncho>
+;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -41,16 +41,16 @@
                                    main-classes))
       current-class)
      (t (dap--completing-read "Select main class to run: "
-                              main-classes
-                              (lambda (it)
-                                (format "%s(%s)"
-                                        (gethash "mainClass" it)
-                                        (gethash "projectName" it)))
-                              nil
-                              t)))))
+                             main-classes
+                             (lambda (it)
+                               (format "%s(%s)"
+                                       (gethash "mainClass" it)
+                                       (gethash "projectName" it)))
+                             nil
+                             t)))))
 
-(defun dap-java--populate-default-args (conf)
-  "Populate all of the fields that are not present in CONF."
+(defun dap-java--populate-launch-args (conf)
+  "Populate CONF with launch related configurations."
   (when (not (and (plist-get conf :mainClass)
                   (plist-get conf :projectName)))
     (-let [(&hash "mainClass" main-class "projectName" project-name) (dap-java--select-main-class)]
@@ -65,44 +65,64 @@
     (dap--put-if-absent conf :request "launch")
     (dap--put-if-absent conf :modulePaths (vector))
     (dap--put-if-absent conf
-                        :classPaths
-                        (second
-                         (lsp-send-execute-command "vscode.java.resolveClasspath"
-                                                   (list main-class project-name))))
+                       :classPaths
+                       (second
+                        (lsp-send-execute-command "vscode.java.resolveClasspath"
+                                                 (list main-class project-name))))
     (dap--put-if-absent conf :name (format "%s (%s)"
-                                           (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
-                                               (match-string 1 main-class)
-                                             main-class)
-                                           project-name))
-
-    (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
-    (plist-put conf :__sessionId (number-to-string (float-time)))
-    (plist-put conf :type "java")
-
+                                          (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
+                                              (match-string 1 main-class)
+                                            main-class)
+                                          project-name))
     conf))
+
+(defun dap-java--populate-attach-args (conf)
+  "Populate attach arguments.
+CONF - the startup configuration."
+  (dap--put-if-absent conf :hostName (read-string "Enter host: " "localhost"))
+  (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "1044")))
+  (dap--put-if-absent conf :host "localhost")
+  (dap--put-if-absent conf :name (format "%s(%s)"
+                                        (plist-get conf :host)
+                                        (plist-get conf :port)))
+  conf)
+
+(defun dap-java--populate-default-args (conf)
+  "Populate all of the fields that are not present in CONF."
+  (setq conf (plist-put conf :type "java"))
+
+  (pcase (plist-get conf :request)
+    ("launch" (dap-java--populate-launch-args conf))
+    ("attach" (dap-java--populate-attach-args conf))
+    (_ (dap-java--populate-launch-args conf)))
+  (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
+  (plist-put conf :__sessionId (number-to-string (float-time)))
+  conf)
 
 (defun dap-java-debug (debug-args)
   "Start debug session with DEBUG-ARGS."
-  (interactive (list (dap-java--populate-default-args  nil)))
+  (interactive (list (dap-java--populate-default-args nil)))
   (dap-start-debugging debug-args))
 
 (eval-after-load "dap-mode"
   '(progn
      (dap-register-debug-provider "java" 'dap-java--populate-default-args)
      (dap-register-debug-template "Java Run Configuration"
-                                  (list :type "java"
-                                        :request "launch"
-                                        :args ""
-                                        :cwd nil
-                                        :stoponentry :json-false
-                                        :host "localhost"
-                                        :request "launch"
-                                        :modulepaths (vector)
-                                        :classpaths nil
-                                        :name "Run Configuration"))
+                                 (list :type "java"
+                                       :request "launch"
+                                       :args ""
+                                       :cwd nil
+                                       :stoponentry :json-false
+                                       :host "localhost"
+                                       :request "launch"
+                                       :modulepaths (vector)
+                                       :classpaths nil
+                                       :name "Run Configuration"))
      (dap-register-debug-template "Java Attach"
-                                  (list :type "java"
-                                        :request "attach"))))
+                                 (list :type "java"
+                                       :request "attach"
+                                       :hostName "localhost"
+                                       :port nil))))
 
 (provide 'dap-java)
 ;;; dap-java.el ends here
