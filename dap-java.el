@@ -117,7 +117,9 @@ CONF - the startup configuration."
                                        :request "launch"
                                        :modulepaths (vector)
                                        :classpaths nil
-                                       :name "Run Configuration"))
+                                       :name "Run Configuration"
+                                       :projectName nil
+                                       :mainClass nil))
      (dap-register-debug-template "Java Attach"
                                  (list :type "java"
                                        :request "attach"
