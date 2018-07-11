@@ -115,9 +115,11 @@ CONF - the startup configuration."
                                        :stopOnEntry :json-false
                                        :host "localhost"
                                        :request "launch"
-                                       :modulePaths (vector)
-                                       :classPaths nil
-                                       :name "Run Configuration"))
+                                       :modulepaths (vector)
+                                       :classpaths nil
+                                       :name "Run Configuration"
+                                       :projectName nil
+                                       :mainClass nil))
      (dap-register-debug-template "Java Attach"
                                  (list :type "java"
                                        :request "attach"

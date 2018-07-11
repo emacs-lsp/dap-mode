@@ -45,6 +45,11 @@
   :group 'dap-mode
   :type 'boolean)
 
+(defcustom dap-run-configurations-file (locate-user-emacs-file "dap-configurations.el" )
+  "The file in which the run configurations will be stored by default."
+  :group 'dap-mode
+  :type 'boolean)
+
 (defcustom dap-terminated-hook nil
   "List of functions to be called after a debug session has been terminated.
 
@@ -944,6 +949,14 @@ after selecting configuration template."
     (if-let ((debug-provider (gethash language-id dap--debug-providers)))
         (dap-start-debugging (funcall debug-provider launch-args))
       (error "There is no debug provider for language %s" (or language-id "'Not specified'")))))
+
+(defun dap-debug-create-runner ()
+  "Create runner from template."
+  (interactive)
+  (let* ((launch-args (dap--select-template)))
+    (find-file dap-run-configurations-file)
+
+    (goto-char (point-max))))
 
 (defun dap-debug-last ()
   "Debug last configuration."
