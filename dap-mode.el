@@ -702,7 +702,7 @@ RESULT to use for the callback."
                        (-let [msg (if (gethash "success" result)
                                       (gethash "result" (gethash "body" result))
                                     (gethash "message" result))]
-                         (message msg)
+                         (message "%s" msg)
                          (dap--display-interactive-eval-result msg (point))))
                      (dap--cur-session))))
 

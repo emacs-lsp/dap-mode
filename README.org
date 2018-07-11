@@ -82,9 +82,27 @@
     | Command                               | Description                        |
     |---------------------------------------+------------------------------------|
     | ~dap-java-debug~                      | Debug java                         |
-    | ~dap-java-run~                        | Run Java debug process             |
-    | ~dap-java-attach~                     | Attach to running java process     |
-* Extending DAP with new Debug servers [TBD]
+* Extending DAP with new Debug servers [WIP]
+  There are two methods that are used for registering remote extensions: -
+  - ~dap-register-debug-provider~ register a method which will be called to
+    populate startup parameters with plist which will contain the run. The
+    method must populate also the debug server configuration.
+*** Example:
+    Here it is simpified example.
+    #+BEGIN_SRC emacs-lisp
+      (dap-register-debug-provider
+       "java"
+       (lambda (conf)
+         (plist-put conf :debugPort 1234)
+         (plist-put conf :host "localhost")
+         conf))
+
+      (dap-register-debug-template "Example Configuration"
+                                   (list :type "java"
+                                         :request "launch"
+                                         :args ""
+                                         :name "Run Configuration"))
+    #+END_SRC
 * Links
   - [[https://github.com/emacs-lsp/lsp-java][LSP Java]]
   - [[https://github.com/Microsoft/vscode-debugadapter-node/wiki/VS-Code-Debug-Protocol-Implementations][Debug Adapter Protocol Server Implementations]]

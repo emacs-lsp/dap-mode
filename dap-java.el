@@ -112,11 +112,11 @@ CONF - the startup configuration."
                                        :request "launch"
                                        :args ""
                                        :cwd nil
-                                       :stoponentry :json-false
+                                       :stopOnEntry :json-false
                                        :host "localhost"
                                        :request "launch"
-                                       :modulepaths (vector)
-                                       :classpaths nil
+                                       :modulePaths (vector)
+                                       :classPaths nil
                                        :name "Run Configuration"))
      (dap-register-debug-template "Java Attach"
                                  (list :type "java"
