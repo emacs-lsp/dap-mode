@@ -545,17 +545,37 @@ DEBUG-SESSION is the debug session triggering the event."
     (remove-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
     (remove-hook 'lsp-after-open-hook 'dap-ui--after-open))))
 
+(defun dap-ui-inspect--invalidate (&rest _args)
+  "Inspect window invalidated."
+  (let ((inhibit-read-only t))
+    (with-current-buffer "*inspect*"
+      (erase-buffer))))
+
+(defun dap-ui-inspect--cleanup-hooks ()
+  "Cleanup after inspect buffer has been killed."
+  (remove-hook 'dap-terminated-hook 'dap-ui-inspect--invalidate)
+  (remove-hook 'dap-session-changed-hook 'dap-ui-inspect--invalidate)
+  (remove-hook 'dap-continue-hook 'dap-ui-inspect--invalidate)
+  (remove-hook 'dap-stack-frame-changed-hook 'dap-ui-inspect--invalidate))
+
 (define-minor-mode dap-ui-inspect-mode
   "Inspect mode."
   :init-value nil
   :group dap-ui
   :keymap dap-ui-inspect-mode-map
+  (add-hook 'dap-terminated-hook 'dap-ui-inspect--invalidate)
+  (add-hook 'dap-session-changed-hook 'dap-ui-inspect--invalidate)
+  (add-hook 'dap-continue-hook 'dap-ui-inspect--invalidate)
+  (add-hook 'dap-stack-frame-changed-hook 'dap-ui-inspect--invalidate)
+  (add-hook 'kill-buffer-hook 'dap-ui-inspect--cleanup-hooks nil t)
   (setq buffer-read-only t))
 
+;; TODO - handle indexed-variables > dap-ui-default-fetch-count.
 (defun dap-ui--load-variables (debug-session tree)
   "Method for expanding variables.
 
-TREE will be the root of the threads(session holder)."
+TREE will be the root of the threads(session holder).
+DEBUG-SESSION is the active debug session."
   (let ((variables-reference (widget-get tree :variables-reference))
         (indexed-variables (widget-get tree :indexed-variables)))
     (when (dap--session-running debug-session)
@@ -564,20 +584,20 @@ TREE will be the root of the threads(session holder)."
                   (dap--make-request "variables"
                                     (list* :variablesReference variables-reference
                                            (when (and indexed-variables
-                                                      (< 0 indexed-variables))
+                                                      (< dap-ui-default-fetch-count indexed-variables ))
                                              (list :start 0
                                                    :count dap-ui-default-fetch-count))))
                   (dap--resp-handler
                    (-lambda ((&hash "body" (&hash "variables" variables)))
                      (widget-put tree :variables
-                                 (or (-map (apply-partially 'dap-ui--render-inner-variable debug-session)
+                                 (or (-map (apply-partially 'dap-ui--render-variable debug-session)
                                            variables)
                                      (vector)))
                      (tree-mode-reflesh-tree tree)))
                   debug-session)
                  dap-ui--loading-tree-widget)))))
 
-(defun dap-ui--render-variable (debug-session variable)
+(defun dap-ui--render-eval-result (debug-session variable)
   "Render VARIABLE."
   (-let [(&hash "variablesReference" variables-reference
                 "result" result
@@ -588,10 +608,11 @@ TREE will be the root of the threads(session holder)."
       :open nil
       :variables-reference ,variables-reference
       :indexed-variables ,indexed-variables
-      :dynargs ,(apply-partially 'dap-ui--load-variables debug-session))))
+      :dynargs ,(when (not (zerop variables-reference))
+                  (apply-partially 'dap-ui--load-variables debug-session)))))
 
-(defun dap-ui--render-inner-variable (debug-session variable)
-  "Render VARIABLE."
+(defun dap-ui--render-variable (debug-session variable)
+  "Render VARIABLE for DEBUG-SESSION."
   (-let [(&hash "variablesReference" variables-reference
                 "value" value
                 "name" name
@@ -602,10 +623,11 @@ TREE will be the root of the threads(session holder)."
       :open nil
       :indexed-variables ,indexed-variables
       :variables-reference ,variables-reference
-      :dynargs ,(apply-partially 'dap-ui--load-variables debug-session))))
+      :dynargs ,(when (not (zerop variables-reference))
+                  (apply-partially 'dap-ui--load-variables debug-session)))))
 
 (defun dap-ui--inspect-value (debug-session value)
-  "..."
+  "Inspect VALUE in DEBUG-SESSION."
   (-let ((buf (get-buffer-create "*inspect*"))
          (inhibit-read-only t)
          (workspace lsp--cur-workspace)
@@ -617,7 +639,7 @@ TREE will be the root of the threads(session holder)."
       (setq lsp--cur-workspace workspace)
 
       (widget-create
-       (dap-ui--render-variable debug-session body))
+       (dap-ui--render-eval-result debug-session body))
       (dap-ui-inspect-mode t))
     (let ((win (display-buffer-in-side-window
                 buf `((side . right) (slot . 1) (window-width . 0.20)))))
@@ -650,6 +672,86 @@ TREE will be the root of the threads(session holder)."
   "Inspect the region between START and END."
   (interactive "r")
   (dap-ui-inspect (buffer-substring-no-properties start end)))
+
+(defun dap-ui-locals--cleanup-hooks ()
+  (add-hook 'dap-terminated-hook 'dap-ui-locals--refresh)
+  (add-hook 'dap-session-changed-hook 'dap-ui-locals--refresh)
+  (add-hook 'dap-continue-hook 'dap-ui-locals--refresh)
+  (add-hook 'dap-stack-frame-changed-hook 'dap-ui-locals--refresh)
+  (add-hook 'kill-buffer-hook 'dap-ui-locals--cleanup-hooks nil t))
+
+(define-minor-mode dap-ui-locals-mode
+  "Locals mode."
+  :init-value nil
+  :group dap-ui
+  ;; :keymap dap-ui-inspect-mode-map
+  (add-hook 'dap-terminated-hook 'dap-ui-locals--refresh)
+  (add-hook 'dap-session-changed-hook 'dap-ui-locals--refresh)
+  (add-hook 'dap-continue-hook 'dap-ui-locals--refresh)
+  (add-hook 'dap-stack-frame-changed-hook 'dap-ui-locals--refresh)
+  (add-hook 'kill-buffer-hook 'dap-ui-locals--cleanup-hooks nil t)
+  (setq buffer-read-only t))
+
+(defun dap-ui--render-scope (debug-session scope)
+  "Render SCOPE for DEBUG-SESSION."
+  (-let [(&hash "name" name "variablesReference" variables-reference) scope]
+    (dap--send-message
+     (dap--make-request "variables"
+                       (list :variablesReference variables-reference))
+     (dap--resp-handler
+      (-lambda ((&hash "body" (&hash "variables" variables)))
+        (with-current-buffer "*locals*"
+          (widget-create
+           `(tree-widget
+             :node (push-button :format "%[%t%]\n"
+                                :tag ,name)
+             :open t
+             :dynargs ,(lambda (_)
+                         (or (-map (apply-partially 'dap-ui--render-variable debug-session)
+                                   variables)
+                             (vector))))))))
+     debug-session)))
+
+(defun dap-ui-locals--refresh (&rest _)
+  "Refresh locals buffer."
+  (with-current-buffer "*locals*"
+    (let ((inhibit-read-only t)
+          (debug-session (dap--cur-session)))
+      (erase-buffer)
+      ;; (kill-all-local-variables)
+
+      (if (dap--session-running debug-session)
+          (if-let (frame-id (-some->> debug-session
+                                      dap--debug-session-active-frame
+                                      (gethash "id")))
+              (dap--send-message (dap--make-request "scopes"
+                                                  (list :frameId frame-id))
+                                (dap--resp-handler
+                                 (-lambda ((&hash "body" (&hash "scopes" scopes)))
+                                   (mapc (apply-partially 'dap-ui--render-scope debug-session) scopes)))
+                                debug-session)
+            (insert "Thread not stopped..."))
+        (insert "Session is not running...")))))
+
+(defun dap-ui-locals ()
+  "Display locals view."
+  (interactive)
+  (-let ((buf (get-buffer-create "*locals*"))
+         (inhibit-read-only t)
+         (workspace lsp--cur-workspace)
+         (debug-session (dap--cur-session-or-die)))
+    (with-current-buffer buf
+
+      (setq-local lsp--cur-workspace workspace)
+
+      (dap-ui-locals--refresh)
+
+      (dap-ui-locals-mode t))
+    (let ((win (display-buffer-in-side-window
+                buf `((side . right) (slot . 2) (window-width . 0.20)))))
+      (set-window-dedicated-p win t)
+      (select-window win)
+      (fit-window-to-buffer nil nil 10))))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

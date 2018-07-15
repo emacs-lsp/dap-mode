@@ -127,7 +127,7 @@ has succeeded."
 
 (defun dap--session-running (debug-session)
   "Check whether DEBUG-SESSION still running."
-  (not (eq 'terminated (dap--debug-session-state debug-session))))
+  (and debug-session (not (eq 'terminated (dap--debug-session-state debug-session)))))
 
 (defun dap--cur-active-session-or-die ()
   "Get currently non-terminated  `dap--debug-session' or die."
@@ -717,7 +717,7 @@ RESULT to use for the callback."
                          debug-session)
       (error "There is no stopped debug session"))))
 
-(defun dap-eval-dwim ()
+(defun dap-eval-thing-at-point ()
   "Eval and print EXPRESSION."
   (interactive)
   (dap-eval (thing-at-point 'symbol)))
@@ -730,7 +730,6 @@ RESULT to use for the callback."
 (defun dap-switch-stack-frame ()
   "Switch stackframe by selecting another stackframe stackframes from current thread."
   (interactive)
-
   (when (not (dap--cur-session))
     (error "There is no active session"))
 
@@ -747,11 +746,7 @@ RESULT to use for the callback."
              dap--debug-session-name
              (format "Current session %s is not stopped")
              error))
-
-    (->> (dap--cur-session)
-         dap--debug-session-name
-         "No thread is currently active"
-         error)))
+    (error "No thread is currently active %s" (dap--debug-session-name (dap--cur-session)))))
 
 (defun dap--calculate-unique-name (debug-session-name debug-sessions)
   "Calculate unique name with prefix DEBUG-SESSION-NAME.
