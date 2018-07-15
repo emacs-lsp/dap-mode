@@ -69,14 +69,15 @@
       mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=com.microsoft.java -DartifactId=com.microsoft.java.debug.plugin -Dversion=0.9.0
       cp ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.9.0/com.microsoft.java.debug.plugin-0.9.0.jar ~/.emacs.d/eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar
     #+END_SRC
+
     Then add the following settings in your emacs config file:
     #+BEGIN_SRC elisp
       (dap-mode 1)
       (dap-ui-mode 1)
 
       (add-to-list 'lsp-java-bundles (expand-file-name
-                                      (locate-user-emacs-file
-                                       "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar")))
+                                     (locate-user-emacs-file
+                                      "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar")))
     #+END_SRC
 *** Commands
     | Command                               | Description                        |

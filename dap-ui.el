@@ -86,6 +86,11 @@
   "Face for enabled breakpoint icon in fringe."
   :group 'dap-ui)
 
+(defcustom  dap-ui-default-fetch-count 30
+  "Default number of variables to load in inspect variables view for array variables."
+  :group 'dap-ui
+  :type 'number)
+
 (defcustom dap-left-margin-gutter t
   "If non-nil, DAP UI will show the compilation and warning icons
 in the left margin, when in terminal mode. These icons can
@@ -227,6 +232,11 @@ SESSION-TREE will be the root of the threads(session holder)."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "TAB") #'tree-mode-toggle-expand)
     (define-key map (kbd "RET") #'dap-ui-sessions-select)
+    map))
+
+(defvar dap-ui-inspect-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "TAB") #'tree-mode-toggle-expand)
     map))
 
 (defun dap-ui-sessions--cleanup-hooks ()
@@ -534,6 +544,112 @@ DEBUG-SESSION is the debug session triggering the event."
     (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (remove-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
     (remove-hook 'lsp-after-open-hook 'dap-ui--after-open))))
+
+(define-minor-mode dap-ui-inspect-mode
+  "Inspect mode."
+  :init-value nil
+  :group dap-ui
+  :keymap dap-ui-inspect-mode-map
+  (setq buffer-read-only t))
+
+(defun dap-ui--load-variables (debug-session tree)
+  "Method for expanding variables.
+
+TREE will be the root of the threads(session holder)."
+  (let ((variables-reference (widget-get tree :variables-reference))
+        (indexed-variables (widget-get tree :indexed-variables)))
+    (when (dap--session-running debug-session)
+      (or (widget-get tree :variables)
+          (progn (dap--send-message
+                  (dap--make-request "variables"
+                                    (list* :variablesReference variables-reference
+                                           (when (and indexed-variables
+                                                      (< 0 indexed-variables))
+                                             (list :start 0
+                                                   :count dap-ui-default-fetch-count))))
+                  (dap--resp-handler
+                   (-lambda ((&hash "body" (&hash "variables" variables)))
+                     (widget-put tree :variables
+                                 (or (-map (apply-partially 'dap-ui--render-inner-variable debug-session)
+                                           variables)
+                                     (vector)))
+                     (tree-mode-reflesh-tree tree)))
+                  debug-session)
+                 dap-ui--loading-tree-widget)))))
+
+(defun dap-ui--render-variable (debug-session variable)
+  "Render VARIABLE."
+  (-let [(&hash "variablesReference" variables-reference
+                "result" result
+                "indexedVariables" indexed-variables) variable]
+    `(tree-widget
+      :node (push-button :format "%[%t%]\n"
+                         :tag ,result)
+      :open nil
+      :variables-reference ,variables-reference
+      :indexed-variables ,indexed-variables
+      :dynargs ,(apply-partially 'dap-ui--load-variables debug-session))))
+
+(defun dap-ui--render-inner-variable (debug-session variable)
+  "Render VARIABLE."
+  (-let [(&hash "variablesReference" variables-reference
+                "value" value
+                "name" name
+                "indexedVariables" indexed-variables) variable]
+    `(tree-widget
+      :node (push-button :format "%[%t%]\n"
+                         :tag ,(format "%s=%s" name value))
+      :open nil
+      :indexed-variables ,indexed-variables
+      :variables-reference ,variables-reference
+      :dynargs ,(apply-partially 'dap-ui--load-variables debug-session))))
+
+(defun dap-ui--inspect-value (debug-session value)
+  "..."
+  (-let ((buf (get-buffer-create "*inspect*"))
+         (inhibit-read-only t)
+         (workspace lsp--cur-workspace)
+         (body (gethash "body" value)))
+    (with-current-buffer buf
+      (erase-buffer)
+      (kill-all-local-variables)
+
+      (setq lsp--cur-workspace workspace)
+
+      (widget-create
+       (dap-ui--render-variable debug-session body))
+      (dap-ui-inspect-mode t))
+    (let ((win (display-buffer-in-side-window
+                buf `((side . right) (slot . 1) (window-width . 0.20)))))
+      (set-window-dedicated-p win t)
+      (select-window win)
+      (fit-window-to-buffer nil nil 10))))
+
+(defun dap-ui-inspect (expression)
+  "Inspect EXPRESSION."
+  (interactive "sInspect: ")
+  (let ((debug-session (dap--cur-active-session-or-die)))
+
+    (if-let ((active-frame-id (-some->> debug-session
+                                        dap--debug-session-active-frame
+                                        (gethash "id"))))
+        (dap--send-message (dap--make-request
+                           "evaluate"
+                           (list :expression expression
+                                 :frameId active-frame-id))
+                          (dap--resp-handler (apply-partially 'dap-ui--inspect-value debug-session))
+                          debug-session)
+      (error "There is no stopped debug session"))))
+
+(defun dap-ui-inspect-thing-at-point ()
+  "Inspect thing at point."
+  (interactive)
+  (dap-ui-inspect (thing-at-point 'symbol)))
+
+(defun dap-ui-inspect-region (start end)
+  "Inspect the region between START and END."
+  (interactive "r")
+  (dap-ui-inspect (buffer-substring-no-properties start end)))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

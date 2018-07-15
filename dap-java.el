@@ -29,6 +29,29 @@
 (require 'dap-mode)
 (require 'tree-mode)
 
+(defcustom dap-java-test-runner
+  (expand-file-name (locate-user-emacs-file "eclipse.jdt.ls/runner/junit-platform-console-standalone.jar"))
+  "DAP Java test runner."
+  :group 'dap-java-java
+  :type 'file)
+
+(defcustom dap-java-build 'ask
+  "Perform build before running project behaviour."
+  :group 'dap-java
+  :type '(choice (const ask)
+                 (const always)
+                 (const never)))
+
+(defcustom dap-java-test-additional-args ()
+  "Additional arguments for JUnit standalone runner."
+  :group 'dap-java
+  :type '(list string))
+
+(defcustom  dap-java-default-debug-port 1044
+  "Default debug port."
+  :group 'dap-java
+  :type 'number)
+
 (defun dap-java--select-main-class ()
   "Select main class from the current workspace."
   (let* ((main-classes (lsp-send-execute-command "vscode.java.resolveMainClass"))
@@ -80,7 +103,7 @@
   "Populate attach arguments.
 CONF - the startup configuration."
   (dap--put-if-absent conf :hostName (read-string "Enter host: " "localhost"))
-  (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "1044")))
+  (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " (number-to-string dap-java-default-debug-port))))
   (dap--put-if-absent conf :host "localhost")
   (dap--put-if-absent conf :name (format "%s(%s)"
                                         (plist-get conf :host)
@@ -103,6 +126,42 @@ CONF - the startup configuration."
   "Start debug session with DEBUG-ARGS."
   (interactive (list (dap-java--populate-default-args nil)))
   (dap-start-debugging debug-args))
+
+(defun dap--run-unit-test (runner)
+  "Run debug test with the following arguments."
+  (-let ((class-path (->> (lsp-java--get-root)
+                          lsp--path-to-uri
+                          list
+                          (lsp-send-execute-command "che.jdt.ls.extension.resolveClasspath")
+                          (s-join ":")))
+         (to-run (->> (list :cursorOffset (point)
+                            :sourceUri (lsp--path-to-uri (buffer-file-name)))
+                      (lsp-send-execute-command "che.jdt.ls.extension.findTestByCursor")
+                      first)))
+    (compile
+     (s-join " "
+             (list*
+              runner "-jar" dap-java-test-runner
+              "-cp" class-path
+              (if (s-contains? "#" to-run) "-m" "-c")
+              to-run
+              dap-java-test-additional-args)))))
+
+(defun dap-java-run-under-cursor ()
+  "Run JUnit test."
+  (interactive)
+  (dap--run-unit-test lsp-java-java-path))
+
+(defun dap-java-debug-under-cursor (port)
+  "Debug JUnit test."
+  (interactive (list dap-java-default-debug-port))
+  (dap--run-unit-test
+   (format "%s -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=%s"
+           lsp-java-java-path port))
+  (dap-debug (list :type "java"
+                  :request "attach"
+                  :hostName "localhost"
+                  :port port)))
 
 (eval-after-load "dap-mode"
   '(progn

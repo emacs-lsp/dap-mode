@@ -21,7 +21,7 @@
 ;;; Commentary:
 ;; Author: Ivan <kyoncho@myoncho>
 ;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((Emacs "25.1"))
 ;; Version: 0.1
 
 ;; Debug Adapter Protocol
@@ -534,8 +534,9 @@ WORKSPACE will be used to calculate root folder."
                   (run-hooks 'dap-session-changed-hook)
                   (dap--send-message
                    (dap--make-request "threads")
-                   (-lambda ((&hash "body" (&hash "threads" threads)))
-                     (setf (dap--debug-session-threads debug-session) threads)
+                   (-lambda ((&hash "body" body))
+                     (setf (dap--debug-session-threads debug-session)
+                           (when body (gethash "threads" body)))
                      (run-hooks 'dap-session-changed-hook))
                    debug-session)))
       ("exited" (with-current-buffer (dap--debug-session-output-buffer debug-session)
@@ -698,18 +699,23 @@ RESULT to use for the callback."
 (defun dap-eval (expression)
   "Eval and print EXPRESSION."
   (interactive "sEval: ")
-  (let ((active-frame-id (gethash "id" (dap--debug-session-active-frame (dap--cur-session)))))
-    (dap--send-message (dap--make-request
-                      "evaluate"
-                      (list :expression expression
-                            :frameId active-frame-id))
-                     (lambda (result)
-                       (-let [msg (if (gethash "success" result)
-                                      (gethash "result" (gethash "body" result))
-                                    (gethash "message" result))]
-                         (message "%s" msg)
-                         (dap--display-interactive-eval-result msg (point))))
-                     (dap--cur-session))))
+  (let ((debug-session (dap--cur-active-session-or-die)))
+
+    (if-let ((active-frame-id (-some->> debug-session
+                                        dap--debug-session-active-frame
+                                        (gethash "id"))))
+        (dap--send-message (dap--make-request
+                          "evaluate"
+                          (list :expression expression
+                                :frameId active-frame-id))
+                         (lambda (result)
+                           (-let [msg (if (gethash "success" result)
+                                          (gethash "result" (gethash "body" result))
+                                        (gethash "message" result))]
+                             (message msg)
+                             (dap--display-interactive-eval-result msg (point))))
+                         debug-session)
+      (error "There is no stopped debug session"))))
 
 (defun dap-eval-dwim ()
   "Eval and print EXPRESSION."
@@ -953,10 +959,15 @@ after selecting configuration template."
 (defun dap-debug-create-runner ()
   "Create runner from template."
   (interactive)
-  (let* ((launch-args (dap--select-template)))
-    (find-file dap-run-configurations-file)
-
-    (goto-char (point-max))))
+  (let* ((launch-args (dap--select-template))
+         (buf (generate-new-buffer "*run-configuration*.el")))
+    (with-current-buffer buf
+      (cl-prettyprint `(defun my/run-configuration ()
+                         (interactive)
+                         (dap-debug (list ,@launch-args)))))
+    (pop-to-buffer buf)
+    (emacs-lisp-mode)
+    (yas-expand-snippet (buffer-string) (point-min) (point-max))))
 
 (defun dap-debug-last ()
   "Debug last configuration."
