@@ -983,9 +983,12 @@ after selecting configuration template."
 (defun dap-go-to-output-buffer ()
   "Go to output buffer."
   (interactive)
-  (->> (dap--cur-session-or-die)
-       dap--debug-session-output-buffer
-       pop-to-buffer))
+  (let ((win (display-buffer-in-side-window
+              (dap--debug-session-output-buffer (dap--cur-session-or-die))
+              `((side . bottom) (slot . 5) (window-width . 0.20)))))
+    (set-window-dedicated-p win t)
+    (select-window win)
+    (fit-window-to-buffer nil nil 10)))
 
 (defun dap-delete-session (debug-session)
   "Remove DEBUG-SESSION.

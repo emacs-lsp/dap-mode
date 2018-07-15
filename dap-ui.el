@@ -346,7 +346,7 @@ SESSION-TREE will be the root of the threads(session holder)."
         (workspace lsp--cur-workspace))
     (with-current-buffer buf
       (erase-buffer)
-      (kill-all-local-variables)
+      (setq mode-line-format "Sessions")
       (setq-local lsp--cur-workspace workspace)
       (mapc 'dap-ui-sessions--render-session sessions)
       (dap-ui-sessions-mode t))
@@ -674,11 +674,11 @@ DEBUG-SESSION is the active debug session."
   (dap-ui-inspect (buffer-substring-no-properties start end)))
 
 (defun dap-ui-locals--cleanup-hooks ()
-  (add-hook 'dap-terminated-hook 'dap-ui-locals--refresh)
-  (add-hook 'dap-session-changed-hook 'dap-ui-locals--refresh)
-  (add-hook 'dap-continue-hook 'dap-ui-locals--refresh)
-  (add-hook 'dap-stack-frame-changed-hook 'dap-ui-locals--refresh)
-  (add-hook 'kill-buffer-hook 'dap-ui-locals--cleanup-hooks nil t))
+  "Cleanup of locals subscriptions."
+  (remove-hook 'dap-terminated-hook 'dap-ui-locals--refresh)
+  (remove-hook 'dap-session-changed-hook 'dap-ui-locals--refresh)
+  (remove-hook 'dap-continue-hook 'dap-ui-locals--refresh)
+  (remove-hook 'dap-stack-frame-changed-hook 'dap-ui-locals--refresh))
 
 (define-minor-mode dap-ui-locals-mode
   "Locals mode."
@@ -719,6 +719,7 @@ DEBUG-SESSION is the active debug session."
           (debug-session (dap--cur-session)))
       (erase-buffer)
       ;; (kill-all-local-variables)
+      (setq mode-line-format "Locals")
 
       (if (dap--session-running debug-session)
           (if-let (frame-id (-some->> debug-session
@@ -741,12 +742,9 @@ DEBUG-SESSION is the active debug session."
          (workspace lsp--cur-workspace)
          (debug-session (dap--cur-session-or-die)))
     (with-current-buffer buf
-
       (setq-local lsp--cur-workspace workspace)
-
-      (dap-ui-locals--refresh)
-
-      (dap-ui-locals-mode t))
+      (dap-ui-locals-mode t)
+      (dap-ui-locals--refresh))
     (let ((win (display-buffer-in-side-window
                 buf `((side . right) (slot . 2) (window-width . 0.20)))))
       (set-window-dedicated-p win t)
