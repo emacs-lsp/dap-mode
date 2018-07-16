@@ -128,16 +128,16 @@ CONF - the startup configuration."
   (dap-start-debugging debug-args))
 
 (defun dap--run-unit-test (runner)
-  "Run debug test with the following arguments."
-  (-let ((class-path (->> (lsp-java--get-root)
-                          lsp--path-to-uri
-                          list
-                          (lsp-send-execute-command "che.jdt.ls.extension.resolveClasspath")
-                          (s-join ":")))
-         (to-run (->> (list :cursorOffset (point)
-                            :sourceUri (lsp--path-to-uri (buffer-file-name)))
-                      (lsp-send-execute-command "che.jdt.ls.extension.findTestByCursor")
-                      first)))
+  "Run debug test with the following arguments.
+RUNNER is the test executor."
+  (-let* ((to-run (->> (list :cursorOffset (point)
+                             :sourceUri (lsp--path-to-uri (buffer-file-name)))
+                       (lsp-send-execute-command "che.jdt.ls.extension.findTestByCursor")
+                       first))
+          (class-path (->> (list (first (s-split "#" to-run)) nil)
+                           (lsp-send-execute-command "vscode.java.resolveClasspath")
+                           second
+                           (s-join ":"))))
     (compile
      (s-join " "
              (list*
