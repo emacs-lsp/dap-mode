@@ -127,41 +127,68 @@ CONF - the startup configuration."
   (interactive (list (dap-java--populate-default-args nil)))
   (dap-start-debugging debug-args))
 
-(defun dap--run-unit-test (runner)
+(defun dap--run-unit-test (runner run-method?)
   "Run debug test with the following arguments.
-RUNNER is the test executor."
+RUNNER is the test executor. RUN-METHOD? when t it will try to
+run the surrounding method. Otherwise it will run the surronding
+test."
   (-let* ((to-run (->> (list :cursorOffset (point)
                              :sourceUri (lsp--path-to-uri (buffer-file-name)))
                        (lsp-send-execute-command "che.jdt.ls.extension.findTestByCursor")
                        first))
-          (class-path (->> (list (first (s-split "#" to-run)) nil)
+          (test-class-name (first (s-split "#" to-run)))
+          (class-path (->> (list test-class-name nil)
                            (lsp-send-execute-command "vscode.java.resolveClasspath")
                            second
                            (s-join ":"))))
     (compile
      (s-join " "
-             (list*
-              runner "-jar" dap-java-test-runner
+             (list* runner "-jar" dap-java-test-runner
               "-cp" class-path
-              (if (s-contains? "#" to-run) "-m" "-c")
-              to-run
+              (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
+              (if run-method? to-run test-class-name)
               dap-java-test-additional-args)))))
 
-(defun dap-java-run-under-cursor ()
-  "Run JUnit test."
+(defun dap-java-run-test-method ()
+  "Run JUnit test.
+If there is no method under cursor it will fallback to test class."
   (interactive)
-  (dap--run-unit-test lsp-java-java-path))
+  (dap--run-unit-test lsp-java-java-path t))
 
-(defun dap-java-debug-under-cursor (port)
-  "Debug JUnit test."
+(defun dap-java-debug-test-method (port)
+  "Debug JUnit test.
+If there is no method under cursor it will fallback to test class.
+PORT is the port that is going to be used for starting and
+attaching to the test."
   (interactive (list dap-java-default-debug-port))
   (dap--run-unit-test
    (format "%s -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=%s"
-           lsp-java-java-path port))
+           lsp-java-java-path port)
+   t)
   (dap-debug (list :type "java"
                   :request "attach"
                   :hostName "localhost"
                   :port port)))
+
+(defun dap-java-run-test-class ()
+  "Run JUnit test."
+  (interactive)
+  (dap--run-unit-test lsp-java-java-path nil))
+
+(defun dap-java-debug-test-class (port)
+  "Debug JUnit test class.
+
+PORT is the port that is going to be used for starting and
+attaching to the test."
+  (interactive (list dap-java-default-debug-port))
+  (dap--run-unit-test
+   (format "%s -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=%s"
+           lsp-java-java-path port)
+   nil)
+  (dap-debug (list :type "java"
+                   :request "attach"
+                   :hostName "localhost"
+                   :port port)))
 
 (eval-after-load "dap-mode"
   '(progn

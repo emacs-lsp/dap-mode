@@ -23,7 +23,7 @@
    | ~dap-toggle-breakpoint~   | Toggle java breakpoint at line                                 |             |
    | ~dap-eval~                | Eval string                                                    |             |
    | ~dap-eval-region~         | Eval region string                                             |             |
-   | ~dap-eval-dwim~           | Eval symbol at point                                           |             |
+   | ~dap-eval-thing-at-point~ | Eval symbol at point                                           |             |
    | ~dap-step-in~             | Debug step in                                                  |             |
    | ~dap-next~                | Debug next                                                     |             |
    | ~dap-step-out~            | Debug step out                                                 |             |
@@ -37,20 +37,25 @@
    | ~dap-debug-last~          | Debug previous configuration                                   |             |
    | ~dap-debug-recent~        | Run previous configuration                                     |             |
    | ~dap-go-to-output-buffer~ | Go output buffer                                               |             |
+** DAP UI Command
+   | Command                         | Description                     | Keybindings |
+   |---------------------------------+---------------------------------+-------------|
+   | ~dap-ui-sessions~               | Show active/terminated sessions |             |
+   | ~dap-ui-locals~                 | Show locals                     |             |
+   | ~dap-ui-inspect~                | Inspect                         |             |
+   | ~dap-ui-inspect-region~         | Inspect region                  |             |
+   | ~dap-ui-inspect-thing-at-point~ | Inspect symbol at point         |             |
 ** Sessions
-   | Command               | Description                 | Keybindings |
-   |-----------------------+-----------------------------+-------------|
-   | ~dap-ui-session-list~ | List current debug sessions |             |
-*** Sessions view [WIP]
-    | Command                      | Description                                                 | Keybindings |
-    |------------------------------+-------------------------------------------------------------+-------------|
-    | ~dap-ui-session-remove~      | Remove terminated session from the list of running sessions |             |
-    | ~dap-ui-session-disconnect~  | Terminate the session under cursor                          |             |
-    | ~dap-ui-session-thread-stop~ | stop thread at point                                        |             |
-    | ~dap-ui-session-thread-kill~ | Kill thread at point                                        |             |
-    | ~dap-ui-session-select~      | Select object at point                                      | <return>    |
-    | ~dap-ui-session-toggle-node~ | Toggle node expand state                                    | <tab>       |
-    | ~dap-ui-session-eval~        | Eval statement in current context                           | e           |
+   The sessions view is showed after invoking ~dap-ui-sessions~ . It represents
+   the list of the active sessions.
+*** Keybindings
+    | Command                     | Description                                                 | Keybindings |
+    |-----------------------------+-------------------------------------------------------------+-------------|
+    | ~dap-ui-session-select~     | Select object at point                                      | <return>    |
+    | ~tree-mode-toggle-expand~   | Toggle node expand state                                    | <tab>       |
+    | ~dap-ui-session-remove~ WIP | Remove terminated session from the list of running sessions |             |
+** Locals
+   Locals can be viewed after invoking ~dap-ui-locals~.
 * Configuration
 ** DAP mode configuration
    Enable both ~dap-mode~ and ~dap-ui-mode~.
@@ -58,6 +63,7 @@
      (dap-mode 1)
      (dap-ui-mode 1)
    #+END_SRC
+   After enabling DAP mode on emacs side follow the language specific settings.
 ** Java
 *** Installation
     Make sure that you have properly installed and configured [[https://github.com/emacs-lsp/lsp-java][LSP Java]]. Download
@@ -87,9 +93,13 @@
                                       "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar")))
     #+END_SRC
 *** Commands
-    | Command                               | Description                        |
-    |---------------------------------------+------------------------------------|
-    | ~dap-java-debug~                      | Debug java                         |
+    | Command                      | Description       |
+    |------------------------------+-------------------|
+    | ~dap-java-debug~             | Debug java        |
+    | ~dap-java-run-test-method~   | Run test method   |
+    | ~dap-java-debug-test-method~ | Debug test method |
+    | ~dap-java-run-test-class~    | Run test class    |
+    | ~dap-java-debug-test-class~  | Debug test class  |
 * Extending DAP with new Debug servers [WIP]
   There are two methods that are used for registering remote extensions: -
   - ~dap-register-debug-provider~ register a method which will be called to
@@ -106,10 +116,10 @@
          conf))
 
       (dap-register-debug-template "Example Configuration"
-                                   (list :type "java"
-                                         :request "launch"
-                                         :args ""
-                                         :name "Run Configuration"))
+                                  (list :type "java"
+                                        :request "launch"
+                                        :args ""
+                                        :name "Run Configuration"))
     #+END_SRC
 * Links
   - [[https://github.com/emacs-lsp/lsp-java][LSP Java]]
@@ -119,6 +129,4 @@
 * What's next
   - Breakpoints list
   - Watches
-  - Value inspector
-  - Locals
   - Debug console
