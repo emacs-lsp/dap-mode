@@ -69,6 +69,13 @@
       mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=com.microsoft.java -DartifactId=com.microsoft.java.debug.plugin -Dversion=0.9.0
       cp ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.9.0/com.microsoft.java.debug.plugin-0.9.0.jar ~/.emacs.d/eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar
     #+END_SRC
+    If you want to run unit tests you have to download the [[https://github.com/junit-team/junit5][JUnit5's]] JUnit Platform Console Standalone from [[https://mvnrepository.com/artifact/org.junit.platform/junit-platform-console-standalone][Maven Central]]. On Linux/MacOS you can do the following:
+
+    #+BEGIN_SRC bash
+      mkdir -p ~/.emacs.d/eclipse.jdt.ls/runner/
+      mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=org.junit.platform -DartifactId=junit-platform-console-standalone -Dversion=1.3.0-M1
+      cp ~/.m2/repository/org/junit/platform/junit-platform-console-standalone/1.3.0-M1/junit-platform-console-standalone-1.3.0-M1.jar ~/.emacs.d/eclipse.jdt.ls/runner/junit-platform-console-standalone.jar
+    #+END_SRC
 
     Then add the following settings in your emacs config file:
     #+BEGIN_SRC elisp
