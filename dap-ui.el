@@ -124,7 +124,6 @@ linum, etc..)"
     (,dap-ui--sessions-buffer . ((side . right)
                             (slot . 3)
                             (window-width . 0.20)))))
-
 (defun dap-ui-sessions--tree-under-cursor ()
   "Get tree under cursor."
   (-when-let (widget-under-cursor (dap-ui--nearest-widget))
@@ -640,15 +639,17 @@ DEBUG-SESSION is the active debug session."
       :dynargs ,(when (not (zerop variables-reference))
                   (apply-partially 'dap-ui--load-variables debug-session)))))
 
+
 (defun dap-ui--show-buffer (buf)
   "Show BUF according to defined rules."
   (let ((win (display-buffer-in-side-window buf
-                                            (alist-get
-                                             (buffer-name buf)
-                                             dap-ui-buffer-configurations
-                                             '((side . right)
-                                               (slot . 1)
-                                               (window-width . 0.20))))))
+                                            (or (-> buf
+                                                    buffer-name
+                                                    (assoc dap-ui-buffer-configurations)
+                                                    rest)
+                                                '((side . right)
+                                                  (slot . 1)
+                                                  (window-width . 0.20))))))
     (set-window-dedicated-p win t)
     (select-window win)))
 
