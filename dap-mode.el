@@ -588,6 +588,7 @@ WORKSPACE will be used to calculate root folder."
       ("terminated"
        (setf (dap--debug-session-state debug-session) 'terminated)
        (delete-process (dap--debug-session-proc debug-session))
+       (clrhash (dap--debug-session-breakpoints debug-session))
        (dap--refresh-breakpoints debug-session)
        (run-hook-with-args 'dap-terminated-hook debug-session))
       (_ (message (format "No messages handler for %s" event-type))))))
