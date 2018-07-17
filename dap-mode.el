@@ -219,7 +219,8 @@ This is in contrast to merely setting it to 0."
   (state 'pending)
   (breakpoints (make-hash-table :test 'equal) :read-only t)
   (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
-  (launch-args nil))
+  (launch-args nil)
+  (initialize-result nil))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -430,9 +431,10 @@ WORKSPACE will be used to calculate root folder."
 (defun dap-continue ()
   "Call continue for the currently active session and thread."
   (interactive)
-  (let ((debug-session (dap--cur-active-session-or-die)))
+  (let* ((debug-session (dap--cur-active-session-or-die))
+         (thread-id (dap--debug-session-thread-id debug-session)))
     (dap--send-message (dap--make-request "continue"
-                                      (list :threadId (dap--debug-session-thread-id debug-session)))
+                                      (list :threadId thread-id))
                      (dap--resp-handler)
                      debug-session)
     (dap--resume-application debug-session)))
@@ -479,6 +481,19 @@ WORKSPACE will be used to calculate root folder."
                    (dap--resp-handler)
                    (dap--cur-active-session-or-die))
   (dap--resume-application (dap--cur-active-session-or-die)))
+
+;;;###autoload
+(defun dap-restart-frame ()
+  "Restarts current frame."
+  (interactive)
+  (let* ((debug-session (dap--cur-active-session-or-die))
+         (frame-id (-some->> debug-session dap--debug-session-active-frame (gethash "id"))))
+    (dap--send-message (dap--make-request "restartFrame"
+                                      (list :frameId frame-id))
+                     (dap--resp-handler)
+                     debug-session)
+    (dap--resume-application debug-session)))
+
 
 (defun dap--go-to-stack-frame (debug-session stack-frame)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
@@ -691,7 +706,7 @@ RESULT to use for the callback."
         (funcall callback result)
       (maphash
        (lambda (file-name file-breakpoints)
-         (condition-case err
+         (condition-case _err
              (dap--send-message
               (dap--set-breakpoints-request file-name file-breakpoints)
               (dap--resp-handler
@@ -782,9 +797,10 @@ DEBUG-SESSIONS - list of the currently active sessions."
         (-let [debug-sessions (dap--get-sessions workspace)]
 
           ;; update session name accordingly
-          (setf (dap--debug-session-name debug-session)
-                (dap--calculate-unique-name (dap--debug-session-name debug-session)
-                                          debug-sessions))
+          (setf (dap--debug-session-name debug-session) (dap--calculate-unique-name
+                                                       (dap--debug-session-name debug-session)
+                                                       debug-sessions)
+                (dap--debug-session-initialize-result debug-session) initialize-result)
 
           (dap--set-sessions workspace (cons debug-session debug-sessions)))
         (dap--send-message
