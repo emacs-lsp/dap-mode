@@ -285,6 +285,15 @@ WORKSPACE will be used to calculate root folder."
   (lsp-workspace-set-metadata "debug-sessions" debug-sessions workspace)
   (run-hook-with-args 'dap-session-changed-hook workspace))
 
+(defun dap--persist-breakpoints (breakpoints)
+  "Persist BREAKPOINTS."
+  ;; filter markers before persisting the breakpoints (markers are not writeable)
+  (-let [filtered-breakpoints (make-hash-table :test 'equal)]
+    (maphash (lambda (k v)
+               (puthash k (--map (dap--plist-delete it :marker) v) filtered-breakpoints))
+             breakpoints)
+    (dap--persist lsp--cur-workspace dap--breakpoints-file filtered-breakpoints)))
+
 (defun dap-toggle-breakpoint ()
   "Toggle breakpoint on the current line."
   (interactive)
@@ -321,22 +330,18 @@ WORKSPACE will be used to calculate root folder."
     (let ((set-breakpoints-req (dap--set-breakpoints-request
                                 file-name
                                 updated-file-breakpoints)))
-      (->> lsp--cur-workspace
-           dap--get-sessions
-           (-filter 'dap--session-running)
-           (--map (dap--send-message set-breakpoints-req
-                                   (dap--resp-handler
-                                    (lambda (resp)
-                                      (dap--update-breakpoints it
-                                                             resp
-                                                             file-name)))
-                                   it))))
-    ;; filter markers before persisting the breakpoints (markers are not writeable)
-    (-let [filtered-breakpoints (make-hash-table :test 'equal)]
-      (maphash (lambda (k v)
-                 (puthash k (--map (dap--plist-delete it :marker) v) filtered-breakpoints))
-               breakpoints)
-      (dap--persist lsp--cur-workspace dap--breakpoints-file filtered-breakpoints))))
+      (-as-> lsp--cur-workspace $
+             dap--get-sessions
+             (-filter 'dap--session-running $)
+             (--each $
+               (dap--send-message set-breakpoints-req
+                                (dap--resp-handler
+                                 (lambda (resp)
+                                   (dap--update-breakpoints it
+                                                          resp
+                                                          file-name)))
+                                it))))
+    (dap--persist-breakpoints breakpoints)))
 
 (defun dap--get-body-length (headers)
   "Get body length from HEADERS."
@@ -686,14 +691,20 @@ RESULT to use for the callback."
         (funcall callback result)
       (maphash
        (lambda (file-name file-breakpoints)
-         (dap--send-message
-          (dap--set-breakpoints-request file-name file-breakpoints)
-          (dap--resp-handler
-           (lambda (resp)
-             (setf finished (1+ finished))
-             (dap--update-breakpoints debug-session resp file-name)
-             (when (= finished breakpoint-count) (funcall callback result))))
-          debug-session))
+         (condition-case err
+             (dap--send-message
+              (dap--set-breakpoints-request file-name file-breakpoints)
+              (dap--resp-handler
+               (lambda (resp)
+                 (setf finished (1+ finished))
+                 (dap--update-breakpoints debug-session resp file-name)
+                 (when (= finished breakpoint-count) (funcall callback result))))
+              debug-session)
+           (file-missing
+            (setf finished (1+ finished))
+            (remhash file-name breakpoints)
+            (when (= finished breakpoint-count) (funcall callback result))
+            (dap--persist-breakpoints breakpoints))))
        breakpoints))))
 
 (defun dap-eval (expression)
@@ -704,17 +715,18 @@ RESULT to use for the callback."
     (if-let ((active-frame-id (-some->> debug-session
                                         dap--debug-session-active-frame
                                         (gethash "id"))))
-        (dap--send-message (dap--make-request
-                          "evaluate"
-                          (list :expression expression
-                                :frameId active-frame-id))
-                         (lambda (result)
-                           (-let [msg (if (gethash "success" result)
-                                          (gethash "result" (gethash "body" result))
-                                        (gethash "message" result))]
-                             (message msg)
-                             (dap--display-interactive-eval-result msg (point))))
-                         debug-session)
+        (dap--send-message
+         (dap--make-request
+          "evaluate"
+          (list :expression expression
+                :frameId active-frame-id))
+         (lambda (result)
+           (-let [msg (if (gethash "success" result)
+                          (gethash "result" (gethash "body" result))
+                        (gethash "message" result))]
+             (message "%s" msg)
+             (dap--display-interactive-eval-result msg (point))))
+         debug-session)
       (error "There is no stopped debug session"))))
 
 (defun dap-eval-thing-at-point ()
