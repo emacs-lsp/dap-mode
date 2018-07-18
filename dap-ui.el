@@ -102,12 +102,28 @@ linum, etc..)"
 (defconst dap-ui--loading-tree-widget
   (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
 
+(defconst dap-ui--locals-buffer "*dap-ui-locals*")
+
+(defconst dap-ui--sessions-buffer "*dap-ui-sessions*")
+
+(defconst dap-ui--inspect-buffer "*dap-ui-inspect*")
+
 (defconst dap-ui--brekapoint-priority 200)
 
 ;; define debug marker priority so it will be over the breakpoint marker if
 ;; there is such on the current line.
 (defconst dap-ui--marker-priority 300)
 
+(defvar dap-ui-buffer-configurations
+  `((,dap-ui--locals-buffer . ((side . right)
+                          (slot . 1)
+                          (window-width . 0.20)))
+    (,dap-ui--inspect-buffer . ((side . right)
+                           (slot . 2)
+                           (window-width . 0.20)))
+    (,dap-ui--sessions-buffer . ((side . right)
+                            (slot . 3)
+                            (window-width . 0.20)))))
 (defun dap-ui-sessions--tree-under-cursor ()
   "Get tree under cursor."
   (-when-let (widget-under-cursor (dap-ui--nearest-widget))
@@ -166,7 +182,7 @@ THREAD-TREE will be widget element holding thread info."
                                           (list :threadId thread-id))
                         (dap--resp-handler
                          (lambda (stack-frames-resp)
-                           (with-current-buffer "*sessions*"
+                           (with-current-buffer dap-ui--sessions-buffer
                              (let ((stack-frames (or (-some->> stack-frames-resp
                                                                (gethash "body")
                                                                (gethash "stackFrames"))
@@ -305,7 +321,7 @@ SESSION-TREE will be the root of the threads(session holder)."
 
 (defun dap-ui-sessions--refresh (&rest _args)
   "Refresh ressions view."
-  (with-current-buffer (get-buffer-create "*sessions*")
+  (with-current-buffer (get-buffer-create dap-ui--sessions-buffer)
     (let ((debug-sessions (dap--get-sessions lsp--cur-workspace))
           (inhibit-read-only t)
           present-sessions parent session present-widgets)
@@ -341,7 +357,7 @@ SESSION-TREE will be the root of the threads(session holder)."
   (interactive)
   (lsp--cur-workspace-check)
   (let ((sessions (reverse (lsp-workspace-get-metadata "debug-sessions")))
-        (buf (get-buffer-create "*sessions*"))
+        (buf (get-buffer-create dap-ui--sessions-buffer))
         (inhibit-read-only t)
         (workspace lsp--cur-workspace))
     (with-current-buffer buf
@@ -350,11 +366,7 @@ SESSION-TREE will be the root of the threads(session holder)."
       (setq-local lsp--cur-workspace workspace)
       (mapc 'dap-ui-sessions--render-session sessions)
       (dap-ui-sessions-mode t))
-    (let ((win (display-buffer-in-side-window
-                buf `((side . right) (slot . 5) (window-width . 0.20)))))
-      (set-window-dedicated-p win t)
-      (select-window win)
-      (fit-window-to-buffer nil nil 10))))
+    (dap-ui--show-buffer buf)))
 
 (defun dap-ui--internalize-offset (offset)
   (if (eq 1 (coding-system-eol-type buffer-file-coding-system))
@@ -549,7 +561,7 @@ DEBUG-SESSION is the debug session triggering the event."
 (defun dap-ui-inspect--invalidate (&rest _args)
   "Inspect window invalidated."
   (let ((inhibit-read-only t))
-    (with-current-buffer "*inspect*"
+    (with-current-buffer dap-ui--inspect-buffer
       (erase-buffer))))
 
 (defun dap-ui-inspect--cleanup-hooks ()
@@ -599,7 +611,8 @@ DEBUG-SESSION is the active debug session."
                  dap-ui--loading-tree-widget)))))
 
 (defun dap-ui--render-eval-result (debug-session variable)
-  "Render VARIABLE."
+  "Render VARIABLE.
+DEBUG-SESSION is the active debug session."
   (-let [(&hash "variablesReference" variables-reference
                 "result" result
                 "indexedVariables" indexed-variables) variable]
@@ -627,26 +640,35 @@ DEBUG-SESSION is the active debug session."
       :dynargs ,(when (not (zerop variables-reference))
                   (apply-partially 'dap-ui--load-variables debug-session)))))
 
+
+(defun dap-ui--show-buffer (buf)
+  "Show BUF according to defined rules."
+  (let ((win (display-buffer-in-side-window buf
+                                            (or (-> buf
+                                                    buffer-name
+                                                    (assoc dap-ui-buffer-configurations)
+                                                    rest)
+                                                '((side . right)
+                                                  (slot . 1)
+                                                  (window-width . 0.20))))))
+    (set-window-dedicated-p win t)
+    (select-window win)))
+
 (defun dap-ui--inspect-value (debug-session value)
   "Inspect VALUE in DEBUG-SESSION."
-  (-let ((buf (get-buffer-create "*inspect*"))
+  (-let ((buf (get-buffer-create dap-ui--inspect-buffer))
          (inhibit-read-only t)
          (workspace lsp--cur-workspace)
          (body (gethash "body" value)))
     (with-current-buffer buf
       (erase-buffer)
-      (kill-all-local-variables)
-
+      (setq mode-line-format "Inspect")
       (setq lsp--cur-workspace workspace)
 
       (widget-create
        (dap-ui--render-eval-result debug-session body))
       (dap-ui-inspect-mode t))
-    (let ((win (display-buffer-in-side-window
-                buf `((side . right) (slot . 1) (window-width . 0.20)))))
-      (set-window-dedicated-p win t)
-      (select-window win)
-      (fit-window-to-buffer nil nil 10))))
+    (dap-ui--show-buffer buf)))
 
 (defun dap-ui-inspect (expression)
   "Inspect EXPRESSION."
@@ -685,7 +707,6 @@ DEBUG-SESSION is the active debug session."
   "Locals mode."
   :init-value nil
   :group dap-ui
-  ;; :keymap dap-ui-inspect-mode-map
   (add-hook 'dap-terminated-hook 'dap-ui-locals--refresh)
   (add-hook 'dap-session-changed-hook 'dap-ui-locals--refresh)
   (add-hook 'dap-continue-hook 'dap-ui-locals--refresh)
@@ -701,7 +722,7 @@ DEBUG-SESSION is the active debug session."
                        (list :variablesReference variables-reference))
      (dap--resp-handler
       (-lambda ((&hash "body" (&hash "variables" variables)))
-        (with-current-buffer "*locals*"
+        (with-current-buffer dap-ui--locals-buffer
           (widget-create
            `(tree-widget
              :node (push-button :format "%[%t%]\n"
@@ -715,13 +736,11 @@ DEBUG-SESSION is the active debug session."
 
 (defun dap-ui-locals--refresh (&rest _)
   "Refresh locals buffer."
-  (with-current-buffer "*locals*"
+  (with-current-buffer dap-ui--locals-buffer
     (let ((inhibit-read-only t)
           (debug-session (dap--cur-session)))
       (erase-buffer)
-      ;; (kill-all-local-variables)
       (setq mode-line-format "Locals")
-
       (if (dap--session-running debug-session)
           (if-let (frame-id (-some->> debug-session
                                       dap--debug-session-active-frame
@@ -738,19 +757,15 @@ DEBUG-SESSION is the active debug session."
 (defun dap-ui-locals ()
   "Display locals view."
   (interactive)
-  (-let ((buf (get-buffer-create "*locals*"))
+  (-let ((buf (get-buffer-create dap-ui--locals-buffer))
          (inhibit-read-only t)
          (workspace lsp--cur-workspace)
          (debug-session (dap--cur-session-or-die)))
     (with-current-buffer buf
       (setq-local lsp--cur-workspace workspace)
       (dap-ui-locals-mode t)
-      (dap-ui-locals--refresh))
-    (let ((win (display-buffer-in-side-window
-                buf `((side . right) (slot . 2) (window-width . 0.20)))))
-      (set-window-dedicated-p win t)
-      (select-window win)
-      (fit-window-to-buffer nil nil 10))))
+      (dap-ui-locals--refresh)
+      (dap-ui--show-buffer buf))))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

@@ -121,6 +121,24 @@ has succeeded."
         (when success-callback (funcall  success-callback result))
       (error msg))))
 
+(defun dap--session-init-resp-handler (debug-session &optional success-callback)
+  "Returned handler will mark the DEBUG-SESSION as failed if call return error.
+
+SUCCESS-CALLBACK will be called if it is provided and if the call
+has succeeded."
+  (-lambda ((result &as &hash "success" success "message" msg))
+    (if success
+        (when success-callback (funcall success-callback result))
+      (warn "%s" msg)
+
+      (delete-process (dap--debug-session-proc debug-session))
+      (setf (dap--debug-session-state debug-session) 'failed
+            (dap--debug-session-error-message debug-session) msg
+            (dap--debug-session-proc debug-session) nil)
+      (dap--refresh-breakpoints debug-session)
+      (run-hook-with-args 'dap-terminated-hook debug-session)
+      (run-hooks 'dap-session-changed-hook))))
+
 (defun dap--cur-session-or-die ()
   "Get currently selection `dap--debug-session' or die."
   (or (dap--cur-session) (error "No active current session")))
@@ -220,7 +238,8 @@ This is in contrast to merely setting it to 0."
   (breakpoints (make-hash-table :test 'equal) :read-only t)
   (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
   (launch-args nil)
-  (initialize-result nil))
+  (initialize-result nil)
+  (error-message nil))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -792,7 +811,8 @@ DEBUG-SESSIONS - list of the currently active sessions."
         (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
     (dap--send-message
      (dap--initialize-message (plist-get launch-args :type))
-     (dap--resp-handler
+     (dap--session-init-resp-handler
+      debug-session
       (lambda (initialize-result)
         (-let [debug-sessions (dap--get-sessions workspace)]
 
@@ -805,11 +825,13 @@ DEBUG-SESSIONS - list of the currently active sessions."
           (dap--set-sessions workspace (cons debug-session debug-sessions)))
         (dap--send-message
          (dap--make-request (plist-get launch-args :request) launch-args)
-         (apply-partially #'dap--configure-breakpoints
-                          debug-session
-                          breakpoints
-                          (apply-partially #'dap--send-configuration-done
-                                           debug-session))
+         (dap--session-init-resp-handler
+          debug-session
+          (apply-partially #'dap--configure-breakpoints
+                           debug-session
+                           breakpoints
+                           (apply-partially #'dap--send-configuration-done
+                                            debug-session)))
          debug-session)))
      debug-session)
     (dap--set-cur-session debug-session)
