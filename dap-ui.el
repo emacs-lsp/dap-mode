@@ -178,26 +178,25 @@ THREAD-TREE will be widget element holding thread info."
                                   :open nil)))
                 stack-frames)
 
-      (dap--send-message (dap--make-request "stackTrace"
-                                          (list :threadId thread-id))
-                        (dap--resp-handler
-                         (lambda (stack-frames-resp)
-                           (with-current-buffer dap-ui--sessions-buffer
-                             (let ((stack-frames (or (-some->> stack-frames-resp
-                                                               (gethash "body")
-                                                               (gethash "stackFrames"))
-                                                     (vector))))
+      (when (string= (gethash thread-id (dap--debug-session-thread-states session)) "stopped")
+        (dap--send-message
+         (dap--make-request "stackTrace"
+                           (list :threadId thread-id))
+         (dap--resp-handler
+          (lambda (stack-frames-resp)
+            (with-current-buffer dap-ui--sessions-buffer
+              (let ((stack-frames (or (-some->> stack-frames-resp
+                                                (gethash "body")
+                                                (gethash "stackFrames"))
+                                      (vector))))
 
-                               (puthash thread-id
-                                        stack-frames
-                                        (dap--debug-session-thread-stack-frames session))
+                (puthash thread-id
+                         stack-frames
+                         (dap--debug-session-thread-stack-frames session))
 
-                               (tree-mode-reflesh-tree thread-tree)
-                               (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames)))))
-                        session)
-      dap-ui--loading-tree-widget)))
-
-
+                (tree-mode-reflesh-tree thread-tree)
+                (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames)))))
+         session)))))
 
 ;;;###autoload
 (defun dap-ui-sessions-delete-session ()
