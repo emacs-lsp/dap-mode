@@ -257,10 +257,10 @@ SESSION-TREE will be the root of the threads(session holder)."
 
 (defun dap-ui-sessions--cleanup-hooks ()
   "Remove UI sessions related hooks."
-  (remove-hook 'dap-terminated-hook 'dap-ui-sessions--refresh)
-  (remove-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
-  (remove-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
-  (remove-hook 'dap-stack-frame-changed-hook  'dap-ui-sessions--refresh))
+  (remove-hook 'dap-terminated-hook 'dap-ui-sessions--schedule-refresh)
+  (remove-hook 'dap-session-changed-hook 'dap-ui-sessions--schedule-refresh)
+  (remove-hook 'dap-continue-hook 'dap-ui-sessions--schedule-refresh)
+  (remove-hook 'dap-stack-frame-changed-hook  'dap-ui-sessions--schedule-refresh))
 
 (define-minor-mode dap-ui-sessions-mode
   "UI Session list minor mode."
@@ -268,10 +268,10 @@ SESSION-TREE will be the root of the threads(session holder)."
   :group dap-ui
   :keymap dap-ui-session-mode-map
 
-  (add-hook 'dap-terminated-hook 'dap-ui-sessions--refresh )
-  (add-hook 'dap-session-changed-hook 'dap-ui-sessions--refresh)
-  (add-hook 'dap-continue-hook 'dap-ui-sessions--refresh)
-  (add-hook 'dap-stack-frame-changed-hook 'dap-ui-sessions--refresh)
+  (add-hook 'dap-terminated-hook 'dap-ui-sessions--schedule-refresh )
+  (add-hook 'dap-session-changed-hook 'dap-ui-sessions--schedule-refresh)
+  (add-hook 'dap-continue-hook 'dap-ui-sessions--schedule-refresh)
+  (add-hook 'dap-stack-frame-changed-hook 'dap-ui-sessions--schedule-refresh)
   (add-hook 'kill-buffer-hook 'dap-ui-sessions--cleanup-hooks nil t)
   (setq buffer-read-only t))
 
@@ -315,11 +315,10 @@ SESSION-TREE will be the root of the threads(session holder)."
        :open-icon tree-widget-leaf-icon
        :close-icon tree-widget-leaf-icon
        :empty-icon tree-widget-leaf-icon
-       :children nil
        :element-type :session
        :session ,session))))
 
-(defun dap-ui-sessions--refresh (&rest _args)
+(defun dap-ui-sessions--refresh ()
   "Refresh ressions view."
   (with-current-buffer (get-buffer-create dap-ui--sessions-buffer)
     (let ((debug-sessions (dap--get-sessions lsp--cur-workspace))
@@ -350,6 +349,10 @@ SESSION-TREE will be the root of the threads(session holder)."
         (goto-char (point-max))
         (-each (cl-set-difference debug-sessions present-sessions)
           'dap-ui-sessions--render-session)))))
+
+(defun dap-ui-sessions--schedule-refresh (&rest _args)
+  "Refresh ressions view."
+  (run-at-time "0.5 sec" nil 'dap-ui-sessions--refresh))
 
 ;;;###autoload
 (defun dap-ui-sessions ()
