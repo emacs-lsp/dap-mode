@@ -913,13 +913,13 @@ DEBUG-SESSIONS - list of the currently active sessions."
   "Make NEW-SESSION the active debug session."
   (dap--set-cur-session new-session)
 
-  (->> new-session
-       dap--debug-session-workspace
-       lsp--workspace-buffers
-       (--map (with-current-buffer it
-                (dap--set-breakpoints-in-file
-                 buffer-file-name
-                 (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))))
+  (-some->> new-session
+            dap--debug-session-workspace
+            lsp--workspace-buffers
+            (--map (with-current-buffer it
+                     (dap--set-breakpoints-in-file
+                      buffer-file-name
+                      (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))))
 
   (run-hook-with-args 'dap-session-changed-hook lsp--cur-workspace)
 
