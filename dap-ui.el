@@ -124,6 +124,9 @@ linum, etc..)"
     (,dap-ui--sessions-buffer . ((side . right)
                             (slot . 3)
                             (window-width . 0.20)))))
+
+(defvar dap-ui--sessions-refresh-timer nil)
+
 (defun dap-ui-sessions--tree-under-cursor ()
   "Get tree under cursor."
   (-when-let (widget-under-cursor (dap-ui--nearest-widget))
@@ -178,7 +181,9 @@ THREAD-TREE will be widget element holding thread info."
                                   :open nil)))
                 stack-frames)
 
-      (when (string= (gethash thread-id (dap--debug-session-thread-states session)) "stopped")
+      (when (and (string= (gethash thread-id (dap--debug-session-thread-states session)) "stopped")
+                 (widget-get thread-tree :loading))
+        (widget-put thread-tree :loading t)
         (dap--send-message
          (dap--make-request "stackTrace"
                            (list :threadId thread-id))
@@ -189,7 +194,6 @@ THREAD-TREE will be widget element holding thread info."
                                                 (gethash "body")
                                                 (gethash "stackFrames"))
                                       (vector))))
-
                 (puthash thread-id
                          stack-frames
                          (dap--debug-session-thread-stack-frames session))
@@ -317,8 +321,10 @@ SESSION-TREE will be the root of the threads(session holder)."
        :element-type :session
        :session ,session))))
 
-(defun dap-ui-sessions--refresh ()
+(defun dap-ui-sessions--refresh (&rest _args)
   "Refresh ressions view."
+  (cancel-timer dap-ui--sessions-refresh-timer )
+  (setq dap-ui--sessions-refresh-timer nil)
   (with-current-buffer (get-buffer-create dap-ui--sessions-buffer)
     (let ((debug-sessions (dap--get-sessions lsp--cur-workspace))
           (inhibit-read-only t)
@@ -351,7 +357,8 @@ SESSION-TREE will be the root of the threads(session holder)."
 
 (defun dap-ui-sessions--schedule-refresh (&rest _args)
   "Refresh ressions view."
-  (run-at-time "0.5 sec" nil 'dap-ui-sessions--refresh))
+  (when (not dap-ui--sessions-refresh-timer)
+    (setq dap-ui--sessions-refresh-timer (run-at-time 0.5 nil 'dap-ui-sessions--refresh))))
 
 ;;;###autoload
 (defun dap-ui-sessions ()
