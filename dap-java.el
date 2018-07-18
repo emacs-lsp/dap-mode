@@ -141,10 +141,11 @@ test."
                            (lsp-send-execute-command "vscode.java.resolveClasspath")
                            second
                            (s-join ":"))))
+    (setenv "JUNIT_CLASS_PATH" class-path)
     (compile
      (s-join " "
              (list* runner "-jar" dap-java-test-runner
-              "-cp" class-path
+              "-cp" "$JUNIT_CLASS_PATH"
               (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
               (if run-method? to-run test-class-name)
               dap-java-test-additional-args)))))
