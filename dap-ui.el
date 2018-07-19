@@ -541,8 +541,11 @@ DEBUG-SESSION is the debug session triggering the event."
   "Handler for `lsp-after-open-hook'."
   (dap-ui--refresh-breakpoints)
   (-when-let* ((debug-session (dap--cur-session))
-               (source (dap--debug-session-active-frame debug-session)))
-    (when (string= buffer-file-name (gethash "path" source))
+               (path (-some->> debug-session
+                               dap--debug-session-active-frame
+                               (gethash "source")
+                               (gethash "path"))))
+    (when (string= buffer-file-name path)
       (dap-ui--stack-frame-changed debug-session))))
 
 ;;;###autoload
