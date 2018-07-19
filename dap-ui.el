@@ -39,11 +39,6 @@
   "Face used for marking the line on which an error occurs."
   :group 'dap-ui)
 
-(defface dap-ui-breakpoint-face
-  '((t ()))
-  "Face used for marking lines with breakpoints."
-  :group 'dap-ui)
-
 (defface dap-ui-sessions-active-session-face
   '((t :inherit bold))
   "Face used for marking current session in sessions list."
@@ -70,7 +65,7 @@
   :group 'dap-ui)
 
 (defface dap-ui-marker-face
-  '((t (:inherit hl-line-face)))
+  '((t :inherit highlight))
   "Face used for marking the current point of execution."
   :group 'dap-ui)
 

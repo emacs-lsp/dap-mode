@@ -21,7 +21,8 @@
    CLOSED: [2018-06-20 Wed 22:47]
 ** TODO Run in terminal
 ** TODO Run no debug.
-** TODO Attach.
+** DONE Attach.
+   CLOSED: [2018-07-18 Wed 21:53]
 * Beakpoints
 ** DONE Visual indication
    CLOSED: [2018-06-10 Sun 11:55]
@@ -50,10 +51,11 @@
 * Breakpoints list
 ** TODO implementation
 * Inspect variable/value
-** TODO Implement ...
+** DONE Implement ...
+   CLOSED: [2018-07-18 Wed 21:54]
 * Run configurations management
-** TODO Persistence
-** TODO More ...
+** DONE Persistence
+   CLOSED: [2018-07-18 Wed 21:54]
 * Java
 ** TODO Build before runnning
 * General
@@ -65,5 +67,8 @@
 *** TODO - prohibit operations that are not permitted.
 * Watches
 ** TODO full implementation
-* Locals
-** TODO full implementation
+* DONE Locals
+  CLOSED: [2018-07-18 Wed 21:54]
+** DONE full implementation
+   CLOSED: [2018-07-18 Wed 21:54]
+* Set breakpoints
