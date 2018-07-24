@@ -110,15 +110,9 @@ linum, etc..)"
 (defconst dap-ui--marker-priority 300)
 
 (defvar dap-ui-buffer-configurations
-  `((,dap-ui--locals-buffer . ((side . right)
-                          (slot . 1)
-                          (window-width . 0.20)))
-    (,dap-ui--inspect-buffer . ((side . right)
-                           (slot . 2)
-                           (window-width . 0.20)))
-    (,dap-ui--sessions-buffer . ((side . right)
-                            (slot . 3)
-                            (window-width . 0.20)))))
+  `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.20)))
+    (,dap-ui--inspect-buffer . ((side . right) (slot . 2) (window-width . 0.20)))
+    (,dap-ui--sessions-buffer . ((side . right) (slot . 3) (window-width . 0.20)))))
 
 (defvar dap-ui--sessions-refresh-timer nil)
 

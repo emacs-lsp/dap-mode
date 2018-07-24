@@ -3,7 +3,11 @@
   [[https://travis-ci.org/yyoncho/dap-mode][https://travis-ci.org/yyoncho/dap-mode.svg?branch=master]]
   [[https://coveralls.io/github/yyoncho/dap-mode?branch=master][https://coveralls.io/repos/github/yyoncho/dap-mode/badge.svg?branch=master]]
 
-  [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]] is a wire protocol for communication between client and Debug Server. It similar to the [[https://github.com/Microsoft/language-server-protocol][LSP]].
+  [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]] is a wire protocol for communication between client and
+  Debug Server. It similar to the [[https://github.com/Microsoft/language-server-protocol][LSP]] but providers integration with debug
+  server.
+
+  Project status.
 * Screenshot
   [[file:screenshots/MultiSession.png]]
 * Features
@@ -28,6 +32,7 @@
    | ~dap-next~                | Debug next                                                     |             |
    | ~dap-step-out~            | Debug step out                                                 |             |
    | ~dap-stop-thread~         | Stop thread                                                    |             |
+   | ~dap-restart-frame~       | Restart frame                                                  |             |
    | ~dap-continue~            | Debug continue                                                 |             |
    | ~dap-disconnect~          | Cancel current debug session                                   |             |
    | ~dap-switch-stack-frame~  | Switch active stack frame                                      |             |
@@ -100,13 +105,19 @@
     | ~dap-java-debug-test-method~ | Debug test method |
     | ~dap-java-run-test-class~    | Run test class    |
     | ~dap-java-debug-test-class~  | Debug test class  |
-* Extending DAP with new Debug servers [WIP]
+* Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions: -
   - ~dap-register-debug-provider~ register a method which will be called to
     populate startup parameters with plist which will contain the run. The
-    method must populate also the debug server configuration.
-*** Example:
-    Here it is simpified example.
+    method must populate also the debug server configuration. It should either
+    populate ~:debugPort~ and ~:host~ in case of TCP Debug Adapter Server or
+    ~:program~ when STD out must be used for Debug Adapter Server communication.
+  - ~dap-register-debug-template~ register a debug deplate which will be
+    available when ~dap-debug~ is called. The debug template must specify
+    ~:type~ key which will be used to determine the provider to be called to
+    populate missing fields.
+*** Simplified example:
+    For full example you may check ~dap-java.el~.
     #+BEGIN_SRC emacs-lisp
       (dap-register-debug-provider
        "java"
@@ -122,10 +133,11 @@
                                         :name "Run Configuration"))
     #+END_SRC
 * Links
+  - [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]]
   - [[https://github.com/emacs-lsp/lsp-java][LSP Java]]
   - [[https://github.com/Microsoft/vscode-debugadapter-node/wiki/VS-Code-Debug-Protocol-Implementations][Debug Adapter Protocol Server Implementations]]
 * Troubleshooting
-  If you notice a bug, open an issue on Github Issues
+  If you notice a bug, open an issue on Github Issues.
 * What's next
   - Breakpoints list
   - Watches
