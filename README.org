@@ -20,7 +20,9 @@
 ** Debugger commands
    | Command                   | Description                                                    | Keybindings |
    |---------------------------+----------------------------------------------------------------+-------------|
-   | ~dap-toggle-breakpoint~   | Toggle java breakpoint at line                                 |             |
+   | ~dap-breakpoint-toggle~   | Toggle java breakpoint at line                                 |             |
+   | ~dap-breakpoint-delete~   | Delete java breakpoint at line                                 |             |
+   | ~dap-breakpoint-add~      | Add java breakpoint at line                                    |             |
    | ~dap-eval~                | Eval string                                                    |             |
    | ~dap-eval-region~         | Eval region string                                             |             |
    | ~dap-eval-thing-at-point~ | Eval symbol at point                                           |             |

@@ -337,33 +337,14 @@ WORKSPACE will be used to calculate root folder."
              breakpoints)
     (dap--persist lsp--cur-workspace dap--breakpoints-file filtered-breakpoints)))
 
-(defun dap-toggle-breakpoint ()
-  "Toggle breakpoint on the current line."
-  (interactive)
-  (lsp--cur-workspace-check)
-  (let* ((file-name (buffer-file-name))
-         (breakpoints (dap--get-breakpoints lsp--cur-workspace))
-         (file-breakpoints (gethash file-name breakpoints))
-         (updated-file-breakpoints (if-let (existing-breakpoint
-                                            (cl-find-if
-                                             (lambda (existing)
-                                               (= (line-number-at-pos (plist-get existing :marker))
-                                                  (line-number-at-pos (point))))
-                                             file-breakpoints))
-                                       ;; delete if already exists
-                                       (progn
-                                         (-some-> existing-breakpoint
-                                                  (plist-get :marker)
-                                                  (set-marker nil))
-                                         (cl-remove existing-breakpoint file-breakpoints))
-                                     ;; add if does not exist
-                                     (push (list :marker (point-marker)
-                                                 :point (point))
-                                           file-breakpoints))))
+(defun dap--breakpoints-changed (updated-file-breakpoints)
+  "Common logic breakpoints related methods UPDATED-FILE-BREAKPOINTS."
+  (let* ((breakpoints (dap--get-breakpoints lsp--cur-workspace))
+         (file-breakpoints (gethash buffer-file-name breakpoints)))
     ;; update the list
     (if updated-file-breakpoints
-        (puthash file-name updated-file-breakpoints breakpoints)
-      (remhash file-name breakpoints))
+        (puthash buffer-file-name updated-file-breakpoints breakpoints)
+      (remhash buffer-file-name breakpoints))
 
     ;; do not update the breakpoints represenations if there is active session.
     (when (not (and (dap--cur-session) (dap--session-running (dap--cur-session))))
@@ -371,7 +352,7 @@ WORKSPACE will be used to calculate root folder."
 
     ;; Update all of the active sessions with the list of breakpoints.
     (let ((set-breakpoints-req (dap--set-breakpoints-request
-                                file-name
+                                buffer-file-name
                                 updated-file-breakpoints)))
       (-as-> lsp--cur-workspace $
              dap--get-sessions
@@ -382,9 +363,58 @@ WORKSPACE will be used to calculate root folder."
                                  (lambda (resp)
                                    (dap--update-breakpoints it
                                                           resp
-                                                          file-name)))
+                                                          buffer-file-name)))
                                 it))))
     (dap--persist-breakpoints breakpoints)))
+
+(defun dap-toggle-breakpoint ()
+  "Toggle breakpoint on the current line."
+  (interactive)
+  (lsp--cur-workspace-check)
+  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
+    (dap--breakpoints-changed (if-let (existing-breakpoint
+                                     (cl-find-if
+                                      (lambda (existing)
+                                        (= (line-number-at-pos (plist-get existing :marker))
+                                           (line-number-at-pos (point))))
+                                      file-breakpoints))
+                                ;; delete if already exists
+                                (progn
+                                  (-some-> existing-breakpoint
+                                           (plist-get :marker)
+                                           (set-marker nil))
+                                  (cl-remove existing-breakpoint file-breakpoints))
+                              ;; add if does not exist
+                              (push (list :marker (point-marker)
+                                          :point (point))
+                                    file-breakpoints)))))
+
+(defun dap-breakpoint-delete ()
+  "Delete breakpoint on the current line."
+  (interactive)
+  (lsp--cur-workspace-check)
+  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
+    (when-let (existing-breakpoint (cl-find-if
+                                    (lambda (existing)
+                                      (= (line-number-at-pos (plist-get existing :marker))
+                                         (line-number-at-pos (point))))
+                                    file-breakpoints))
+      (-some-> existing-breakpoint (plist-get :marker) (set-marker nil))
+      (dap--breakpoints-changed (cl-remove existing-breakpoint file-breakpoints)))))
+
+(defun dap-breakpoint-add ()
+  "Add breakpoint on the current line."
+  (interactive)
+  (lsp--cur-workspace-check)
+  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
+    (when (not (cl-find-if
+                (lambda (existing)
+                  (= (line-number-at-pos (plist-get existing :marker))
+                     (line-number-at-pos (point))))
+                file-breakpoints))
+      (dap--breakpoints-changed (push (list :marker (point-marker)
+                                          :point (point))
+                                    file-breakpoints)))))
 
 (defun dap--get-body-length (headers)
   "Get body length from HEADERS."
