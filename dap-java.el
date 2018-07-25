@@ -145,10 +145,10 @@ test."
     (compile
      (s-join " "
              (list* runner "-jar" dap-java-test-runner
-              "-cp" "$JUNIT_CLASS_PATH"
-              (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
-              (if run-method? to-run test-class-name)
-              dap-java-test-additional-args)))))
+                    "-cp" "$JUNIT_CLASS_PATH"
+                    (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
+                    (if run-method? to-run test-class-name)
+                    dap-java-test-additional-args)))))
 
 (defun dap-java-run-test-method ()
   "Run JUnit test.
@@ -166,10 +166,13 @@ attaching to the test."
    (format "%s -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=%s"
            lsp-java-java-path port)
    t)
-  (dap-debug (list :type "java"
-                  :request "attach"
-                  :hostName "localhost"
-                  :port port)))
+
+  (if (dap--wait-for-port "localhost" port)
+      (dap-debug (list :type "java"
+                      :request "attach"
+                      :hostName "localhost"
+                      :port port))
+    (error "Unable to connect to the JVM process localhost:%s"  port)))
 
 (defun dap-java-run-test-class ()
   "Run JUnit test."
@@ -187,9 +190,9 @@ attaching to the test."
            lsp-java-java-path port)
    nil)
   (dap-debug (list :type "java"
-                   :request "attach"
-                   :hostName "localhost"
-                   :port port)))
+                  :request "attach"
+                  :hostName "localhost"
+                  :port port)))
 
 (eval-after-load "dap-mode"
   '(progn

@@ -105,6 +105,28 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defvar dap--debug-configuration ()
   "List of the previous configuration that have been executed.")
 
+(defun dap--wait-for-port (host port &optional retry-count sleep-interval)
+  "Wait for PORT to be open on HOST.
+
+RETRY-COUNT is the number of the retries.
+SLEEP-INTERVAL is the sleep interval between each retry."
+  (let ((success nil)
+        (retries 0))
+    (while (and (not success) (< retries (or retry-count 100)))
+      (condition-case err
+          (progn
+            (delete-process (open-network-stream "*connection-test*" nil host port :type 'plain))
+            (setq success t))
+        (file-error
+         (let ((inhibit-message t))
+           (message "Failed to connect to %s:%s with error message %s"
+                    host
+                    port
+                    (error-message-string err))
+           (sit-for (or sleep-interval 0.02))
+           (setq retries (1+ retries))))))
+    success))
+
 (defun dap--cur-session ()
   "Get currently active `dap--debug-session'."
   (when lsp--cur-workspace
@@ -132,8 +154,10 @@ has succeeded."
       (warn "%s" msg)
 
       (delete-process (dap--debug-session-proc debug-session))
-      (setf (dap--debug-session-state debug-session) 'failed
-            (dap--debug-session-error-message debug-session) msg)
+
+      (setf (dap--debug-session-state debug-session) 'failed)
+      (setf (dap--debug-session-error-message debug-session) msg)
+
       (dap--refresh-breakpoints debug-session)
       (run-hook-with-args 'dap-terminated-hook debug-session)
       (run-hooks 'dap-session-changed-hook))))
