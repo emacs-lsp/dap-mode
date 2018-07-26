@@ -24,7 +24,9 @@
 ** Debugger commands
    | Command                   | Description                                                    | Keybindings |
    |---------------------------+----------------------------------------------------------------+-------------|
-   | ~dap-toggle-breakpoint~   | Toggle java breakpoint at line                                 |             |
+   | ~dap-breakpoint-toggle~   | Toggle java breakpoint at line                                 |             |
+   | ~dap-breakpoint-delete~   | Delete java breakpoint at line                                 |             |
+   | ~dap-breakpoint-add~      | Add java breakpoint at line                                    |             |
    | ~dap-eval~                | Eval string                                                    |             |
    | ~dap-eval-region~         | Eval region string                                             |             |
    | ~dap-eval-thing-at-point~ | Eval symbol at point                                           |             |
@@ -86,8 +88,12 @@
       mkdir -p ~/.emacs.d/eclipse.jdt.ls/runner/
       mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=org.junit.platform -DartifactId=junit-platform-console-standalone -Dversion=1.3.0-M1
       cp ~/.m2/repository/org/junit/platform/junit-platform-console-standalone/1.3.0-M1/junit-platform-console-standalone-1.3.0-M1.jar ~/.emacs.d/eclipse.jdt.ls/runner/junit-platform-console-standalone.jar
+      # Download Che JDT LS.
+      rm -rf ~/.emacs.d/eclipse.jdt.ls/server/
+      mkdir -p ~/.emacs.d/eclipse.jdt.ls/server/
+      wget http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server-latest.tar.gz -O /tmp/jdt-latest.tar
+      tar xf /tmp/jdt-latest.tar -C ~/.emacs.d/eclipse.jdt.ls/server/
     #+END_SRC
-
     Then add the following settings in your emacs config file:
     #+BEGIN_SRC elisp
       (dap-mode 1)
