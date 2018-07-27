@@ -1,8 +1,27 @@
-* Emacs client/library for Debug Adapter Protocol (alpha)
+[[https://travis-ci.org/yyoncho/dap-mode][https://travis-ci.org/yyoncho/dap-mode.svg?branch=master]]
+[[https://coveralls.io/github/yyoncho/dap-mode?branch=master][https://coveralls.io/repos/github/yyoncho/dap-mode/badge.svg?branch=master]]
+* Table of Contents                                       :TOC_4_gh:noexport:
+- [[#summary][Summary]]
+- [[#screenshot][Screenshot]]
+- [[#features][Features]]
+  - [[#debugger-commands][Debugger commands]]
+  - [[#windows][Windows]]
+  - [[#sessions][Sessions]]
+    - [[#keybindings][Keybindings]]
+  - [[#locals][Locals]]
+- [[#configuration][Configuration]]
+  - [[#dap-mode-configuration][DAP mode configuration]]
+  - [[#java][Java]]
+    - [[#installation][Installation]]
+    - [[#commands][Commands]]
+- [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
+    - [[#example][Example]]
+- [[#links][Links]]
+- [[#troubleshooting][Troubleshooting]]
+- [[#whats-next][What's next]]
 
-  [[https://travis-ci.org/yyoncho/dap-mode][https://travis-ci.org/yyoncho/dap-mode.svg?branch=master]]
-  [[https://coveralls.io/github/yyoncho/dap-mode?branch=master][https://coveralls.io/repos/github/yyoncho/dap-mode/badge.svg?branch=master]]
-
+* Summary
+  Emacs client/library for [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]]
   [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]] is a wire protocol for communication between client and
   Debug Server. It similar to the [[https://github.com/Microsoft/language-server-protocol][LSP]] but providers integration with debug
   server.
@@ -22,36 +41,37 @@
   - Evaluating statements
   - Debug/Run configurations
 ** Debugger commands
-   | Command                   | Description                                                    | Keybindings |
-   |---------------------------+----------------------------------------------------------------+-------------|
-   | ~dap-breakpoint-toggle~   | Toggle java breakpoint at line                                 |             |
-   | ~dap-breakpoint-delete~   | Delete java breakpoint at line                                 |             |
-   | ~dap-breakpoint-add~      | Add java breakpoint at line                                    |             |
-   | ~dap-eval~                | Eval string                                                    |             |
-   | ~dap-eval-region~         | Eval region string                                             |             |
-   | ~dap-eval-thing-at-point~ | Eval symbol at point                                           |             |
-   | ~dap-step-in~             | Debug step in                                                  |             |
-   | ~dap-next~                | Debug next                                                     |             |
-   | ~dap-step-out~            | Debug step out                                                 |             |
-   | ~dap-stop-thread~         | Stop thread                                                    |             |
-   | ~dap-restart-frame~       | Restart frame                                                  |             |
-   | ~dap-continue~            | Debug continue                                                 |             |
-   | ~dap-disconnect~          | Cancel current debug session                                   |             |
-   | ~dap-switch-stack-frame~  | Switch active stack frame                                      |             |
-   | ~dap-switch-thread~       | Switch active thread                                           |             |
-   | ~dap-switch-session~      | Switch active session                                          |             |
-   | ~dap-debug~               | Create and run new configuration using the available templates |             |
-   | ~dap-debug-last~          | Debug previous configuration                                   |             |
-   | ~dap-debug-recent~        | Run previous configuration                                     |             |
-   | ~dap-go-to-output-buffer~ | Go output buffer                                               |             |
-** DAP UI Command
-   | Command                         | Description                     | Keybindings |
-   |---------------------------------+---------------------------------+-------------|
-   | ~dap-ui-sessions~               | Show active/terminated sessions |             |
-   | ~dap-ui-locals~                 | Show locals                     |             |
-   | ~dap-ui-inspect~                | Inspect                         |             |
-   | ~dap-ui-inspect-region~         | Inspect region                  |             |
-   | ~dap-ui-inspect-thing-at-point~ | Inspect symbol at point         |             |
+   | Command                   | Description                                                    |
+   |---------------------------+----------------------------------------------------------------+
+   | ~dap-breakpoint-toggle~   | Toggle java breakpoint at line                                 |
+   | ~dap-breakpoint-delete~   | Delete java breakpoint at line                                 |
+   | ~dap-breakpoint-add~      | Add java breakpoint at line                                    |
+   | ~dap-eval~                | Eval string                                                    |
+   | ~dap-eval-region~         | Eval region string                                             |
+   | ~dap-eval-thing-at-point~ | Eval symbol at point                                           |
+   | ~dap-step-in~             | Debug step in                                                  |
+   | ~dap-next~                | Debug next                                                     |
+   | ~dap-step-out~            | Debug step out                                                 |
+   | ~dap-stop-thread~         | Stop thread                                                    |
+   | ~dap-restart-frame~       | Restart frame                                                  |
+   | ~dap-continue~            | Debug continue                                                 |
+   | ~dap-disconnect~          | Cancel current debug session                                   |
+   | ~dap-switch-stack-frame~  | Switch active stack frame                                      |
+   | ~dap-switch-thread~       | Switch active thread                                           |
+   | ~dap-switch-session~      | Switch active session                                          |
+   | ~dap-debug~               | Create and run new configuration using the available templates |
+   | ~dap-debug-last~          | Debug previous configuration                                   |
+   | ~dap-debug-recent~        | Select configuration to run from the previously started command|
+   | ~dap-go-to-output-buffer~ | Go output buffer                                               |
+** Windows
+   | Command                         | Description                     |
+   |---------------------------------+---------------------------------+
+   | ~dap-ui-sessions~               | Show active/terminated sessions |
+   | ~dap-ui-locals~                 | Show locals                     |
+   | ~dap-ui-breakpoints~            | Show breakpoints                |
+   | ~dap-ui-inspect~                | Inspect                         |
+   | ~dap-ui-inspect-region~         | Inspect region                  |
+   | ~dap-ui-inspect-thing-at-point~ | Inspect symbol at point         |
 ** Sessions
    The sessions view is showed after invoking ~dap-ui-sessions~ . It represents
    the list of the active sessions.
@@ -122,7 +142,7 @@
     available when ~dap-debug~ is called. The debug template must specify
     ~:type~ key which will be used to determine the provider to be called to
     populate missing fields.
-*** Simplified example:
+*** Example
     For full example you may check ~dap-java.el~.
     #+BEGIN_SRC emacs-lisp
       (dap-register-debug-provider
