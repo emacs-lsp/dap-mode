@@ -28,6 +28,7 @@
 (require 'tree-widget)
 (require 'wid-edit)
 (require 'dash)
+(require 'bui)
 
 (defcustom dap-ui-stack-frames-loaded nil
   "Stack frames loaded."
@@ -373,6 +374,7 @@ SESSION-TREE will be the root of the threads(session holder)."
     (dap-ui--show-buffer buf)))
 
 (defun dap-ui--internalize-offset (offset)
+  "Internalize OFFSET."
   (if (eq 1 (coding-system-eol-type buffer-file-coding-system))
       (save-excursion
         (save-restriction
@@ -467,8 +469,9 @@ SESSION-TREE will be the root of the threads(session holder)."
   (mapc #'delete-overlay dap-ui--breakpoint-overlays)
   (setq dap-ui--breakpoint-overlays '()))
 
-(defun dap-ui--breakpoint-visuals (breakpoint breakpoint-dap)
-  "Calculate visuals for BREAKPOINT."
+(defun dap-ui--breakpoint-visuals (breakpoint-dap)
+  "Calculate visuals for a breakpoint based on the data comming from DAP server.
+BREAKPOINT-DAP - nil or the data comming from DAP."
   (cond
    ((and breakpoint-dap (gethash "verified" breakpoint-dap))
     (list :face 'dap-ui-verified-breakpoint-face
@@ -485,7 +488,6 @@ SESSION-TREE will be the root of the threads(session holder)."
 
 (defun dap-ui--refresh-breakpoints ()
   "Refresh breakpoints in FILE-NAME.
-
 DEBUG-SESSION the new breakpoints for FILE-NAME."
   (dap-ui--clear-breakpoint-overlays)
   (-map (-lambda ((bp . remote-bp))
@@ -493,7 +495,7 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
                                     (dap-breakpoint-get-point bp)
                                     nil nil
                                     "Breakpoint"
-                                    (dap-ui--breakpoint-visuals bp remote-bp))
+                                    (dap-ui--breakpoint-visuals remote-bp))
                 dap-ui--breakpoint-overlays))
         (-zip-fill
          nil
@@ -766,13 +768,68 @@ DEBUG-SESSION is the active debug session."
   (interactive)
   (-let ((buf (get-buffer-create dap-ui--locals-buffer))
          (inhibit-read-only t)
-         (workspace lsp--cur-workspace)
-         (debug-session (dap--cur-session-or-die)))
+         (workspace lsp--cur-workspace))
     (with-current-buffer buf
       (setq-local lsp--cur-workspace workspace)
       (dap-ui-locals-mode t)
       (dap-ui-locals--refresh)
       (dap-ui--show-buffer buf))))
+
+(defun dap-ui--breakpoints-entries ()
+  "Get breakpoints entries."
+  (let (result)
+    (apply 'append
+           (maphash
+            (lambda (file-name breakpoints)
+              (mapc
+               (-lambda ((bkp . remote-bp))
+                 (let ((point (plist-get bkp :point)))
+                   (push `((file-name . (,file-name ,point))
+                           (line . ,(line-number-at-pos point))
+                           (verified . ,(if (and remote-bp (gethash "verified" remote-bp))
+                                            "y"
+                                          "n")))
+                         result)))
+               (-zip-fill nil
+                          breakpoints
+                          (-some->> (dap--cur-session)
+                                    dap--debug-session-breakpoints
+                                    (gethash file-name)))))
+            (dap--get-breakpoints lsp--cur-workspace)))
+    result))
+
+(define-button-type 'dap-ui-breakpoint-position
+  :supertype 'bui
+  'face 'bui-file-name
+  'help-echo "Go to breakpoint"
+  'action (lambda (btn)
+            (find-file (button-get btn 'file))
+            (goto-char (button-get btn 'point))))
+
+(defun dap-ui--get-file-info (file-data &optional _)
+  "TODO."
+  (list (f-filename (first file-data))
+        :type 'dap-ui-breakpoint-position
+        'file (first file-data)
+        'point (second file-data)))
+
+(bui-define-interface dap-ui-breakpoints-ui-3 list
+  :buffer-name "*Breakpoints*"
+  :get-entries-function 'dap-ui--breakpoints-entries
+  :format '((file-name dap-ui--get-file-info 30 t)
+            (line nil 8 bui-list-sort-numerically-2)
+            (verified  nil 8 t)
+            (condition nil 25 t)
+            (hit-count nil 8 bui-list-sort-numerically-2 :right-align t))
+  :sort-key '(file-name))
+
+(defun dap-ui-breakpoints ()
+  "List breakpoints."
+  (interactive)
+  (lsp--cur-workspace-check)
+  (let ((workspace lsp--cur-workspace))
+    (bui-get-display-entries 'dap-ui-breakpoints-ui-3 'list)
+    (setq-local lsp--cur-workspace workspace)))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

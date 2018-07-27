@@ -142,19 +142,18 @@ test."
                            second
                            (s-join ":"))))
     (setenv "JUNIT_CLASS_PATH" class-path)
-    (compile
-     (s-join " "
-             (list* runner "-jar" dap-java-test-runner
-                    "-cp" "$JUNIT_CLASS_PATH"
-                    (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
-                    (if run-method? to-run test-class-name)
-                    dap-java-test-additional-args)))))
+    (s-join " "
+            (list* runner "-jar" dap-java-test-runner
+                   "-cp" "$JUNIT_CLASS_PATH"
+                   (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
+                   (if run-method? to-run test-class-name)
+                   dap-java-test-additional-args))))
 
 (defun dap-java-run-test-method ()
   "Run JUnit test.
 If there is no method under cursor it will fallback to test class."
   (interactive)
-  (dap--run-unit-test lsp-java-java-path t))
+  (compile (dap--run-unit-test lsp-java-java-path t)))
 
 (defun dap-java-debug-test-method (port)
   "Debug JUnit test.
@@ -162,17 +161,15 @@ If there is no method under cursor it will fallback to test class.
 PORT is the port that is going to be used for starting and
 attaching to the test."
   (interactive (list dap-java-default-debug-port))
-  (dap--run-unit-test
-   (format "%s -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=%s"
-           lsp-java-java-path port)
-   t)
-
-  (if (dap--wait-for-port "localhost" port)
-      (dap-debug (list :type "java"
-                      :request "attach"
-                      :hostName "localhost"
-                      :port port))
-    (error "Unable to connect to the JVM process localhost:%s"  port)))
+  (dap-debug (list :type "java"
+                  :request "attach"
+                  :hostName "localhost"
+                  :port port
+                  :program-to-start (dap--run-unit-test
+                                     (format "%s -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=%s"
+                                             lsp-java-java-path
+                                             port)
+                                     t))))
 
 (defun dap-java-run-test-class ()
   "Run JUnit test."
