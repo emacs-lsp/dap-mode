@@ -1,5 +1,4 @@
-;;; dap-ui.el --- Debug Adapter Protocol for Emacs UI  -*- lexical-binding: t; -*-
-
+;;; dap-ui.el --- Debug Adapter Protocol UI -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018  Ivan Yonchovski
 
@@ -19,9 +18,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary:
+;; URL: https://github.com/yyoncho/dap-mode
+;; Package-Requires: ((emacs "25.1") (tree-mode) (bui "1.1.0"))
+;; Version: 0.1
 
-;;
+;;; Commentary:
+;; DAP Windows/overlays
 
 ;;; Code:
 (require 'dap-mode)
@@ -91,14 +93,6 @@
   "Default number of variables to load in inspect variables view for array variables."
   :group 'dap-ui
   :type 'number)
-
-(defcustom dap-left-margin-gutter t
-  "If non-nil, DAP UI will show the compilation and warning icons
-in the left margin, when in terminal mode. These icons can
-interfere with other modes that use the left-margin. (git-gutter,
-linum, etc..)"
-  :type 'boolean
-  :group 'dap-ui)
 
 (defconst dap-ui--loading-tree-widget
   (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
@@ -401,22 +395,10 @@ SESSION-TREE will be the root of the threads(session holder)."
                  ((< diff 0) (forward-char step))))))))
     (+ offset 1)))
 
-(defun dap-ui--before-string (sign face)
-  (propertize " "
-              'display
-              `((margin left-margin)
-                ,(propertize sign 'face
-                             (face-remap-add-relative face
-                                                      :underline nil
-                                                      :weight 'normal
-                                                      :slant 'normal)))))
-
-(defun dap--show-sign-overlay (sign face ov)
-  (save-excursion
-    (overlay-put ov 'before-string (dap-ui--before-string sign face))))
-
 (defun dap-ui--make-overlay (beg end tooltip-text visuals &optional mouse-face buf)
-  "Allocate a DAP UI overlay in range BEG and END."
+  "Allocate a DAP UI overlay in range BEG and END.
+TOOLTIP-TEXT, VISUALS, MOUSE-FACE will be used for the overlay.
+BUF is the active buffer."
   (let ((ov (make-overlay beg end buf t t)))
     (overlay-put ov 'face           (plist-get visuals :face))
     (overlay-put ov 'mouse-face     mouse-face)
@@ -431,13 +413,14 @@ SESSION-TREE will be the root of the threads(session holder)."
                                      'display
                                      (list 'left-fringe
                                            (plist-get visuals :bitmap)
-                                           (plist-get visuals :fringe)))))
-        (when (and char dap-left-margin-gutter)
-          (dap--show-sign-overlay char (plist-get visuals :fringe) ov))))
+                                           (plist-get visuals :fringe)))))))
     ov))
 
 (defun dap-ui--make-overlay-at (file point b e msg visuals)
-  "Create an overlay highlighting the given line in any buffer visiting the given file."
+  "Create an overlay highlighting the given POINT in FILE.
+B is the beginning of the overlay.
+E is the ending of the overlay.
+VISUALS and MSG will be used for the overlay."
   (let ((beg b)
         (end e))
     (assert (and
@@ -556,6 +539,7 @@ DEBUG-SESSION is the debug session triggering the event."
   "Displaying DAP visuals."
   :init-value nil
   :global t
+  :require 'dap-ui
   (cond
    (dap-ui-mode
     (add-hook 'dap-breakpoints-changed-hook 'dap-ui--refresh-breakpoints)
@@ -813,7 +797,7 @@ DEBUG-SESSION is the active debug session."
             (goto-char (button-get btn 'point))))
 
 (defun dap-ui--get-file-info (file-data &optional _)
-  "TODO."
+  "Used to render FILE-DATA in breakpoints' list."
   (list (f-filename (first file-data))
         :type 'dap-ui-breakpoint-position
         'file (first file-data)

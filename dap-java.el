@@ -1,4 +1,4 @@
-;;; dap-java.el --- DAP Adapter for Java        -*- lexical-binding: t; -*-
+;;; dap-java.el --- Debug Adapter Protocol mode for Java      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018  Ivan Yonchovski
 
@@ -18,16 +18,18 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary:
-
+;; URL: https://github.com/yyoncho/dap-mode
+;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0") (lsp-java "0.1"))
+;; Version: 0.1
 ;; DAP Adapter for java
+
+;;; Commentary:
 
 ;;; Code:
 
 (require 'lsp-mode)
 (require 'lsp-java)
 (require 'dap-mode)
-(require 'tree-mode)
 
 (defcustom dap-java-test-runner
   (expand-file-name (locate-user-emacs-file "eclipse.jdt.ls/runner/junit-platform-console-standalone.jar"))
@@ -93,7 +95,7 @@ Please check whether the server is configured propertly"))
                        (or (second
                             (lsp-send-execute-command "vscode.java.resolveClasspath"
                                                      (list main-class project-name)))
-                           (error "Unable to resolve classpath.")))
+                           (error "Unable to resolve classpath")))
     (dap--put-if-absent conf :name (format "%s (%s)"
                                           (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
                                               (match-string 1 main-class)
@@ -129,7 +131,7 @@ CONF - the startup configuration."
   (interactive (list (dap-java--populate-default-args nil)))
   (dap-start-debugging debug-args))
 
-(defun dap--run-unit-test-command (runner run-method?)
+(defun dap-java--run-unit-test-command (runner run-method?)
   "Run debug test with the following arguments.
 RUNNER is the test executor. RUN-METHOD? when t it will try to
 run the surrounding method. Otherwise it will run the surronding
@@ -155,7 +157,7 @@ test."
   "Run JUnit test.
 If there is no method under cursor it will fallback to test class."
   (interactive)
-  (compile (dap--run-unit-test-command lsp-java-java-path t)))
+  (compile (dap-java--run-unit-test-command lsp-java-java-path t)))
 
 (defun dap-java-debug-test-method (port)
   "Debug JUnit test.
@@ -169,7 +171,7 @@ attaching to the test."
          :hostName "localhost"
          :port port
          :wait-for-port t
-         :program-to-start (dap--run-unit-test-command
+         :program-to-start (dap-java--run-unit-test-command
                             (format "%s -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=%s"
                                     lsp-java-java-path
                                     port)
@@ -178,7 +180,7 @@ attaching to the test."
 (defun dap-java-run-test-class ()
   "Run JUnit test."
   (interactive)
-  (compile (dap--run-unit-test-command lsp-java-java-path nil)))
+  (compile (dap-java--run-unit-test-command lsp-java-java-path nil)))
 
 (defun dap-java-debug-test-class (port)
   "Debug JUnit test class.
@@ -192,7 +194,7 @@ attaching to the test."
          :hostName "localhost"
          :port port
          :wait-for-port t
-         :program-to-start (dap--run-unit-test-command
+         :program-to-start (dap-java--run-unit-test-command
                             (format "%s -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=%s"
                                     lsp-java-java-path
                                     port)

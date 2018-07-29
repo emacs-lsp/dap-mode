@@ -20,7 +20,7 @@
 ** DONE Terminate to kill the tcp process.
    CLOSED: [2018-06-20 Wed 22:47]
 ** TODO Run in terminal
-** TODO Run no debug.
+** TODO Run no debug
 ** DONE Attach.
    CLOSED: [2018-07-18 Wed 21:53]
 * Beakpoints
@@ -33,9 +33,12 @@
 ** DONE Session selection and breakpoints
    CLOSED: [2018-06-18 Mon 21:09]
 ** TODO Persist breakpoints using marker indicator.
-** TODO Breakpoint conditions
-** TODO Breakpoints hit count
+** DONE Breakpoint conditions
+   CLOSED: [2018-07-29 Sun 23:19]
+** DONE Breakpoints hit count
+   CLOSED: [2018-07-29 Sun 23:19]
 ** TODO Exception breakpoints.
+** TODO update breakpoint visualization when there is condition/hit count/debug message
 * Stepping
 ** DONE Visual indication
    CLOSED: [2018-06-16 Sat 09:57]
@@ -55,6 +58,7 @@
 * Inspect variable/value
 ** DONE Implement ...
    CLOSED: [2018-07-18 Wed 21:54]
+** TODO Update local value
 * Run configurations management
 ** DONE Persistence
    CLOSED: [2018-07-18 Wed 21:54]
@@ -67,10 +71,19 @@
 ** TODO Checking server supports the call.
 ** TODO Initialized message
 *** TODO - prohibit operations that are not permitted.
-* Watches
+** TODO Support for STD OUT dap servers
+* TODO Watches
 ** TODO full implementation
 * DONE Locals
   CLOSED: [2018-07-18 Wed 21:54]
 ** DONE full implementation
    CLOSED: [2018-07-18 Wed 21:54]
-* Set breakpoints
+* TODO Debug console
+* DONE Set breakpoints
+  CLOSED: [2018-07-29 Sun 23:20]
+* Integration with other DAP servers
+** TODO Python
+** TODO rust
+** TODO Python
+* TODO Testing
+* TODO Melpa

@@ -2,9 +2,6 @@
 
 ;; Copyright (C) 2018  Ivan Yonchovski
 
-;; Author: Ivan Yonchovski <yyoncho@gmail.com>
-;; Keywords: languages, debug
-
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -18,13 +15,14 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary:
-;; Author: Ivan <kyoncho@myoncho>
+;; Author: Ivan Yonchovski <yyoncho@gmail.com>
+;; Keywords: languages, debug
 ;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0") (dash-functional "1.2.0") (bui "1.1.0") (lsp-java "1.0"))
+;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0") (dash-functional "1.2.0") (tree-mode) (bui "1.1.0") (f "0.20.0") (s "1.12.0") (lsp-java "0.1"))
 ;; Version: 0.1
 
-;; Debug Adapter Protocol
+;;; Commentary:
+;; Debug Adapter Protocol client for Emacs.
 
 ;;; Code:
 
@@ -825,7 +823,6 @@ DEBUG-SESSION is the active debug session."
       (with-current-buffer buffer
         (run-hooks 'dap-breakpoints-changed-hook)))))
 
-;;;###autoload
 (defun dap--configure-breakpoints (debug-session breakpoints callback result)
   "Configure breakpoints for DEBUG-SESSION.
 
@@ -874,7 +871,7 @@ RESULT to use for the callback."
                           (gethash "result" (gethash "body" result))
                         (gethash "message" result))]
              (message "%s" msg)
-             (dap--display-interactive-eval-result msg (point))))
+             (dap-overlays--display-interactive-eval-result msg (point))))
          debug-session)
       (error "There is no stopped debug session"))))
 
@@ -1089,7 +1086,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
   "Register debug configuration provider for LANGUAGE-ID.
 
 PROVIDE-CONFIGURATION-FN is a function which will be called when
-`dap-mode' has received a request to start debug session which
+function `dap-mode' has received a request to start debug session which
 has language id = LANGUAGE-ID. The function must return debug
 arguments which contain the debug port to use for opening TCP connection."
   (puthash language-id provide-configuration-fn dap--debug-providers))
@@ -1204,13 +1201,14 @@ If the current session it will be terminated."
   :init-value nil
   :group 'dap-mode
   :global t
+  :require 'dap-mode
   :lighter (:eval (dap-mode-line))
   (add-hook 'lsp-after-initialize-hook 'dap--after-initialize)
   (add-hook 'lsp-after-open-hook 'dap--after-open))
 
 ;;;###autoload
 (defun dap-turn-on-dap-mode ()
-  "Turn on `dap-mode'."
+  "Turn on function `dap-mode'."
   (interactive)
   (dap-mode t))
 
