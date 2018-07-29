@@ -337,22 +337,25 @@ WORKSPACE will be used to calculate root folder."
              breakpoints)
     (dap--persist lsp--cur-workspace dap--breakpoints-file filtered-breakpoints)))
 
-(defun dap--breakpoints-changed (updated-file-breakpoints)
-  "Common logic breakpoints related methods UPDATED-FILE-BREAKPOINTS."
-  (let* ((breakpoints (dap--get-breakpoints lsp--cur-workspace))
-         (file-breakpoints (gethash buffer-file-name breakpoints)))
+(defun dap--breakpoints-changed (updated-file-breakpoints &optional file-name)
+  "Common logic breakpoints related methods UPDATED-FILE-BREAKPOINTS.
+FILE-NAME is the filename in which the breakpoints have been udpated."
+  (let* ((file-name (or file-name buffer-file-name (error "No file name")))
+         (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
     ;; update the list
     (if updated-file-breakpoints
-        (puthash buffer-file-name updated-file-breakpoints breakpoints)
-      (remhash buffer-file-name breakpoints))
+        (puthash file-name updated-file-breakpoints breakpoints)
+      (remhash file-name breakpoints))
 
     ;; do not update the breakpoints represenations if there is active session.
     (when (not (and (dap--cur-session) (dap--session-running (dap--cur-session))))
-      (run-hooks 'dap-breakpoints-changed-hook))
+      (--when-let (find-buffer-visiting file-name)
+        (with-current-buffer it
+          (run-hooks 'dap-breakpoints-changed-hook))))
 
     ;; Update all of the active sessions with the list of breakpoints.
     (let ((set-breakpoints-req (dap--set-breakpoints-request
-                                buffer-file-name
+                                file-name
                                 updated-file-breakpoints)))
       (-as-> lsp--cur-workspace $
              dap--get-sessions
@@ -363,7 +366,7 @@ WORKSPACE will be used to calculate root folder."
                                  (lambda (resp)
                                    (dap--update-breakpoints it
                                                           resp
-                                                          buffer-file-name)))
+                                                          file-name)))
                                 it))))
     (dap--persist-breakpoints breakpoints)))
 
