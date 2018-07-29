@@ -49,7 +49,9 @@
    - Session [Done]
    - Threads [Done]
 * Breakpoints list
-** TODO implementation
+** DONE implementation
+   CLOSED: [2018-07-29 Sun 22:19]
+** TODO Edit breakpoint properties
 * Inspect variable/value
 ** DONE Implement ...
    CLOSED: [2018-07-18 Wed 21:54]

@@ -21,7 +21,7 @@ Feature: Threads
     And I start lsp-java
     And The server status must become "LSP::Started"
     And I place the cursor before "System"
-    And I call "dap-toggle-breakpoint"
+    And I call "dap-breakpoint-toggle"
     And I go to beginning of buffer
     And I attach handler "breakpoint" to hook "dap-stopped-hook"
     And I call "dap-java-debug"

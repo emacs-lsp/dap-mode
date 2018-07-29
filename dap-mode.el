@@ -21,7 +21,7 @@
 ;;; Commentary:
 ;; Author: Ivan <kyoncho@myoncho>
 ;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((Emacs "25.1"))
+;; Package-Requires: ((emacs "25.1"))
 ;; Version: 0.1
 
 ;; Debug Adapter Protocol

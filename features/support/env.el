@@ -45,7 +45,7 @@
        lsp-java-workspace-cache-dir (f-join dap-java-test-root "workspace-cache/")
        lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
        dap-print-io t
-       lsp-java-bundles (thread-first "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.9.0.jar"
+       lsp-java-bundles (thread-first "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.10.0.jar"
                           locate-user-emacs-file
                           expand-file-name
                           list)
