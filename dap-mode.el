@@ -1048,16 +1048,20 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
                                        dap--debug-template-configurations
                                        'first nil t))))
 ;;;###autoload
-(defun dap-debug (launch-args)
-  "Run debug configuration LAUNCH-ARGS.
+(defun dap-debug (debug-args)
+ "Run debug configuration DEBUG-ARGS.
 
-If LAUNCH-ARGS is not specified the configuration is generated
+If DEBUG-ARGS is not specified the configuration is generated
 after selecting configuration template."
   (interactive (list (dap--select-template)))
-  (let ((language-id (plist-get launch-args :type)))
-    (if-let ((debug-provider (gethash language-id dap--debug-providers)))
-        (dap-start-debugging (funcall debug-provider launch-args))
-      (error "There is no debug provider for language %s" (or language-id "'Not specified'")))))
+  (-let (((&plist :type :program-to-start :wait-for-port :host :port) debug-args))
+    ;; start/attach case
+    (when program-to-start (compile program-to-start ))
+    (when wait-for-port (dap--wait-for-port host port))
+
+    (if-let ((debug-provider (gethash type dap--debug-providers)))
+        (dap-start-debugging (funcall debug-provider debug-args))
+      (error "There is no debug provider for language %s" (or type "'Not specified'")))))
 
 ;;;###autoload
 (defun dap-debug-last ()
