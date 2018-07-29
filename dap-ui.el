@@ -494,7 +494,9 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
         (-zip-fill
          nil
          (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))
-         (-some->> (dap--cur-session) dap--debug-session-breakpoints (gethash buffer-file-name)))))
+         (-some->> (dap--cur-session) dap--debug-session-breakpoints (gethash buffer-file-name))))
+  (save-mark-and-excursion
+    (dap-ui--stack-frame-changed (dap--cur-session))))
 
 (defun dap-ui--clear-marker-overlay (debug-session)
   "Clear marker overlay for DEBUG-SESSION."
@@ -771,24 +773,27 @@ DEBUG-SESSION is the active debug session."
 
 (defun dap-ui--breakpoints-entries ()
   "Get breakpoints entries."
-  (let (result)
+  (let ((id 0)
+        result)
     (apply 'append
            (maphash
             (lambda (file-name breakpoints)
-              (mapc
-               (-lambda ((bkp . remote-bp))
-                 (let ((point (plist-get bkp :point)))
-                   (push `((file-name . (,file-name ,point))
-                           (line . ,(line-number-at-pos point))
-                           (verified . ,(if (and remote-bp (gethash "verified" remote-bp))
-                                            "y"
-                                          "n")))
-                         result)))
-               (-zip-fill nil
-                          breakpoints
-                          (-some->> (dap--cur-session)
-                                    dap--debug-session-breakpoints
-                                    (gethash file-name)))))
+              (let ((session-breakpoints (-some->> (dap--cur-session)
+                                                   dap--debug-session-breakpoints
+                                                   (gethash file-name))))
+                (with-temp-buffer
+                  (insert-file-contents-literally file-name)
+                  (mapc
+                   (-lambda ((bkp . remote-bp))
+                     (let ((point (plist-get bkp :point)))
+                       (push `((id ,(setq id (1+ id)))
+                               (file-name . (,file-name ,point))
+                               (line . ,(line-number-at-pos point))
+                               (verified . ,(if (and remote-bp (gethash "verified" remote-bp))
+                                                "y"
+                                              "n")))
+                             result)))
+                   (-zip-fill nil breakpoints session-breakpoints)))))
             (dap--get-breakpoints lsp--cur-workspace)))
     result))
 
@@ -807,7 +812,7 @@ DEBUG-SESSION is the active debug session."
         'file (first file-data)
         'point (second file-data)))
 
-(bui-define-interface dap-ui-breakpoints-ui-3 list
+(bui-define-interface dap-ui-breakpoints-ui list
   :buffer-name "*Breakpoints*"
   :get-entries-function 'dap-ui--breakpoints-entries
   :format '((file-name dap-ui--get-file-info 30 t)
@@ -817,13 +822,43 @@ DEBUG-SESSION is the active debug session."
             (hit-count nil 8 bui-list-sort-numerically-2 :right-align t))
   :sort-key '(file-name))
 
+(defun dap-ui-breakpoints-goto ()
+  "Go to breakpoint under cursor."
+  (interactive)
+  (--when-let (bui-list-current-entry)
+    (-let (((file point) (alist-get 'file-name it)))
+      (find-file file)
+      (goto-char point))))
+
+(let ((map dap-ui-breakpoints-ui-list-mode-map))
+  (define-key map (kbd "RET") 'dap-ui-breakpoints-goto))
+
+(defun dap-ui-refresh-breakpoints-list ()
+  "Refresh breakpoints' list."
+  (with-current-buffer "*Breakpoints*"
+    (let ((workspace lsp--cur-workspace))
+      (bui-revert nil t)
+      (setq-local lsp--cur-workspace workspace))))
+
+(defun dap-ui--brekapoints-list-cleanup ()
+  "Cleanup when buffer list has been deleted."
+  (remove-hook 'dap-breakpoints-changed-hook 'dap-ui-refresh-breakpoints-list))
+
+(add-hook
+ 'dap-ui-breakpoints-ui-list-mode-hook
+ (lambda ()
+   (add-hook 'dap-breakpoints-changed-hook 'dap-ui-refresh-breakpoints-list)
+   (add-hook 'kill-buffer-hook 'dap-ui--brekapoints-list-cleanup nil t)))
+
 (defun dap-ui-breakpoints ()
   "List breakpoints."
   (interactive)
   (lsp--cur-workspace-check)
   (let ((workspace lsp--cur-workspace))
-    (bui-get-display-entries 'dap-ui-breakpoints-ui-3 'list)
-    (setq-local lsp--cur-workspace workspace)))
+    (bui-get-display-entries 'dap-ui-breakpoints-ui 'list)
+    (setq-local lsp--cur-workspace workspace)
+    (add-hook 'bui-after-redisplay-hook
+              (lambda () (setq-local lsp--cur-workspace workspace)))))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

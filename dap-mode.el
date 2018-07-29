@@ -1049,12 +1049,12 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
                                        'first nil t))))
 ;;;###autoload
 (defun dap-debug (debug-args)
- "Run debug configuration DEBUG-ARGS.
+  "Run debug configuration DEBUG-ARGS.
 
 If DEBUG-ARGS is not specified the configuration is generated
 after selecting configuration template."
   (interactive (list (dap--select-template)))
-  (-let (((&plist :type :program-to-start :wait-for-port :host :port) debug-args))
+  (-let (((&plist :type :program-to-start :wait-for-port :port :hostName host) debug-args))
     ;; start/attach case
     (when program-to-start (compile program-to-start ))
     (when wait-for-port (dap--wait-for-port host port))
