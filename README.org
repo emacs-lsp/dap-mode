@@ -9,6 +9,8 @@
   - [[#sessions][Sessions]]
     - [[#keybindings][Keybindings]]
   - [[#locals][Locals]]
+  - [[#breakpoints][Breakpoints]]
+    - [[#keybindings-1][Keybindings]]
 - [[#configuration][Configuration]]
   - [[#dap-mode-configuration][DAP mode configuration]]
   - [[#java][Java]]
@@ -41,37 +43,41 @@
   - Evaluating statements
   - Debug/Run configurations
 ** Debugger commands
-   | Command                   | Description                                                    |
-   |---------------------------+----------------------------------------------------------------+
-   | ~dap-breakpoint-toggle~   | Toggle java breakpoint at line                                 |
-   | ~dap-breakpoint-delete~   | Delete java breakpoint at line                                 |
-   | ~dap-breakpoint-add~      | Add java breakpoint at line                                    |
-   | ~dap-eval~                | Eval string                                                    |
-   | ~dap-eval-region~         | Eval region string                                             |
-   | ~dap-eval-thing-at-point~ | Eval symbol at point                                           |
-   | ~dap-step-in~             | Debug step in                                                  |
-   | ~dap-next~                | Debug next                                                     |
-   | ~dap-step-out~            | Debug step out                                                 |
-   | ~dap-stop-thread~         | Stop thread                                                    |
-   | ~dap-restart-frame~       | Restart frame                                                  |
-   | ~dap-continue~            | Debug continue                                                 |
-   | ~dap-disconnect~          | Cancel current debug session                                   |
-   | ~dap-switch-stack-frame~  | Switch active stack frame                                      |
-   | ~dap-switch-thread~       | Switch active thread                                           |
-   | ~dap-switch-session~      | Switch active session                                          |
-   | ~dap-debug~               | Create and run new configuration using the available templates |
-   | ~dap-debug-last~          | Debug previous configuration                                   |
-   | ~dap-debug-recent~        | Select configuration to run from the previously started command|
-   | ~dap-go-to-output-buffer~ | Go output buffer                                               |
+   | Command                        | Description                                                     |
+   |--------------------------------+-----------------------------------------------------------------|
+   | ~dap-breakpoint-toggle~        | Toggle java breakpoint at line                                  |
+   | ~dap-breakpoint-delete~        | Delete java breakpoint at line                                  |
+   | ~dap-breakpoint-add~           | Add java breakpoint at line                                     |
+   | ~dap-breakpoint-condition~     | Set/unset breakpoint condition                                  |
+   | ~dap-breakpoint-hit-condition~ | Set/unset breakpoint hit condition                              |
+   | ~dap-breakpoint-log-message~   | Set/unset breakpoint log message                                |
+   | ~dap-eval~                     | Eval string                                                     |
+   | ~dap-eval-region~              | Eval region string                                              |
+   | ~dap-eval-thing-at-point~      | Eval symbol at point                                            |
+   | ~dap-step-in~                  | Debug step in                                                   |
+   | ~dap-next~                     | Debug next                                                      |
+   | ~dap-step-out~                 | Debug step out                                                  |
+   | ~dap-stop-thread~              | Stop thread                                                     |
+   | ~dap-restart-frame~            | Restart frame                                                   |
+   | ~dap-continue~                 | Debug continue                                                  |
+   | ~dap-disconnect~               | Cancel current debug session                                    |
+   | ~dap-switch-stack-frame~       | Switch active stack frame                                       |
+   | ~dap-switch-thread~            | Switch active thread                                            |
+   | ~dap-switch-session~           | Switch active session                                           |
+   | ~dap-debug~                    | Create and run new configuration using the available templates  |
+   | ~dap-debug-last~               | Debug previous configuration                                    |
+   | ~dap-debug-recent~             | Select configuration to run from the previously started command |
+   | ~dap-go-to-output-buffer~      | Go output buffer                                                |
 ** Windows
-   | Command                         | Description                     |
-   |---------------------------------+---------------------------------+
-   | ~dap-ui-sessions~               | Show active/terminated sessions |
-   | ~dap-ui-locals~                 | Show locals                     |
-   | ~dap-ui-breakpoints~            | Show breakpoints                |
-   | ~dap-ui-inspect~                | Inspect                         |
-   | ~dap-ui-inspect-region~         | Inspect region                  |
-   | ~dap-ui-inspect-thing-at-point~ | Inspect symbol at point         |
+   | Command                         | Description                          |
+   |---------------------------------+--------------------------------------|
+   | ~dap-ui-sessions~               | Show active/terminated sessions view |
+   | ~dap-ui-locals~                 | Show locals view                     |
+   | ~dap-ui-breakpoints~            | Show breakpoints view                |
+   | ~dap-ui-inspect~                | Inspect                              |
+   | ~dap-ui-inspect-region~         | Inspect region                       |
+   | ~dap-ui-inspect-thing-at-point~ | Inspect symbol at point              |
+
 ** Sessions
    The sessions view is showed after invoking ~dap-ui-sessions~ . It represents
    the list of the active sessions.
@@ -79,10 +85,21 @@
     | Command                     | Description                                                 | Keybindings |
     |-----------------------------+-------------------------------------------------------------+-------------|
     | ~dap-ui-session-select~     | Select object at point                                      | <return>    |
-    | ~tree-mode-toggle-expand~   | Toggle node expand state                                    | <tab>       |
     | ~dap-ui-session-remove~ WIP | Remove terminated session from the list of running sessions |             |
+    | ~tree-mode-toggle-expand~   | Toggle node expand state                                    | <tab>       |
 ** Locals
    Locals can be viewed after invoking ~dap-ui-locals~.
+** Breakpoints
+   Breakpoints can be viewed after invoking ~dap-ui-breakpoints~.
+*** Keybindings
+    | Command                              | Description                    | Keybindings |
+    |--------------------------------------+--------------------------------+-------------|
+    | ~dap-ui-breakpoints-goto~            | Go to breakpoint under cursor  | <return>    |
+    | ~dap-ui-breakpoints-delete~          | Delete breakpoint under cursor | d           |
+    | ~dap-ui-breakpoints-delete-selected~ | Delete selected breakpoints    | D           |
+    | ~bui-list-mark~                      | Mark breakpoint under point    | m           |
+    | ~bui-list-unmark~                    | Unmark breakpoint under point  | u           |
+    | ~bui-list-unmark-all~                | Unmark breakpoint under point  | U           |
 * Configuration
 ** DAP mode configuration
    Enable both ~dap-mode~ and ~dap-ui-mode~.
@@ -165,6 +182,5 @@
 * Troubleshooting
   If you notice a bug, open an issue on Github Issues.
 * What's next
-  - Breakpoints list
   - Watches
   - Debug console

@@ -370,7 +370,7 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
                                 it))))
     (dap--persist-breakpoints breakpoints)))
 
-(defun dap-toggle-breakpoint ()
+(defun dap-breakpoint-toggle ()
   "Toggle breakpoint on the current line."
   (interactive)
   (lsp--cur-workspace-check)
@@ -392,18 +392,68 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
                                           :point (point))
                                     file-breakpoints)))))
 
+(defun dap--get-breakpoint-at-point (file-breakpoints)
+  "Get breakpoint on the current point.
+FILE-BREAKPOINTS is the list of breakpoints in the current file."
+  (let ((current-line (line-number-at-pos (point))))
+    (cl-find-if
+     (lambda (existing)
+       (= current-line (line-number-at-pos (plist-get existing :marker))))
+     file-breakpoints)))
+
 (defun dap-breakpoint-delete ()
   "Delete breakpoint on the current line."
   (interactive)
   (lsp--cur-workspace-check)
   (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
-    (when-let (existing-breakpoint (cl-find-if
-                                    (lambda (existing)
-                                      (= (line-number-at-pos (plist-get existing :marker))
-                                         (line-number-at-pos (point))))
-                                    file-breakpoints))
+    (when-let (existing-breakpoint (dap--get-breakpoint-at-point file-breakpoints))
       (-some-> existing-breakpoint (plist-get :marker) (set-marker nil))
       (dap--breakpoints-changed (cl-remove existing-breakpoint file-breakpoints)))))
+
+(defun dap-breakpoint-condition ()
+  "Set breakpoint condition for the breakpoint at point."
+  (interactive)
+  (lsp--cur-workspace-check)
+  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
+    (if-let (existing-breakpoint (dap--get-breakpoint-at-point file-breakpoints))
+        (let ((condition (read-string "Enter breakpoint condition: "
+                                      (plist-get existing-breakpoint :condition))))
+          (if condition
+              (plist-put existing-breakpoint :condition condition)
+            (dap--plist-delete existing-breakpoint :condition))
+          (dap--breakpoints-changed file-breakpoints))
+      (error "No breakpoint at current line"))))
+
+(defun dap-breakpoint-hit-condition ()
+  "Set breakpoint hit condition for the breakpoint at point."
+  (interactive)
+  (lsp--cur-workspace-check)
+  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
+    (if-let (existing-breakpoint (dap--get-breakpoint-at-point file-breakpoints))
+        (let ((condition (read-string "Enter hit condition: "
+                                      (plist-get existing-breakpoint :hit-condition))))
+          (if condition
+              (plist-put existing-breakpoint :hit-condition condition)
+            (dap--plist-delete existing-breakpoint :hit-condition))
+          (dap--breakpoints-changed file-breakpoints))
+      (error "No breakpoint at current line"))))
+
+(defun dap-breakpoint-log-message ()
+  "Set breakpoint log message for the breakpoint at point.
+
+If log message for the breakpoint is specified it won't stop
+thread exection but the server will log message."
+  (interactive)
+  (lsp--cur-workspace-check)
+  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
+    (if-let (existing-breakpoint (dap--get-breakpoint-at-point file-breakpoints))
+        (let ((condition (read-string "Enter log message: "
+                                      (plist-get existing-breakpoint :log-message))))
+          (if condition
+              (plist-put existing-breakpoint :log-message condition)
+            (dap--plist-delete existing-breakpoint :log-message))
+          (dap--breakpoints-changed file-breakpoints))
+      (error "No breakpoint at current line"))))
 
 (defun dap-breakpoint-add ()
   "Add breakpoint on the current line."
@@ -647,7 +697,11 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
        (clrhash (dap--debug-session-breakpoints debug-session))
        (dap--refresh-breakpoints debug-session)
        (run-hook-with-args 'dap-terminated-hook debug-session))
-      (_ (message (format "No messages handler for %s" event-type))))))
+      ("usernotification"
+       (-let [(&hash "body" (&hash "notificationType" notification-type "message")) event]
+         (warn  (format "[%s] %s" notification-type message))))
+      (_ (message (format "No messages handler for %s" event-type)))
+      )))
 
 (defun dap--create-filter-function (debug-session)
   "Create filter function for DEBUG-SESSION."
@@ -743,24 +797,27 @@ ADAPTER-ID the id of the adapter."
 FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
   (with-temp-buffer
     (insert-file-contents-literally file-name)
-    (dap--make-request "setBreakpoints"
-                     (list :source (list :name (f-filename file-name)
-                                         :path file-name)
-                           :breakpoints (->> file-breakpoints
-                                             (--map (->> it
-                                                         dap-breakpoint-get-point
-                                                         line-number-at-pos
-                                                         (list :line)))
-                                             (apply 'vector))
-                           :sourceModified :json-false))))
+    (dap--make-request
+     "setBreakpoints"
+     (list :source (list :name (f-filename file-name)
+                         :path file-name)
+           :breakpoints (->> file-breakpoints
+                             (-map (-lambda ((it &as &plist :condition :hit-condition :log-message))
+                                     (let ((result (->> it dap-breakpoint-get-point line-number-at-pos (list :line))))
+                                       (when condition (plist-put result :condition condition))
+                                       (when log-message (plist-put result :logMessage log-message))
+                                       (when hit-condition (plist-put result :hitCondition hit-condition))
+                                       result)))
+                             (apply 'vector))
+           :sourceModified :json-false))))
 
 (defun dap--update-breakpoints (debug-session resp file-name)
   "Update breakpoints in FILE-NAME.
 
 RESP is the result from the `setBreakpoints' request.
 DEBUG-SESSION is the active debug session."
-  (-if-let (server-breakpoints (gethash "breakpoints" (gethash "body" resp)))
-      (->> debug-session dap--debug-session-breakpoints (puthash file-name server-breakpoints))
+  (--if-let (-some->> resp (gethash "body") (gethash "breakpoints"))
+      (->> debug-session dap--debug-session-breakpoints (puthash file-name it))
     (->> debug-session dap--debug-session-breakpoints (remhash file-name)))
 
   (when (eq debug-session (dap--cur-session))
@@ -1113,10 +1170,10 @@ If the current session it will be terminated."
     (if (eq 'terminated (dap--debug-session-state debug-session))
         (funcall cleanup-fn)
       (dap--send-message (dap--make-request "disconnect"
-                                        (list :restart :json-false))
-                       (dap--resp-handler
-                        (lambda (_resp) (funcall cleanup-fn)))
-                       debug-session))))
+                                            (list :restart :json-false))
+                         (dap--resp-handler
+                          (lambda (_resp) (funcall cleanup-fn)))
+                         debug-session))))
 
 ;;;###autoload
 (defun dap-delete-all-sessions ()

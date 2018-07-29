@@ -528,16 +528,17 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
 (defun dap-ui--stack-frame-changed (debug-session)
   "Handler for `dap-stack-frame-changed-hook'.
 DEBUG-SESSION is the debug session triggering the event."
-  (-when-let ((&hash "source" source
-                     "line" line
-                     "column" column) (dap--debug-session-active-frame debug-session))
-    (when source
-      (goto-char (point-min))
-      (forward-line (1- line))
-      (forward-char column)
-      (dap-ui--set-debug-marker debug-session
-                           (lsp--uri-to-path (gethash "path" source))
-                           (point)))))
+  (when debug-session
+    (-when-let ((&hash "source" source
+                       "line" line
+                       "column" column) (dap--debug-session-active-frame debug-session))
+      (when source
+        (goto-char (point-min))
+        (forward-line (1- line))
+        (forward-char column)
+        (dap-ui--set-debug-marker debug-session
+                             (lsp--uri-to-path (gethash "path" source))
+                             (point))))))
 
 (defun dap-ui--after-open ()
   "Handler for `lsp-after-open-hook'."
@@ -788,15 +789,17 @@ DEBUG-SESSION is the active debug session."
                 (with-temp-buffer
                   (insert-file-contents-literally file-name)
                   (mapc
-                   (-lambda ((bkp . remote-bp))
-                     (let ((point (plist-get bkp :point)))
-                       (push `((id ,(setq id (1+ id)))
-                               (file-name . (,file-name ,point))
-                               (line . ,(line-number-at-pos point))
-                               (verified . ,(if (and remote-bp (gethash "verified" remote-bp))
-                                                "y"
-                                              "n")))
-                             result)))
+                   (-lambda (((&plist :point :condition :hit-condition :log-message) . remote-bp))
+                     (push `((id ,(setq id (1+ id)))
+                             (file-name . (,file-name ,point))
+                             (line . ,(line-number-at-pos point))
+                             (verified . ,(if (and remote-bp (gethash "verified" remote-bp))
+                                              "y"
+                                            "n"))
+                             (hit-condition . ,hit-condition)
+                             (log-message . ,log-message)
+                             (condition . ,condition))
+                           result))
                    (-zip-fill nil breakpoints session-breakpoints)))))
             (dap--get-breakpoints lsp--cur-workspace)))
     (or result (vector))))
@@ -823,7 +826,8 @@ DEBUG-SESSION is the active debug session."
             (line nil 8 bui-list-sort-numerically-2)
             (verified  nil 8 t)
             (condition nil 25 t)
-            (hit-count nil 8 bui-list-sort-numerically-2 :right-align t))
+            (hit-condition nil 20 t)
+            (log-message nil 15 t))
   :sort-key '(file-name))
 
 (defun dap-ui-breakpoints-goto ()
