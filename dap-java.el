@@ -58,7 +58,8 @@
          (main-classes-count (length main-classes))
          current-class)
     (cond
-     ((= main-classes-count 0) (error "Unable to find main class"))
+     ((= main-classes-count 0) (error "Unable to find main class.
+Please check whether the server is configured propertly"))
      ((= main-classes-count 1) (first main-classes))
      ((setq current-class (--first (string= buffer-file-name (gethash "filePath" it))
                                    main-classes))
@@ -89,9 +90,10 @@
     (dap--put-if-absent conf :modulePaths (vector))
     (dap--put-if-absent conf
                        :classPaths
-                       (second
-                        (lsp-send-execute-command "vscode.java.resolveClasspath"
-                                                 (list main-class project-name))))
+                       (or (second
+                            (lsp-send-execute-command "vscode.java.resolveClasspath"
+                                                     (list main-class project-name)))
+                           (error "Unable to resolve classpath.")))
     (dap--put-if-absent conf :name (format "%s (%s)"
                                           (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
                                               (match-string 1 main-class)
