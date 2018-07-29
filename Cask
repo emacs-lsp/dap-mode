@@ -4,7 +4,6 @@
 (files "*.el")
 
 (depends-on "lsp-java")
-(depends-on "hierarchy")
 (depends-on "markdown-mode")
 (depends-on "tree-mode")
 (depends-on "bui")
