@@ -432,8 +432,8 @@ VISUALS and MSG will be used for the overlay."
       (with-current-buffer buf
         (if (and (integerp beg) (integerp end))
             (progn
-              (setq beg (dap-ui--internalize-offset beg))
-              (setq end (dap-ui--internalize-offset end)))
+              (setq beg beg)
+              (setq end end))
           ;; If line provided, use line to define region
           (save-excursion
             (goto-char point)

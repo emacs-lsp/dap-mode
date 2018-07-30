@@ -103,6 +103,60 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defvar dap--debug-configuration ()
   "List of the previous configuration that have been executed.")
 
+(cl-defstruct dap--debug-session
+  (name nil)
+  ;; ‘last-id’ is the last JSON-RPC identifier used.
+  (last-id 0)
+
+  (proc nil :read-only t)
+  ;; ‘response-handlers’ is a hash table mapping integral JSON-RPC request
+  ;; identifiers for pending asynchronous requests to functions handling the
+  ;; respective responses.  Upon receiving a response from the language server,
+  ;; ‘dap-mode’ will call the associated response handler function with a
+  ;; single argument, the deserialized response parameters.
+  (response-handlers (make-hash-table :test 'eql) :read-only t)
+  ;; DAP parser.
+  (parser (make-dap--parser) :read-only t)
+  (output-buffer (generate-new-buffer "*out*"))
+  (thread-id nil)
+  (workspace nil)
+  (threads nil)
+  (thread-states (make-hash-table :test 'eql) :read-only t)
+  (active-frame-id nil)
+  (active-frame nil)
+  (cursor-marker nil)
+  ;; The session breakpoints;
+  (session-breakpoints (make-hash-table :test 'equal) :read-only t)
+  ;; one of 'started
+  (state 'pending)
+  (breakpoints (make-hash-table :test 'equal) :read-only t)
+  (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
+  (launch-args nil)
+  (initialize-result nil)
+  (error-message nil))
+
+(cl-defstruct dap--parser
+  (waiting-for-response nil)
+  (response-result nil)
+
+  ;; alist of headers
+  (headers '())
+
+  ;; message body
+  (body nil)
+
+  ;; If non-nil, reading body
+  (reading-body nil)
+
+  ;; length of current message body
+  (body-length nil)
+
+  ;; amount of current message body currently stored in 'body'
+  (body-received 0)
+
+  ;; Leftover data from previous chunk; to be processed
+  (leftovers nil))
+
 (defun dap--wait-for-port (host port &optional retry-count sleep-interval)
   "Wait for PORT to be open on HOST.
 
@@ -227,62 +281,6 @@ This is in contrast to merely setting it to 0."
   "Create a LSP message from PARAMS, after encoding it to a JSON string."
   (let* ((body (dap--json-encode params)))
     (format "Content-Length: %d\r\n\r\n%s" (string-bytes body) body)))
-
-(cl-defstruct dap--debug-session
-  (name nil)
-  ;; ‘last-id’ is the last JSON-RPC identifier used.
-  (last-id 0)
-
-  (proc nil :read-only t)
-  ;; ‘response-handlers’ is a hash table mapping integral JSON-RPC request
-  ;; identifiers for pending asynchronous requests to functions handling the
-  ;; respective responses.  Upon receiving a response from the language server,
-  ;; ‘dap-mode’ will call the associated response handler function with a
-  ;; single argument, the deserialized response parameters.
-  (response-handlers (make-hash-table :test 'eql) :read-only t)
-
-  ;; DAP parser.
-  (parser (make-dap--parser) :read-only t)
-  (output-buffer (generate-new-buffer "*out*"))
-  (thread-id nil)
-  (workspace nil)
-  (threads nil)
-  (thread-states (make-hash-table :test 'eql) :read-only t)
-
-  (active-frame-id nil)
-  (active-frame nil)
-  (cursor-marker nil)
-  ;; The session breakpoints;
-  (session-breakpoints (make-hash-table :test 'equal) :read-only t)
-  ;; one of 'started
-  (state 'pending)
-  (breakpoints (make-hash-table :test 'equal) :read-only t)
-  (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
-  (launch-args nil)
-  (initialize-result nil)
-  (error-message nil))
-
-(cl-defstruct dap--parser
-  (waiting-for-response nil)
-  (response-result nil)
-
-  ;; alist of headers
-  (headers '())
-
-  ;; message body
-  (body nil)
-
-  ;; If non-nil, reading body
-  (reading-body nil)
-
-  ;; length of current message body
-  (body-length nil)
-
-  ;; amount of current message body currently stored in 'body'
-  (body-received 0)
-
-  ;; Leftover data from previous chunk; to be processed
-  (leftovers nil))
 
 (defun dap--parse-header (s)
   "Parse string S as a DAP (KEY . VAL) header."
@@ -576,12 +574,13 @@ thread exection but the server will log message."
 (defun dap-next ()
   "Debug next."
   (interactive)
-  (dap--send-message (dap--make-request
-                    "next"
-                    (list :threadId (dap--debug-session-thread-id (dap--cur-session))))
-                   (dap--resp-handler)
-                   (dap--cur-active-session-or-die))
-  (dap--resume-application (dap--cur-session)))
+  (let ((debug-session (dap--cur-active-session-or-die)))
+    (dap--send-message (dap--make-request
+                      "next"
+                      (list :threadId (dap--debug-session-thread-id debug-session)))
+                     (dap--resp-handler)
+                     debug-session)
+    (dap--resume-application debug-session)))
 
 ;;;###autoload
 (defun dap-step-in ()
@@ -1049,10 +1048,10 @@ DEBUG-SESSIONS - list of the currently active sessions."
   "Make NEW-SESSION the active debug session."
   (dap--set-cur-session new-session)
 
-  (-some->> new-session
-            dap--debug-session-workspace
-            lsp--workspace-buffers
-            (--map (with-current-buffer it
+  (-some-> new-session
+           dap--debug-session-workspace
+           lsp--workspace-buffers
+           (--each (with-current-buffer it
                      (dap--set-breakpoints-in-file
                       buffer-file-name
                       (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))))
@@ -1167,22 +1166,21 @@ If the current session it will be terminated."
     (if (eq 'terminated (dap--debug-session-state debug-session))
         (funcall cleanup-fn)
       (dap--send-message (dap--make-request "disconnect"
-                                            (list :restart :json-false))
-                         (dap--resp-handler
-                          (lambda (_resp) (funcall cleanup-fn)))
-                         debug-session))))
+                                        (list :restart :json-false))
+                       (dap--resp-handler
+                        (lambda (_resp) (funcall cleanup-fn)))
+                       debug-session))))
 
 ;;;###autoload
 (defun dap-delete-all-sessions ()
   "Terminate/remove all sessions."
   (interactive)
-  (->> lsp--cur-workspace
-       dap--get-sessions
-       (--remove (eq 'terminated (dap--debug-session-state it)))
-       (--map (dap--send-message (dap--make-request "disconnect"
-                                                (list :restart :json-false))
-                               (dap--resp-handler)
-                               it)))
+  (--each (dap--get-sessions lsp--cur-workspace)
+    (when (not (eq 'terminated (dap--debug-session-state it)))
+      (dap--send-message (dap--make-request "disconnect"
+                                        (list :restart :json-false))
+                       (dap--resp-handler)
+                       it)))
   (dap--set-sessions lsp--cur-workspace ())
   (dap--switch-to-session nil))
 
