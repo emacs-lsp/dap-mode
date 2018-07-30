@@ -367,35 +367,6 @@ SESSION-TREE will be the root of the threads(session holder)."
       (dap-ui-sessions-mode t))
     (dap-ui--show-buffer buf)))
 
-(defun dap-ui--internalize-offset (offset)
-  "Internalize OFFSET."
-  (if (eq 1 (coding-system-eol-type buffer-file-coding-system))
-      (save-excursion
-        (save-restriction
-          (widen)
-          (block nil
-            (when (<= offset 0) (return 1))
-            (when (>= offset (dap--externalize-offset (point-max)))
-              (return (point-max)))
-
-            (goto-char offset)
-            (while t
-              (let* ((diff (- (dap--externalize-offset (point)) offset))
-                     (step (/ (abs diff) 2)))
-                (cond
-                 ((eql diff 0) (return (point)))
-
-                 ;; Treat -1 and +1 specially: if offset matches a CR character
-                 ;; we want to avoid an infinite loop
-                 ((eql diff -1) (if (eql (char-after (point)) ?\n)
-                                    (return (point))
-                                  (return (1+ (point)))))
-                 ((eql diff 1)  (return (1- (point))))
-
-                 ((> diff 0) (backward-char step))
-                 ((< diff 0) (forward-char step))))))))
-    (+ offset 1)))
-
 (defun dap-ui--make-overlay (beg end tooltip-text visuals &optional mouse-face buf)
   "Allocate a DAP UI overlay in range BEG and END.
 TOOLTIP-TEXT, VISUALS, MOUSE-FACE will be used for the overlay.
