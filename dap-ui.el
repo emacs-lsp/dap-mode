@@ -28,6 +28,7 @@
 ;;; Code:
 (require 'dap-mode)
 (require 'tree-widget)
+(require 'tree-mode)
 (require 'wid-edit)
 (require 'dash)
 (require 'bui)
