@@ -35,16 +35,8 @@
 (defconst dap--breakpoints-file ".breakpoints"
   "Name of the file in which the breakpoints will be persisted.")
 
-(defconst dap--debug-configurations-file ".debug-configurations.el"
-  "Name of the file in which the breakpoints will be persisted.")
-
 (defcustom dap-print-io t
   "If non-nil, print all messages to and from the DAP to messages."
-  :group 'dap-mode
-  :type 'boolean)
-
-(defcustom dap-run-configurations-file (locate-user-emacs-file "dap-configurations.el" )
-  "The file in which the run configurations will be stored by default."
   :group 'dap-mode
   :type 'boolean)
 
@@ -107,7 +99,6 @@ The hook will be called with the session file and the new set of breakpoint loca
   (name nil)
   ;; ‘last-id’ is the last JSON-RPC identifier used.
   (last-id 0)
-
   (proc nil :read-only t)
   ;; ‘response-handlers’ is a hash table mapping integral JSON-RPC request
   ;; identifiers for pending asynchronous requests to functions handling the
@@ -119,6 +110,7 @@ The hook will be called with the session file and the new set of breakpoint loca
   (parser (make-dap--parser) :read-only t)
   (output-buffer (generate-new-buffer "*out*"))
   (thread-id nil)
+  ;; reference to the workspace that holds the information about the lsp workspace.
   (workspace nil)
   (threads nil)
   (thread-states (make-hash-table :test 'eql) :read-only t)
@@ -127,11 +119,15 @@ The hook will be called with the session file and the new set of breakpoint loca
   (cursor-marker nil)
   ;; The session breakpoints;
   (session-breakpoints (make-hash-table :test 'equal) :read-only t)
-  ;; one of 'started
+  ;; one of 'pending 'started 'terminated 'failed
   (state 'pending)
+  ;; hash table containing mapping file -> active breakpoints.
   (breakpoints (make-hash-table :test 'equal) :read-only t)
+  ;; hash table tread-id -> stack frame
   (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
+  ;; the arguments that were used to start the debug session.
   (launch-args nil)
+  ;; The result of initialize request. It holds the server capabilities.
   (initialize-result nil)
   (error-message nil))
 
