@@ -629,12 +629,13 @@ thread exection but the server will log message."
           (message "No source code for %s. Cursor at %s:%s." name line column))))
     (run-hook-with-args 'dap-stack-frame-changed-hook debug-session)))
 
-(defun dap--select-thread-id (debug-session thread-id)
+(defun dap--select-thread-id (debug-session thread-id &optional force)
   "Make the thread with id=THREAD-ID the active thread for DEBUG-SESSION."
   ;; make the thread the active session only if there is no active debug
   ;; session.
-  (when (not (dap--debug-session-thread-id debug-session))
-    (setf (dap--debug-session-thread-id debug-session) thread-id))
+  (when (or force (not (dap--debug-session-thread-id debug-session)))
+    (setf (dap--debug-session-thread-id debug-session) thread-id)
+    (run-hook-with-args 'dap-stopped-hook debug-session))
 
   (dap--send-message
    (dap--make-request "stackTrace" (list :threadId thread-id))
@@ -643,10 +644,12 @@ thread exection but the server will log message."
       (puthash thread-id
                stack-frames
                (dap--debug-session-thread-stack-frames debug-session))
-      (when (eq debug-session (dap--cur-session))
+      ;; select stackframe only when session matches the active session and when
+      ;; thread-id is the same as the active one
+      (when (and (eq debug-session (dap--cur-session))
+                 (= thread-id (dap--debug-session-thread-id (dap--cur-session))))
         (dap--go-to-stack-frame debug-session (first stack-frames)))))
-   debug-session)
-  (run-hook-with-args 'dap-stopped-hook debug-session))
+   debug-session))
 
 (defun dap--refresh-breakpoints (debug-session)
   "Refresh breakpoints for DEBUG-SESSION."
@@ -1017,7 +1020,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
                                       "Select active thread: "
                                       threads
                                       (apply-partially 'dap--thread-label debug-session))]
-         (dap--select-thread-id debug-session thread-id)))
+         (dap--select-thread-id debug-session thread-id t)))
      debug-session)))
 
 (defun dap-stop-thread ()
