@@ -117,6 +117,9 @@
 
 (defvar dap-ui--sessions-refresh-timer nil)
 
+(defvar-local dap-ui--locals-request-id 0
+  "The locals request id that is currently active.")
+
 (defun dap-ui-sessions--tree-under-cursor ()
   "Get tree under cursor."
   (-when-let (widget-under-cursor (dap-ui--nearest-widget))
@@ -680,31 +683,36 @@ DEBUG-SESSION is the active debug session."
   (add-hook 'kill-buffer-hook 'dap-ui-locals--cleanup-hooks nil t)
   (setq buffer-read-only t))
 
-(defun dap-ui--render-scope (debug-session scope)
-  "Render SCOPE for DEBUG-SESSION."
+(defun dap-ui--render-scope (debug-session request-id scope)
+  "Render SCOPE for DEBUG-SESSION.
+REQUEST-ID is the active request id. If it doesn't maches the
+`dap-ui--locals-request-id' the rendering will be skipped."
   (-let [(&hash "name" name "variablesReference" variables-reference) scope]
     (dap--send-message
      (dap--make-request "variables"
                        (list :variablesReference variables-reference))
      (dap--resp-handler
-      (-lambda ((&hash "body" (&hash "variables" variables)))
+      (-lambda ((&hash "body" (&hash "variables")))
         (with-current-buffer dap-ui--locals-buffer
-          (widget-create
-           `(tree-widget
-             :node (push-button :format "%[%t%]\n"
-                                :tag ,name)
-             :open t
-             :dynargs ,(lambda (_)
-                         (or (-map (apply-partially 'dap-ui--render-variable debug-session)
-                                   variables)
-                             (vector))))))))
+          (when (= request-id dap-ui--locals-request-id)
+            (widget-create
+             `(tree-widget
+               :node (push-button :format "%[%t%]\n"
+                                  :tag ,name)
+               :open t
+               :dynargs ,(lambda (_)
+                           (or (-map (apply-partially 'dap-ui--render-variable debug-session)
+                                     variables)
+                               (vector)))))))))
      debug-session)))
 
 (defun dap-ui-locals--refresh (&rest _)
   "Refresh locals buffer."
   (with-current-buffer dap-ui--locals-buffer
+    (setq-local dap-ui--locals-request-id (1+ dap-ui--locals-request-id))
     (let ((inhibit-read-only t)
-          (debug-session (dap--cur-session)))
+          (debug-session (dap--cur-session))
+          (request-id dap-ui--locals-request-id))
       (erase-buffer)
       (setq mode-line-format "Locals")
       (if (dap--session-running debug-session)
@@ -714,8 +722,9 @@ DEBUG-SESSION is the active debug session."
               (dap--send-message (dap--make-request "scopes"
                                                   (list :frameId frame-id))
                                 (dap--resp-handler
-                                 (-lambda ((&hash "body" (&hash "scopes" scopes)))
-                                   (mapc (apply-partially 'dap-ui--render-scope debug-session) scopes)))
+                                 (-lambda ((&hash "body" (&hash "scopes")))
+                                   (let ((inhibit-read-only t))
+                                     (mapc (apply-partially 'dap-ui--render-scope debug-session request-id) scopes))))
                                 debug-session)
             (insert "Thread not stopped..."))
         (insert "Session is not running...")))))
