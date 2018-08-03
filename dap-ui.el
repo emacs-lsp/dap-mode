@@ -195,7 +195,6 @@ THREAD-TREE will be widget element holding thread info."
                 (run-hook-with-args 'dap-ui-stack-frames-loaded session stack-frames)))))
          session)))))
 
-;;;###autoload
 (defun dap-ui-sessions-delete-session ()
   "Delete session under cursor."
   (interactive)
@@ -353,7 +352,6 @@ SESSION-TREE will be the root of the threads(session holder)."
   (when (not dap-ui--sessions-refresh-timer)
     (setq dap-ui--sessions-refresh-timer (run-at-time 0.5 nil 'dap-ui-sessions--refresh))))
 
-;;;###autoload
 (defun dap-ui-sessions ()
   "Show currently active sessions."
   (interactive)

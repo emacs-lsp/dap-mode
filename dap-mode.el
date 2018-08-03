@@ -544,7 +544,6 @@ thread exection but the server will log message."
   (setf (dap--debug-session-thread-id debug-session) nil)
   (run-hook-with-args 'dap-continue-hook debug-session))
 
-;;;###autoload
 (defun dap-continue ()
   "Call continue for the currently active session and thread."
   (interactive)
@@ -556,7 +555,6 @@ thread exection but the server will log message."
                      debug-session)
     (dap--resume-application debug-session)))
 
-;;;###autoload
 (defun dap-disconnect ()
   "Disconnect from the currently active session."
   (interactive)
@@ -566,7 +564,6 @@ thread exection but the server will log message."
                    (dap--cur-active-session-or-die))
   (dap--resume-application (dap--cur-active-session-or-die)))
 
-;;;###autoload
 (defun dap-next ()
   "Debug next."
   (interactive)
@@ -578,7 +575,6 @@ thread exection but the server will log message."
                      debug-session)
     (dap--resume-application debug-session)))
 
-;;;###autoload
 (defun dap-step-in ()
   "Debug step in."
   (interactive)
@@ -589,7 +585,6 @@ thread exection but the server will log message."
                    (dap--cur-active-session-or-die))
   (dap--resume-application (dap--cur-active-session-or-die)))
 
-;;;###autoload
 (defun dap-step-out ()
   "Debug step in."
   (interactive)
@@ -600,7 +595,6 @@ thread exection but the server will log message."
                    (dap--cur-active-session-or-die))
   (dap--resume-application (dap--cur-active-session-or-die)))
 
-;;;###autoload
 (defun dap-restart-frame ()
   "Restarts current frame."
   (interactive)
@@ -850,7 +844,6 @@ RESULT to use for the callback."
             (dap--persist-breakpoints breakpoints))))
        breakpoints))))
 
-;;;###autoload
 (defun dap-eval (expression)
   "Eval and print EXPRESSION."
   (interactive "sEval: ")
@@ -873,13 +866,11 @@ RESULT to use for the callback."
          debug-session)
       (error "There is no stopped debug session"))))
 
-;;;###autoload
 (defun dap-eval-thing-at-point ()
   "Eval and print EXPRESSION."
   (interactive)
   (dap-eval (thing-at-point 'symbol)))
 
-;;;###autoload
 (defun dap-eval-region (start end)
   "Evaluate the region between START and END."
   (interactive "r")
@@ -1079,7 +1070,6 @@ DEBUG-SESSIONS - list of the currently active sessions."
                               target-debug-sessions
                               'dap--debug-session-name))))))
 
-;;;###autoload
 (defun dap-register-debug-provider (language-id provide-configuration-fn)
   "Register debug configuration provider for LANGUAGE-ID.
 
@@ -1102,7 +1092,6 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
   (copy-tree (rest (dap--completing-read "Select configuration template:"
                                        dap--debug-template-configurations
                                        'first nil t))))
-;;;###autoload
 (defun dap-debug (debug-args)
   "Run debug configuration DEBUG-ARGS.
 
@@ -1118,7 +1107,6 @@ after selecting configuration template."
         (dap-start-debugging (funcall debug-provider debug-args))
       (error "There is no debug provider for language %s" (or type "'Not specified'")))))
 
-;;;###autoload
 (defun dap-debug-last ()
   "Debug last configuration."
   (interactive)
@@ -1126,7 +1114,6 @@ after selecting configuration template."
       (dap-debug configuration)
     (funcall-interactively 'dap-debug-select-configuration)))
 
-;;;###autoload
 (defun dap-debug-recent ()
   "Debug last configuration."
   (interactive)
@@ -1136,7 +1123,6 @@ after selecting configuration template."
        rest
        dap-debug))
 
-;;;###autoload
 (defun dap-go-to-output-buffer ()
   "Go to output buffer."
   (interactive)
@@ -1147,7 +1133,6 @@ after selecting configuration template."
     (select-window win)
     (fit-window-to-buffer nil nil 10)))
 
-;;;###autoload
 (defun dap-delete-session (debug-session)
   "Remove DEBUG-SESSION.
 If the current session it will be terminated."
@@ -1170,7 +1155,6 @@ If the current session it will be terminated."
                         (lambda (_resp) (funcall cleanup-fn)))
                        debug-session))))
 
-;;;###autoload
 (defun dap-delete-all-sessions ()
   "Terminate/remove all sessions."
   (interactive)
@@ -1183,7 +1167,6 @@ If the current session it will be terminated."
   (dap--set-sessions lsp--cur-workspace ())
   (dap--switch-to-session nil))
 
-;;;###autoload
 (defun dap-delete-all-breakpoints ()
   "Delete all breakpoints."
   (interactive))
@@ -1193,6 +1176,7 @@ If the current session it will be terminated."
   (let* ((breakpoints (dap--get-breakpoints lsp--cur-workspace)))
     (dap--set-breakpoints-in-file buffer-file-name (gethash buffer-file-name  breakpoints)) ))
 
+;;;###autoload
 (define-minor-mode dap-mode
   "Global minor mode for DAP mode."
   :init-value nil
@@ -1203,7 +1187,6 @@ If the current session it will be terminated."
   (add-hook 'lsp-after-initialize-hook 'dap--after-initialize)
   (add-hook 'lsp-after-open-hook 'dap--after-open))
 
-;;;###autoload
 (defun dap-turn-on-dap-mode ()
   "Turn on function `dap-mode'."
   (interactive)
