@@ -424,22 +424,20 @@ VISUALS and MSG will be used for the overlay."
   (mapc #'delete-overlay dap-ui--breakpoint-overlays)
   (setq dap-ui--breakpoint-overlays '()))
 
-(defun dap-ui--breakpoint-visuals (breakpoint-dap)
+(defun dap-ui--breakpoint-visuals (breakpoint breakpoint-dap)
   "Calculate visuals for a breakpoint based on the data comming from DAP server.
 BREAKPOINT-DAP - nil or the data comming from DAP."
-  (cond
-   ((and breakpoint-dap (gethash "verified" breakpoint-dap))
-    (list :face 'dap-ui-verified-breakpoint-face
-          :char "."
-          :bitmap 'breakpoint
-          :fringe 'dap-ui-breakpoint-verified-fringe
-          :priority 'dap-ui--brekapoint-priority))
-   (t
-    (list :face 'dap-ui-pending-breakpoint-face
-          :char "."
-          :bitmap 'breakpoint
-          :fringe 'breakpoint-disabled
-          :priority dap-ui--brekapoint-priority))))
+  (list :face 'dap-ui-verified-breakpoint-face
+        :char "."
+        :bitmap (cond
+                 ((plist-get breakpoint :condition) 'filled-rectangle)
+                 ((plist-get breakpoint :log-message) 'right-arrow)
+                 ((plist-get breakpoint :hit-condition) 'hollow-rectangle)
+                 (t 'breakpoint))
+        :fringe (if (and breakpoint-dap (gethash "verified" breakpoint-dap))
+                    'dap-ui-breakpoint-verified-fringe
+                  'breakpoint-disabled)
+        :priority 'dap-ui--brekapoint-priority))
 
 (defun dap-ui--refresh-breakpoints ()
   "Refresh breakpoints in FILE-NAME.
@@ -450,7 +448,7 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
                                     (dap-breakpoint-get-point bp)
                                     nil nil
                                     "Breakpoint"
-                                    (dap-ui--breakpoint-visuals remote-bp))
+                                    (dap-ui--breakpoint-visuals bp remote-bp))
                 dap-ui--breakpoint-overlays))
         (-zip-fill
          nil
