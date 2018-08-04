@@ -861,7 +861,6 @@ RESULT to use for the callback."
            (-let [msg (if (gethash "success" result)
                           (gethash "result" (gethash "body" result))
                         (gethash "message" result))]
-             (message "%s" msg)
              (dap-overlays--display-interactive-eval-result msg (point))))
          debug-session)
       (error "There is no stopped debug session"))))
@@ -1145,8 +1144,7 @@ If the current session it will be terminated."
                        (when (eq (dap--cur-session) debug-session)
                          (dap--switch-to-session nil))
                        (-when-let (buffer (dap--debug-session-output-buffer debug-session))
-                         (kill-buffer buffer))
-                       (message "Session %s deleted." (dap--debug-session-name debug-session)))))
+                         (kill-buffer buffer)))))
     (if (eq 'terminated (dap--debug-session-state debug-session))
         (funcall cleanup-fn)
       (dap--send-message (dap--make-request "disconnect"

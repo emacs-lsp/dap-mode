@@ -425,7 +425,7 @@ VISUALS and MSG will be used for the overlay."
   (setq dap-ui--breakpoint-overlays '()))
 
 (defun dap-ui--breakpoint-visuals (breakpoint breakpoint-dap)
-  "Calculate visuals for a breakpoint based on the data comming from DAP server.
+  "Calculate visuals for a BREAKPOINT based on the data comming from DAP server.
 BREAKPOINT-DAP - nil or the data comming from DAP."
   (list :face 'dap-ui-verified-breakpoint-face
         :char "."

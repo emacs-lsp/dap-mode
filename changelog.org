@@ -1,0 +1,12 @@
+# -*- fill-column: 100 -*-
+#+STARTUP: content
+
+* Changelog
+** Current master
+** v0.1
+   - Support for managing breakpoints
+   - Next/StepIn/StepOut operations
+   - Sessions window
+   - Inspections
+   - Evaluating
+   - Breakpoint persistence and session management
