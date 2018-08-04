@@ -20,7 +20,7 @@
 
 ;; URL: https://github.com/yyoncho/dap-mode
 ;; Package-Requires: ((emacs "25.1") (tree-mode) (bui "1.1.0"))
-;; Version: 0.1
+;; Version: 0.2
 
 ;;; Commentary:
 ;; DAP Windows/overlays

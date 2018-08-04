@@ -19,7 +19,7 @@
 ;; Keywords: languages, debug
 ;; URL: https://github.com/yyoncho/dap-mode
 ;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0") (dash-functional "1.2.0") (tree-mode) (bui "1.1.0") (f "0.20.0") (s "1.12.0") (lsp-java "0.1"))
-;; Version: 0.1
+;; Version: 0.2
 
 ;;; Commentary:
 ;; Debug Adapter Protocol client for Emacs.

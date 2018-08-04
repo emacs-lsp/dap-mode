@@ -18,7 +18,7 @@
 
 ;; URL: https://github.com/yyoncho/dap-mode
 ;; Package-Requires: ((emacs "25.1"))
-;; Version: 0.1
+;; Version: 0.2
 
 ;;; Commentary:
 ;; Use `dap-overlays--make-overlay' to place a generic overlay at point. Or use
