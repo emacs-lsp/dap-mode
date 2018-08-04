@@ -483,9 +483,7 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
   "Handler for `dap-stack-frame-changed-hook'.
 DEBUG-SESSION is the debug session triggering the event."
   (when debug-session
-    (-when-let ((&hash "source" source
-                       "line" line
-                       "column" column) (dap--debug-session-active-frame debug-session))
+    (-when-let ((&hash "source" "line" "column") (dap--debug-session-active-frame debug-session))
       (when source
         (goto-char (point-min))
         (forward-line (1- line))
@@ -851,6 +849,8 @@ REQUEST-ID is the active request id. If it doesn't maches the
     (add-hook 'bui-after-redisplay-hook
               (lambda () (setq-local lsp--cur-workspace workspace)))
     (run-hooks 'dap-ui-breakpoints-ui-list-displayed-hook)))
+
+
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here
