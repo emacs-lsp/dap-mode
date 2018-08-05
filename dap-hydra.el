@@ -19,7 +19,7 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0") (lsp-java "0.1"))
+;; Package-Requires: ((emacs "25.1") (lsp-mode "4.0") (lsp-java "0.1"))
 ;; Version: 0.2
 ;; Hydra
 
@@ -31,7 +31,7 @@
 (require 'dap-mode)
 (require 'dap-ui)
 
-(defhydra hydra-dap (:color pink :hint nil :foreign-keys run)
+(defhydra dap-hydra (:color pink :hint nil :foreign-keys run)
   "
 ^Stepping^       ^Switch^                    ^Breakpoints^            ^Eval
 ^^^^^^^^-------------------------------------------------------------------------------------
@@ -69,4 +69,5 @@ _Q_: Disconnect  _sb_: List breakpoints      _bh_: Set hit count     _eis_: Insp
   ("Q" dap-disconnect :color red))
 
 (provide 'dap-hydra)
+
 ;;; dap-hydra.el ends here

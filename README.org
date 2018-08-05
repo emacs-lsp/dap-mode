@@ -17,6 +17,8 @@
   - [[#java][Java]]
     - [[#installation][Installation]]
     - [[#commands][Commands]]
+  - [[#python][Python]]
+    - [[#installation-1][Installation]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
     - [[#example][Example]]
 - [[#links][Links]]
@@ -31,7 +33,7 @@
 ** Project status
    The project is in it's early stage and is still not extensively tested. The
    API considered unstable until 1.0 release is out. It is tested only against
-   Java.
+   Java and Python.
 * Screenshot
   [[file:screenshots/MultiSession.png]]
 * Features
@@ -136,8 +138,7 @@
     #+END_SRC
     Then add the following settings in your emacs config file:
     #+BEGIN_SRC elisp
-      (dap-mode 1)
-      (dap-ui-mode 1)
+      (require 'dap-java)
 
       (add-to-list 'lsp-java-bundles (expand-file-name
                                      (locate-user-emacs-file
@@ -151,6 +152,18 @@
     | ~dap-java-debug-test-method~ | Debug test method |
     | ~dap-java-run-test-class~    | Run test class    |
     | ~dap-java-debug-test-class~  | Debug test class  |
+** Python
+*** Installation
+    - Make sure you have installed and configured [[https://github.com/emacs-lsp/lsp-python][lsp-python]].
+    - install latest version of ptvsd.
+      #+BEGIN_SRC bash
+        pip install "ptvsd>=4.1.1a11"
+      #+END_SRC
+      - Then add the following line in your config:
+      #+BEGIN_SRC elisp
+        (require 'dap-python)
+      #+END_SRC
+      This will add the python related configuration to  ~dap-debug~.
 * Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating

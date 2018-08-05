@@ -19,7 +19,7 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((emacs "25.1") (tree-mode) (bui "1.1.0"))
+;; Package-Requires: ((emacs "25.1") (tree-mode "1.1.1.1") (bui "1.1.0"))
 ;; Version: 0.2
 
 ;;; Commentary:
@@ -156,14 +156,12 @@ THREAD-TREE will be widget element holding thread info."
          (stack-frames (gethash thread-id (dap--debug-session-thread-stack-frames session))))
     (if stack-frames
         ;; aldready loaded
-        (mapcar (-lambda ((stack-frame &as
-                                       &hash
-                                       "name" name
-                                       "line" line
-                                       "source" source))
-                  (let ((tag (if source
-                                 (format "%s (%s:%s)" name (gethash "name" source) line)
-                               (format "%s (Unknown source)" name))))
+        (mapcar (-lambda ((stack-frame &as &hash "name" "line" "source"))
+                  (let* ((source-name (or (gethash "name" source)
+                                          (gethash "path" source)))
+                         (tag (if source
+                                  (format "%s (%s:%s)" name source-name line)
+                                (format "%s (Unknown source)" name))))
                     `(tree-widget :tag ,tag
                                   :format "%[%t%]\n"
                                   :stack-frame ,stack-frame
@@ -173,7 +171,6 @@ THREAD-TREE will be widget element holding thread info."
                                   :dynargs dap-ui--stack-frames
                                   :open nil)))
                 stack-frames)
-
       (when (and (string= (gethash thread-id (dap--debug-session-thread-states session)) "stopped")
                  (widget-get thread-tree :loading))
         (widget-put thread-tree :loading t)
@@ -483,14 +480,14 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
   "Handler for `dap-stack-frame-changed-hook'.
 DEBUG-SESSION is the debug session triggering the event."
   (when debug-session
-    (-when-let ((&hash "source" "line" "column") (dap--debug-session-active-frame debug-session))
-      (when source
+    (-when-let* (((&hash "source" "line" "column") (dap--debug-session-active-frame debug-session))
+                 (path (-some->> source (gethash "path") lsp--uri-to-path))
+                 (buffer (find-buffer-visiting path)))
+      (with-current-buffer buffer
         (goto-char (point-min))
         (forward-line (1- line))
         (forward-char column)
-        (dap-ui--set-debug-marker debug-session
-                             (lsp--uri-to-path (gethash "path" source))
-                             (point))))))
+        (dap-ui--set-debug-marker debug-session path (point))))))
 
 (defun dap-ui--after-open ()
   "Handler for `lsp-after-open-hook'."
@@ -600,7 +597,7 @@ DEBUG-SESSION is the active debug session."
       :open nil
       :indexed-variables ,indexed-variables
       :variables-reference ,variables-reference
-      :dynargs ,(when (not (zerop variables-reference))
+      :dynargs ,(when (and variables-reference (not (zerop variables-reference)))
                   (apply-partially 'dap-ui--load-variables debug-session)))))
 
 

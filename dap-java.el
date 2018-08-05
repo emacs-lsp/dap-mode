@@ -211,8 +211,8 @@ attaching to the test."
                                        :stopOnEntry :json-false
                                        :host "localhost"
                                        :request "launch"
-                                       :modulepaths (vector)
-                                       :classpaths nil
+                                       :modulePaths (vector)
+                                       :classPaths nil
                                        :name "Run Configuration"
                                        :projectName nil
                                        :mainClass nil))

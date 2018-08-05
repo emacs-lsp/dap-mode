@@ -18,7 +18,7 @@
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords: languages, debug
 ;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0") (dash-functional "1.2.0") (tree-mode) (bui "1.1.0") (f "0.20.0") (s "1.12.0") (lsp-java "0.1"))
+;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0") (dash-functional "1.2.0") (tree-mode "1.1.1.1") (bui "1.1.0") (f "0.20.0") (s "1.12.0") (lsp-java "0.1"))
 ;; Version: 0.2
 
 ;;; Commentary:
@@ -950,14 +950,6 @@ DEBUG-SESSIONS - list of the currently active sessions."
             file-breakpoints)
       (run-hooks 'dap-breakpoints-changed-hook))))
 
-;; load persisted debug configurations.
-(defun dap--debug-configurations ()
-  "Gets the stored configurations."
-  (dap--read-from-file
-   (dap--locate-workspace-file
-    lsp--cur-workspace
-    dap--debug-configurations-file)))
-
 (defun dap--read-from-file (file)
   "Read FILE content."
   (with-temp-buffer
@@ -1041,9 +1033,8 @@ DEBUG-SESSIONS - list of the currently active sessions."
            dap--debug-session-workspace
            lsp--workspace-buffers
            (--each (with-current-buffer it
-                     (dap--set-breakpoints-in-file
-                      buffer-file-name
-                      (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))))
+                     (dap--set-breakpoints-in-file buffer-file-name
+                                                 (gethash buffer-file-name (dap--get-breakpoints lsp--cur-workspace))))))
 
   (run-hook-with-args 'dap-session-changed-hook lsp--cur-workspace)
 
@@ -1085,6 +1076,18 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
   (add-to-list
    'dap--debug-template-configurations
    (cons configuration-name configuration-settings)))
+
+(defun dap--find-available-port (host starting-port)
+  "Find available port on HOST starting from STARTING-PORT."
+  (let ((success nil)
+        (port starting-port))
+    (while (and (not success))
+      (condition-case _err
+          (progn
+            (delete-process (open-network-stream "*connection-test*" nil host port :type 'plain))
+            (setq port (1+ port)))
+        (file-error (setq success t))))
+    port))
 
 (defun dap--select-template ()
   "Select the configuration to launch."

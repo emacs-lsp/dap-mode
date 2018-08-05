@@ -39,6 +39,7 @@
    CLOSED: [2018-07-29 Sun 23:19]
 ** TODO Exception breakpoints.
 ** TODO update breakpoint visualization when there is condition/hit count/debug message
+** TODO cleanup of conditions
 * Stepping
 ** DONE Visual indication
    CLOSED: [2018-06-16 Sat 09:57]
@@ -64,6 +65,7 @@
    CLOSED: [2018-07-18 Wed 21:54]
 * Java
 ** TODO Build before runnning
+* TODO Python
 * General
 ** DONE Error handlers
    CLOSED: [2018-06-23 Sat 21:54]
