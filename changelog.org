@@ -3,6 +3,9 @@
 
 * Changelog
 ** Current master
+   - Added python support
+   - Added ~dap-hydra~
+   - Bug fixing.
 ** v0.1
    - Support for managing breakpoints
    - Next/StepIn/StepOut operations
