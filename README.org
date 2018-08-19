@@ -12,6 +12,7 @@
   - [[#locals][Locals]]
   - [[#breakpoints][Breakpoints]]
     - [[#keybindings-1][Keybindings]]
+  - [[#dap-debug-repl][DAP debug REPL]]
 - [[#configuration][Configuration]]
   - [[#dap-mode-configuration][DAP mode configuration]]
   - [[#java][Java]]
@@ -80,6 +81,7 @@
    | ~dap-ui-locals~                 | Show locals view                     |
    | ~dap-ui-breakpoints~            | Show breakpoints view                |
    | ~dap-ui-inspect~                | Inspect                              |
+   | ~dap-ui-repl~                   | DAP UI REPL                          |
    | ~dap-ui-inspect-region~         | Inspect region                       |
    | ~dap-ui-inspect-thing-at-point~ | Inspect symbol at point              |
 
@@ -105,6 +107,12 @@
     | ~bui-list-mark~                      | Mark breakpoint under point    | m           |
     | ~bui-list-unmark~                    | Unmark breakpoint under point  | u           |
     | ~bui-list-unmark-all~                | Unmark breakpoint under point  | U           |
+** DAP debug REPL
+   DAP provides a debug shell to execute command when the program has hit
+   breakpoints. The REPL has the same features as standart emacs shell (e. g.
+   command history, ~C-p/n~ navigation through history, etc.) in addition to
+   optional ~company-mode~ autocompletion.
+  [[file:screenshots/dap-ui-repl.png]]
 * Configuration
 ** DAP mode configuration
    Enable both ~dap-mode~ and ~dap-ui-mode~.
@@ -141,8 +149,8 @@
       (require 'dap-java)
 
       (add-to-list 'lsp-java-bundles (expand-file-name
-                                     (locate-user-emacs-file
-                                      "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.10.0.jar")))
+                                      (locate-user-emacs-file
+                                       "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.10.0.jar")))
     #+END_SRC
 *** Commands
     | Command                      | Description       |
@@ -185,10 +193,10 @@
          conf))
 
       (dap-register-debug-template "Example Configuration"
-                                  (list :type "java"
-                                        :request "launch"
-                                        :args ""
-                                        :name "Run Configuration"))
+                                   (list :type "java"
+                                         :request "launch"
+                                         :args ""
+                                         :name "Run Configuration"))
     #+END_SRC
 * Links
   - [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]]
@@ -198,4 +206,3 @@
   If you notice a bug, open an issue on Github Issues.
 * What's next
   - Watches
-  - Debug console

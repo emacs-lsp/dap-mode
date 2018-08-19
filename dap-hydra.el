@@ -19,7 +19,7 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((emacs "25.1") (lsp-mode "4.0") (lsp-java "0.1"))
+;; Package-Requires: ((emacs "25.1") (hydra "0.14.0"))
 ;; Version: 0.2
 ;; Hydra
 
@@ -33,19 +33,20 @@
 
 (defhydra dap-hydra (:color pink :hint nil :foreign-keys run)
   "
-^Stepping^       ^Switch^                    ^Breakpoints^            ^Eval
-^^^^^^^^-------------------------------------------------------------------------------------
-_n_: Next        _ss_: Session               _bt_: Toggle            _ee_: Eval
-_i_: Step in     _st_: Thread                _bd_: Delete            _es_: Eval thing at point
-_o_: Step out    _sf_: Stack frame           _ba_: Add               _er_: Eval region
-_c_: Continue    _sl_: List locals           _bc_: Set condition     _eii_: Inspect
-_Q_: Disconnect  _sb_: List breakpoints      _bh_: Set hit count     _eis_: Inspect thing at point
-^ ^              _sS_: List sessions         _bl_: Set log message   _eir_: Inspect region
+^Stepping^          ^Switch^                 ^Breakpoints^           ^Eval
+^^^^^^^^-----------------------------------------------------------------------------------------
+_n_: Next           _ss_: Session            _bt_: Toggle            _ee_: Eval
+_i_: Step in        _st_: Thread             _bd_: Delete            _er_: Eval region
+_o_: Step out       _sf_: Stack frame        _ba_: Add               _es_: Eval thing at point
+_c_: Continue       _sl_: List locals        _bc_: Set condition     _eii_: Inspect
+_r_: Restart frame  _sb_: List breakpoints   _bh_: Set hit count     _eir_: Inspect region
+_Q_: Disconnect     _sS_: List sessions      _bl_: Set log message   _eis_: Inspect thing at point
 "
   ("n" dap-next)
   ("i" dap-step-in)
   ("o" dap-step-out)
   ("c" dap-continue)
+  ("r" dap-restart-frame)
   ("ss" dap-switch-session)
   ("st" dap-switch-thread)
   ("sf" dap-switch-stack-frame)
@@ -64,7 +65,6 @@ _Q_: Disconnect  _sb_: List breakpoints      _bh_: Set hit count     _eis_: Insp
   ("eii" dap-ui-inspect)
   ("eir" dap-ui-inspect-region)
   ("eis" dap-ui-inspect-thing-at-point)
-
   ("q" nil "quit" :color blue)
   ("Q" dap-disconnect :color red))
 

@@ -5,6 +5,7 @@
 ** Current master
    - Added python support
    - Added ~dap-hydra~
+   - Added ~dap-ui-repl~
    - Bug fixing.
 ** v0.1
    - Support for managing breakpoints

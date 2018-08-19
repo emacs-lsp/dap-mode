@@ -21,6 +21,8 @@
    CLOSED: [2018-06-20 Wed 22:47]
 ** TODO Run in terminal
 ** TODO Run no debug
+** TODO Run last configurations
+** TODO Add option to specify environment variables in launch props
 ** DONE Attach.
    CLOSED: [2018-07-18 Wed 21:53]
 * Beakpoints
@@ -60,12 +62,15 @@
 ** DONE Implement ...
    CLOSED: [2018-07-18 Wed 21:54]
 ** TODO Update local value
+** TODO Paging of multiple results
 * Run configurations management
 ** DONE Persistence
    CLOSED: [2018-07-18 Wed 21:54]
 * Java
 ** TODO Build before runnning
-* TODO Python
+* DONE Python
+  CLOSED: [2018-08-08 Wed 19:19]
+* TODO Rust language
 * General
 ** DONE Error handlers
    CLOSED: [2018-06-23 Sat 21:54]

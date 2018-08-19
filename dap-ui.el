@@ -32,6 +32,8 @@
 (require 'wid-edit)
 (require 'dash)
 (require 'bui)
+(require 'comint)
+(require 'compile)
 
 (defcustom dap-ui-stack-frames-loaded nil
   "Stack frames loaded."
@@ -99,11 +101,9 @@
   (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
 
 (defconst dap-ui--locals-buffer "*dap-ui-locals*")
-
 (defconst dap-ui--sessions-buffer "*dap-ui-sessions*")
-
 (defconst dap-ui--inspect-buffer "*dap-ui-inspect*")
-
+(defconst dap-ui--debug-window-buffer  "*debug-window*")
 (defconst dap-ui--brekapoint-priority 200)
 
 ;; define debug marker priority so it will be over the breakpoint marker if
@@ -113,7 +113,8 @@
 (defvar dap-ui-buffer-configurations
   `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.20)))
     (,dap-ui--inspect-buffer . ((side . right) (slot . 2) (window-width . 0.20)))
-    (,dap-ui--sessions-buffer . ((side . right) (slot . 3) (window-width . 0.20)))))
+    (,dap-ui--sessions-buffer . ((side . right) (slot . 3) (window-width . 0.20)))
+    (,dap-ui--debug-window-buffer . ((side . bottom) (slot . 3) (window-width . 0.20)))))
 
 (defvar dap-ui--sessions-refresh-timer nil)
 
@@ -241,6 +242,8 @@ SESSION-TREE will be the root of the threads(session holder)."
     (define-key map (kbd "TAB") #'tree-mode-toggle-expand)
     (define-key map (kbd "RET") #'dap-ui-sessions-select)
     map))
+
+
 
 (defvar dap-ui-inspect-mode-map
   (let ((map (make-sparse-keymap)))
@@ -847,7 +850,27 @@ REQUEST-ID is the active request id. If it doesn't maches the
               (lambda () (setq-local lsp--cur-workspace workspace)))
     (run-hooks 'dap-ui-breakpoints-ui-list-displayed-hook)))
 
+(defun dap-ui-debug-sessions-send ()
+  "Send current selection for evaluation to the DAP server."
+  (interactive))
 
+(defvar dap-ui-debug-window-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") 'dap-ui-debug-sessions-send)
+    map))
+
+(define-minor-mode dap-ui-debug-window-mode
+  "Debug window mode."
+  :init-value nil
+  :group dap-ui
+  :keymap dap-ui-debug-window-mode-map)
+
+(defun dap-ui-debug-window ()
+  "Display debug window."
+  (interactive)
+
+  (dap-ui--show-buffer (get-buffer-create dap-ui--debug-window-buffer))
+  (debug-window-mode 1))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here
