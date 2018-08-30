@@ -1,3 +1,5 @@
+[[https://melpa.org/#/dap-mode][file:https://melpa.org/packages/dap-mode-badge.svg]]
+[[http://spacemacs.org][file:https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg]]
 [[https://travis-ci.org/yyoncho/dap-mode][https://travis-ci.org/yyoncho/dap-mode.svg?branch=master]]
 [[https://coveralls.io/github/yyoncho/dap-mode?branch=master][https://coveralls.io/repos/github/yyoncho/dap-mode/badge.svg?branch=master]]
 * Table of Contents                                       :TOC_4_gh:noexport:
@@ -127,8 +129,7 @@
     latest version of [[https://github.com/Microsoft/java-debug][Debug Java]] from [[https://mvnrepository.com/artifact/com.microsoft.java/com.microsoft.java.debug.plugin ][Maven Central]] and add it to
     ~lsp-java-bundles~. If you want to run unit tests you have to download the
     [[https://github.com/junit-team/junit5][JUnit5's]] JUnit Platform Console Standalone from [[https://mvnrepository.com/artifact/org.junit.platform/junit-platform-console-standalone][Maven Central]] and you must
-    swith Eclipse Che JDT server. On Linux/MacOS you can do the following:. On
-    Linux you can do that by running the following command:
+    swith Eclipse Che JDT server. On Linux/MacOS you can do the following:
     #+BEGIN_SRC bash
       # Download debug plugin
       mkdir -p ~/.emacs.d/eclipse.jdt.ls/plugins/
