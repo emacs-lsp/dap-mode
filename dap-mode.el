@@ -903,7 +903,17 @@ DEBUG-SESSIONS - list of the currently active sessions."
     session-name))
 
 (defun dap-start-debugging (launch-args)
-  "Start debug session with LAUNCH-ARGS."
+  "Start debug session with LAUNCH-ARGS.
+Special arguments:
+
+:wait-for-port - boolean defines whether the debug configuration
+should be started after the :port argument is taken.
+
+:program-to-start - when set it will be started using `compile' before starting the debug process."
+  (-let (((&plist :program-to-start :wait-for-port :port :hostName host) launch-args))
+    (when program-to-start (compile program-to-start))
+    (when wait-for-port (dap--wait-for-port host port)))
+
   (let ((debug-session (dap--create-session launch-args))
         (workspace lsp--cur-workspace)
         (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
@@ -1096,14 +1106,12 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
 If DEBUG-ARGS is not specified the configuration is generated
 after selecting configuration template."
   (interactive (list (dap--select-template)))
-  (-let (((&plist :type :program-to-start :wait-for-port :port :hostName host) debug-args))
-    ;; start/attach case
-    (when program-to-start (compile program-to-start ))
-    (when wait-for-port (dap--wait-for-port host port))
-
-    (if-let ((debug-provider (gethash type dap--debug-providers)))
-        (dap-start-debugging (funcall debug-provider debug-args))
-      (error "There is no debug provider for language %s" (or type "'Not specified'")))))
+  (-if-let (updated-args (-some-> (plist-get debug-args :type)
+                                  (gethash dap--debug-providers)
+                                  (funcall debug-args)))
+      (dap-start-debugging updated-args)
+    (error "There is no debug provider for language %s"
+           (or (plist-get debug-args :type) "'Not specified'"))))
 
 (defun dap-debug-last ()
   "Debug last configuration."

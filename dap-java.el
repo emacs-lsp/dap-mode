@@ -31,6 +31,12 @@
 (require 'lsp-java)
 (require 'dap-mode)
 
+(defcustom  dap-java-compile-port 33000
+  "The debug port which will be used for compile/attach configuration.
+If the port is taken, DAP will try the next port."
+  :group 'dap-python
+  :type 'number)
+
 (defcustom dap-java-test-runner
   (expand-file-name (locate-user-emacs-file "eclipse.jdt.ls/runner/junit-platform-console-standalone.jar"))
   "DAP Java test runner."
@@ -67,13 +73,13 @@ Please check whether the server is configured propertly"))
                                    main-classes))
       current-class)
      (t (dap--completing-read "Select main class to run: "
-                             main-classes
-                             (lambda (it)
-                               (format "%s(%s)"
-                                       (gethash "mainClass" it)
-                                       (gethash "projectName" it)))
-                             nil
-                             t)))))
+                              main-classes
+                              (lambda (it)
+                                (format "%s(%s)"
+                                        (gethash "mainClass" it)
+                                        (gethash "projectName" it)))
+                              nil
+                              t)))))
 
 (defun dap-java--populate-launch-args (conf)
   "Populate CONF with launch related configurations."
@@ -91,37 +97,61 @@ Please check whether the server is configured propertly"))
     (dap--put-if-absent conf :request "launch")
     (dap--put-if-absent conf :modulePaths (vector))
     (dap--put-if-absent conf
-                       :classPaths
-                       (or (second
-                            (lsp-send-execute-command "vscode.java.resolveClasspath"
-                                                     (list main-class project-name)))
-                           (error "Unable to resolve classpath")))
+                        :classPaths
+                        (or (second
+                             (lsp-send-execute-command "vscode.java.resolveClasspath"
+                                                       (list main-class project-name)))
+                            (error "Unable to resolve classpath")))
     (dap--put-if-absent conf :name (format "%s (%s)"
-                                          (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
-                                              (match-string 1 main-class)
-                                            main-class)
-                                          project-name))
+                                           (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
+                                               (match-string 1 main-class)
+                                             main-class)
+                                           project-name))
     conf))
 
 (defun dap-java--populate-attach-args (conf)
   "Populate attach arguments.
 CONF - the startup configuration."
   (dap--put-if-absent conf :hostName (read-string "Enter host: " "localhost"))
-  (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " (number-to-string dap-java-default-debug-port))))
+  (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: "
+                                                                (number-to-string dap-java-default-debug-port))))
   (dap--put-if-absent conf :host "localhost")
   (dap--put-if-absent conf :name (format "%s(%s)"
-                                        (plist-get conf :host)
-                                        (plist-get conf :port)))
+                                         (plist-get conf :host)
+                                         (plist-get conf :port)))
   conf)
+
+(defun dap-java--populate-compile-attach-args (conf)
+  "Populate the CONF for running compile/attach.
+Populate the arguments like normal 'Launch' request but then
+initiate `compile' and attach to the process."
+  (dap-java--populate-launch-args conf)
+  (-let* (((&plist :mainClass :projectName :classPaths classpaths) conf)
+          (port   (dap--find-available-port "localhost" dap-java-compile-port))
+          (program-to-start (format "%s -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=%s,quiet=y -cp $CLASSPATH_ARGS %s"
+                                    lsp-java-java-path
+                                    port
+                                    mainClass)))
+    (setenv "CLASSPATH_ARGS" (s-join ":" classpaths))
+    (dap-java--populate-attach-args
+     (list :type "java"
+           :request "attach"
+           :hostName "localhost"
+           :projectName projectName
+           :host "localhost"
+           :wait-for-port t
+           :program-to-start program-to-start
+           :port port))))
 
 (defun dap-java--populate-default-args (conf)
   "Populate all of the fields that are not present in CONF."
   (setq conf (plist-put conf :type "java"))
 
-  (pcase (plist-get conf :request)
-    ("launch" (dap-java--populate-launch-args conf))
-    ("attach" (dap-java--populate-attach-args conf))
-    (_ (dap-java--populate-launch-args conf)))
+  (setq conf (pcase (plist-get conf :request)
+               ("launch" (dap-java--populate-launch-args conf))
+               ("attach" (dap-java--populate-attach-args conf))
+               ("compile_attach" (dap-java--populate-compile-attach-args conf))
+               (_ (dap-java--populate-launch-args conf))))
   (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
   (plist-put conf :__sessionId (number-to-string (float-time)))
   conf)
@@ -204,23 +234,35 @@ attaching to the test."
   '(progn
      (dap-register-debug-provider "java" 'dap-java--populate-default-args)
      (dap-register-debug-template "Java Run Configuration"
-                                 (list :type "java"
-                                       :request "launch"
-                                       :args ""
-                                       :cwd nil
-                                       :stopOnEntry :json-false
-                                       :host "localhost"
-                                       :request "launch"
-                                       :modulePaths (vector)
-                                       :classPaths nil
-                                       :name "Run Configuration"
-                                       :projectName nil
-                                       :mainClass nil))
+                                  (list :type "java"
+                                        :request "launch"
+                                        :args ""
+                                        :cwd nil
+                                        :stopOnEntry :json-false
+                                        :host "localhost"
+                                        :request "launch"
+                                        :modulePaths (vector)
+                                        :classPaths nil
+                                        :name "Run Configuration"
+                                        :projectName nil
+                                        :mainClass nil))
+     (dap-register-debug-template "Java Run Configuration (compile/attach)"
+                                  (list :type "java"
+                                        :request "compile_attach"
+                                        :args ""
+                                        :cwd nil
+                                        :host "localhost"
+                                        :request "launch"
+                                        :modulePaths (vector)
+                                        :classPaths nil
+                                        :name "Run"
+                                        :projectName nil
+                                        :mainClass nil))
      (dap-register-debug-template "Java Attach"
-                                 (list :type "java"
-                                       :request "attach"
-                                       :hostName "localhost"
-                                       :port nil))))
+                                  (list :type "java"
+                                        :request "attach"
+                                        :hostName "localhost"
+                                        :port nil))))
 
 (provide 'dap-java)
 ;;; dap-java.el ends here
