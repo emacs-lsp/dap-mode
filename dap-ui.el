@@ -34,6 +34,7 @@
 (require 'bui)
 (require 'comint)
 (require 'compile)
+(require 'gdb-mi)
 
 (defcustom dap-ui-stack-frames-loaded nil
   "Stack frames loaded."
