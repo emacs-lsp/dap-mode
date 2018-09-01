@@ -1,7 +1,6 @@
 [[https://melpa.org/#/dap-mode][file:https://melpa.org/packages/dap-mode-badge.svg]]
 [[http://spacemacs.org][file:https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg]]
 [[https://travis-ci.org/yyoncho/dap-mode][https://travis-ci.org/yyoncho/dap-mode.svg?branch=master]]
-[[https://coveralls.io/github/yyoncho/dap-mode?branch=master][https://coveralls.io/repos/github/yyoncho/dap-mode/badge.svg?branch=master]]
 * Table of Contents                                       :TOC_4_gh:noexport:
 - [[#summary][Summary]]
   - [[#project-status][Project status]]

@@ -20,7 +20,6 @@
 
 ;;; Code:
 
-
 (require 'f)
 (require 's)
 (require 'dap-java)
@@ -74,6 +73,10 @@
     (mkdir (f-dirname file-name) t)
     (find-file file-name)
     (save-buffer)))
+
+(And "^I open a project file \"\\([^\"]+\\)\"$"
+  (lambda (file-name)
+    (find-file (f-join dap-java-maven-project-root file-name))))
 
 (And "^I add project \"\\([^\"]+\\)\" folder \"\\([^\"]+\\)\" to the list of workspace folders$"
   (lambda (project dir-name)
@@ -167,7 +170,7 @@
 
 (And "^I call:$"
   (lambda (fn-to-call)
-   (call-interactively (intern fn-to-call))))
+    (call-interactively (intern fn-to-call))))
 
 (And "^I kill buffer \"\\([^\"]+\\)\"$"
   (lambda (buffer-name)

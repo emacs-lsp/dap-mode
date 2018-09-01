@@ -153,6 +153,10 @@ The hook will be called with the session file and the new set of breakpoint loca
   ;; Leftover data from previous chunk; to be processed
   (leftovers nil))
 
+(defun dap--get-sessions (workspace)
+  "Get sessions for WORKSPACE."
+  (lsp-workspace-get-metadata "debug-sessions" workspace))
+
 (defun dap--wait-for-port (host port &optional retry-count sleep-interval)
   "Wait for PORT to be open on HOST.
 
@@ -310,10 +314,6 @@ WORKSPACE will be used to calculate root folder."
     (with-temp-file (dap--locate-workspace-file workspace file-name)
       (erase-buffer)
       (insert (prin1-to-string to-persist)))))
-
-(defun dap--get-sessions (workspace)
-  "Get sessions for WORKSPACE."
-  (lsp-workspace-get-metadata "debug-sessions" workspace))
 
 (defun dap--set-sessions (workspace debug-sessions)
   "Update list of debug sessions for WORKSPACE to DEBUG-SESSIONS."
@@ -1172,9 +1172,12 @@ If the current session it will be terminated."
   (dap--set-sessions lsp--cur-workspace ())
   (dap--switch-to-session nil))
 
-(defun dap-delete-all-breakpoints ()
+(defun dap-breakpoint-delete-all ()
   "Delete all breakpoints."
-  (interactive))
+  (interactive)
+  (maphash (lambda (file-name _)
+             (dap--breakpoints-changed nil file-name))
+           (dap--get-breakpoints lsp--cur-workspace)))
 
 (defun dap--after-open ()
   "Handler of after open hook."

@@ -199,7 +199,7 @@ overlay."
                            #'dap-overlays--remove-result-overlay-after-command
                            nil 'local)
                (dap-overlays--remove-result-overlay-after-command))))
-          (when-let* ((win (get-buffer-window buffer)))
+          (when-let (win (get-buffer-window buffer))
             ;; Left edge is visible.
             (when (and (<= (window-start win) (point) (window-end win))
                        ;; Right edge is visible. This is a little conservative

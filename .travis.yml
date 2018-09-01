@@ -16,6 +16,7 @@ before_install:
 install:
   - cask install
 script:
+  - rm -rf ~/.emacs.d/eclipse.jdt.ls/server/
   - mkdir -p ~/.emacs.d/eclipse.jdt.ls/server/
   - mkdir -p ~/.emacs.d/eclipse.jdt.ls/plugins/
   - wget http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz -O /tmp/jdt-latest.tar
