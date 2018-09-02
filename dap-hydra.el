@@ -31,6 +31,7 @@
 (require 'dap-mode)
 (require 'dap-ui)
 
+;;;###autoload
 (defhydra dap-hydra (:color pink :hint nil :foreign-keys run)
   "
 ^Stepping^          ^Switch^                 ^Breakpoints^           ^Eval
