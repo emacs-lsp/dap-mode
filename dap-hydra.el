@@ -31,7 +31,6 @@
 (require 'dap-mode)
 (require 'dap-ui)
 
-;;;###autoload
 (defhydra dap-hydra (:color pink :hint nil :foreign-keys run)
   "
 ^Stepping^          ^Switch^                 ^Breakpoints^           ^Eval
@@ -68,6 +67,12 @@ _Q_: Disconnect     _sS_: List sessions      _bl_: Set log message   _eis_: Insp
   ("eis" dap-ui-inspect-thing-at-point)
   ("q" nil "quit" :color blue)
   ("Q" dap-disconnect :color red))
+
+;;;###autoload
+(defun dap-hydra ()
+  "Run `dap-hydra/body'."
+  (interactive)
+  (dap-hydra/body))
 
 (provide 'dap-hydra)
 
