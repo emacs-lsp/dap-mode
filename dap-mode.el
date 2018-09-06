@@ -402,33 +402,34 @@ FILE-BREAKPOINTS is the list of breakpoints in the current file."
       (-some-> existing-breakpoint (plist-get :marker) (set-marker nil))
       (dap--breakpoints-changed (cl-remove existing-breakpoint file-breakpoints)))))
 
-(defun dap-breakpoint-condition ()
-  "Set breakpoint condition for the breakpoint at point."
-  (interactive)
+(defun dap--breakpoint-update (property message)
+  "Common code for updating breakpoint.
+MESSAGE to be displayed to the user.
+PROPERTY is the breakpoint property that will be udpated."
   (lsp--cur-workspace-check)
   (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
     (if-let (existing-breakpoint (dap--get-breakpoint-at-point file-breakpoints))
-        (let ((condition (read-string "Enter breakpoint condition: "
-                                      (plist-get existing-breakpoint :condition))))
-          (if condition
-              (plist-put existing-breakpoint :condition condition)
-            (dap--plist-delete existing-breakpoint :condition))
+        (let ((value (read-string message
+                                  (plist-get existing-breakpoint property))))
+          (if (s-blank? value)
+              (setq file-breakpoints (cons (-> existing-breakpoint
+                                               (dap--plist-delete :hit-condition)
+                                               (dap--plist-delete :condition)
+                                               (dap--plist-delete :log-message))
+                                           (delete existing-breakpoint file-breakpoints)))
+            (plist-put existing-breakpoint property value))
           (dap--breakpoints-changed file-breakpoints))
       (error "No breakpoint at current line"))))
+
+(defun dap-breakpoint-condition ()
+  "Set breakpoint condition for the breakpoint at point."
+  (interactive)
+  (dap--breakpoint-update :condition "Enter breakpoint condition: "))
 
 (defun dap-breakpoint-hit-condition ()
   "Set breakpoint hit condition for the breakpoint at point."
   (interactive)
-  (lsp--cur-workspace-check)
-  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
-    (if-let (existing-breakpoint (dap--get-breakpoint-at-point file-breakpoints))
-        (let ((condition (read-string "Enter hit condition: "
-                                      (plist-get existing-breakpoint :hit-condition))))
-          (if condition
-              (plist-put existing-breakpoint :hit-condition condition)
-            (dap--plist-delete existing-breakpoint :hit-condition))
-          (dap--breakpoints-changed file-breakpoints))
-      (error "No breakpoint at current line"))))
+  (dap--breakpoint-update :hit-condition "Enter hit condition: "))
 
 (defun dap-breakpoint-log-message ()
   "Set breakpoint log message for the breakpoint at point.
@@ -436,16 +437,7 @@ FILE-BREAKPOINTS is the list of breakpoints in the current file."
 If log message for the breakpoint is specified it won't stop
 thread exection but the server will log message."
   (interactive)
-  (lsp--cur-workspace-check)
-  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
-    (if-let (existing-breakpoint (dap--get-breakpoint-at-point file-breakpoints))
-        (let ((condition (read-string "Enter log message: "
-                                      (plist-get existing-breakpoint :log-message))))
-          (if condition
-              (plist-put existing-breakpoint :log-message condition)
-            (dap--plist-delete existing-breakpoint :log-message))
-          (dap--breakpoints-changed file-breakpoints))
-      (error "No breakpoint at current line"))))
+  (dap--breakpoint-update :log-message "Enter log message: "))
 
 (defun dap-breakpoint-add ()
   "Add breakpoint on the current line."
