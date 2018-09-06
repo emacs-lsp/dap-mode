@@ -124,33 +124,12 @@
    After enabling DAP mode on emacs side follow the language specific settings.
 ** Java
 *** Installation
-    Make sure that you have properly installed and configured [[https://github.com/emacs-lsp/lsp-java][LSP Java]]. Download
-    latest version of [[https://github.com/Microsoft/java-debug][Debug Java]] from [[https://mvnrepository.com/artifact/com.microsoft.java/com.microsoft.java.debug.plugin ][Maven Central]] and add it to
-    ~lsp-java-bundles~. If you want to run unit tests you have to download the
-    [[https://github.com/junit-team/junit5][JUnit5's]] JUnit Platform Console Standalone from [[https://mvnrepository.com/artifact/org.junit.platform/junit-platform-console-standalone][Maven Central]] and you must
-    swith Eclipse Che JDT server. On Linux/MacOS you can do the following:
-    #+BEGIN_SRC bash
-      # Download debug plugin
-      mkdir -p ~/.emacs.d/eclipse.jdt.ls/plugins/
-      mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=com.microsoft.java -DartifactId=com.microsoft.java.debug.plugin -Dversion=0.10.0
-      cp -v ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.10.0/com.microsoft.java.debug.plugin-0.10.0.jar ~/.emacs.d/eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.10.0.jar
-      # Download test runner
-      mkdir -p ~/.emacs.d/eclipse.jdt.ls/runner/
-      mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=org.junit.platform -DartifactId=junit-platform-console-standalone -Dversion=1.3.0-M1
-      cp -v ~/.m2/repository/org/junit/platform/junit-platform-console-standalone/1.3.0-M1/junit-platform-console-standalone-1.3.0-M1.jar ~/.emacs.d/eclipse.jdt.ls/runner/junit-platform-console-standalone.jar
-      # Download Che JDT LS.
-      rm -rf ~/.emacs.d/eclipse.jdt.ls/server/
-      mkdir -p ~/.emacs.d/eclipse.jdt.ls/server/
-      wget http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server-latest.tar.gz -O /tmp/jdt-latest.tar
-      tar xf /tmp/jdt-latest.tar -C ~/.emacs.d/eclipse.jdt.ls/server/
-    #+END_SRC
-    Then add the following settings in your emacs config file:
-    #+BEGIN_SRC elisp
+    Latest version of [[https://github.com/emacs-lsp/lsp-java][LSP Java]] will automatically discover if ~dap-mode~ is
+    present and it will download and install the required server side
+    components. If you have already downloaded a ~Eclispe JDT Server~ you will
+    have to force server update via ~lsp-java-update-server~. In order to enable lsp java you will have to require ~dap-java.el~
+    #+BEGIN_SRC emacs-lisp
       (require 'dap-java)
-
-      (add-to-list 'lsp-java-bundles (expand-file-name
-                                      (locate-user-emacs-file
-                                       "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.10.0.jar")))
     #+END_SRC
 *** Commands
     | Command                      | Description       |
@@ -201,7 +180,7 @@
 * Links
   - [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]]
   - [[https://github.com/emacs-lsp/lsp-java][LSP Java]]
-  - [[https://github.com/Microsoft/vscode-debugadapter-node/wiki/VS-Code-Debug-Protocol-Implementations][Debug Adapter Protocol Server Implementations]]
+  - [[https://microsoft.github.io/debug-adapter-protocol/implementors/adapters/][Debug Adapter Protocol Server Implementations]]
 * Troubleshooting
   If you notice a bug, open an issue on Github Issues.
 * What's next
