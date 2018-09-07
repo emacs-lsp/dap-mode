@@ -36,12 +36,14 @@
        lsp-java-workspace-cache-dir (f-join dap-java-test-root "workspace-cache/")
        lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
        dap-print-io t
+       dap-inhibit-io nil
        lsp-java-bundles (thread-first "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.10.0.jar"
                           locate-user-emacs-file
                           expand-file-name
                           list)
        lsp-response-timeout 60)
 
+ (lsp-java-update-server)
  (when (file-exists-p dap-java-test-root)
    (delete-directory dap-java-test-root t))
  (mkdir lsp-java-workspace-dir t)
@@ -51,7 +53,8 @@
  (add-to-list 'lsp-java--workspace-folders (f-join dap-java-maven-project-root "test-project"))
 
  (find-file (f-join dap-java-maven-project-root "pom.xml"))
- (lsp-java-enable))
+ (lsp-java-enable)
+ (toggle-debug-on-error))
 
 (Before)
 

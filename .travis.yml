@@ -16,15 +16,7 @@ before_install:
 install:
   - cask install
 script:
-  - rm -rf ~/.emacs.d/eclipse.jdt.ls/server/
-  - mkdir -p ~/.emacs.d/eclipse.jdt.ls/server/
-  - mkdir -p ~/.emacs.d/eclipse.jdt.ls/plugins/
-  - wget http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz -O /tmp/jdt-latest.tar
-  - tar xf /tmp/jdt-latest.tar -C ~/.emacs.d/eclipse.jdt.ls/server/
-  - mvn dependency:get -DrepoUrl=https://mvnrepository.com/repos/central -DgroupId=com.microsoft.java -DartifactId=com.microsoft.java.debug.plugin -Dversion=0.10.0
-  - cp ~/.m2/repository/com/microsoft/java/com.microsoft.java.debug.plugin/0.10.0/com.microsoft.java.debug.plugin-0.10.0.jar ~/.emacs.d/eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.10.0.jar
-  # - cask exec ecukes --timeout 60 features/BreakpointsTwoFiles.feature features/BreakpointUI.feature features/Breakpoints.feature features/Threads.feature
-  - cask exec ecukes --timeout 60 features/Breakpoints.feature
+  - cask exec ecukes --timeout 60 features/Breakpoints.feature features/JUnit.feature
 notifications:
   webhooks:
     urls:

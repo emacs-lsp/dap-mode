@@ -40,6 +40,11 @@
   :group 'dap-mode
   :type 'boolean)
 
+(defcustom dap-inhibit-io t
+  "If non-nil, the messages will be inhibited."
+  :group 'dap-mode
+  :type 'boolean)
+
 (defcustom dap-terminated-hook nil
   "List of functions to be called after a debug session has been terminated.
 
@@ -693,7 +698,7 @@ thread exection but the server will log message."
               (let* ((parsed-msg (dap--read-json m))
                      (key (gethash "request_seq" parsed-msg nil)))
                 (when dap-print-io
-                  (let ((inhibit-message t))
+                  (let ((inhibit-message dap-inhibit-io))
                     (message "Received:\n%s" (dap--json-encode parsed-msg))))
                 (pcase (gethash "type" parsed-msg)
                   ("event" (dap--on-event debug-session parsed-msg))
@@ -744,7 +749,7 @@ ADAPTER-ID the id of the adapter."
              (message (plist-put message :seq request-id)))
         (puthash request-id callback (dap--debug-session-response-handlers debug-session))
         (when dap-print-io
-          (let ((inhibit-message t))
+          (let ((inhibit-message dap-inhibit-io))
             (message "Sending: \n%s" (dap--json-encode message))))
         (process-send-string (dap--debug-session-proc debug-session)
                              (dap--make-message message)))
@@ -902,40 +907,43 @@ Special arguments:
 should be started after the :port argument is taken.
 
 :program-to-start - when set it will be started using `compile' before starting the debug process."
-  (-let (((&plist :program-to-start :wait-for-port :port :hostName host) launch-args))
+  (-let (((&plist :name :program-to-start :wait-for-port :type :request :port :environment-variables :hostName host) launch-args))
+    (mapc (-lambda ((env . value)) (setenv env value)) environment-variables)
+
     (when program-to-start (compile program-to-start))
-    (when wait-for-port (dap--wait-for-port host port)))
+    (when wait-for-port (dap--wait-for-port host port))
 
-  (let ((debug-session (dap--create-session launch-args))
-        (workspace lsp--cur-workspace)
-        (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
-    (dap--send-message
-     (dap--initialize-message (plist-get launch-args :type))
-     (dap--session-init-resp-handler
-      debug-session
-      (lambda (initialize-result)
-        (-let [debug-sessions (dap--get-sessions workspace)]
+    (let ((debug-session (dap--create-session launch-args))
+          (workspace lsp--cur-workspace)
+          (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
+      (dap--send-message
+       (dap--initialize-message type)
+       (dap--session-init-resp-handler
+        debug-session
+        (lambda (initialize-result)
+          (-let [debug-sessions (dap--get-sessions workspace)]
 
-          ;; update session name accordingly
-          (setf (dap--debug-session-name debug-session) (dap--calculate-unique-name
-                                                         (dap--debug-session-name debug-session)
-                                                         debug-sessions)
-                (dap--debug-session-initialize-result debug-session) initialize-result)
+            ;; update session name accordingly
+            (setf (dap--debug-session-name debug-session) (dap--calculate-unique-name
+                                                           (dap--debug-session-name debug-session)
+                                                           debug-sessions)
+                  (dap--debug-session-initialize-result debug-session) initialize-result)
 
-          (dap--set-sessions workspace (cons debug-session debug-sessions)))
-        (dap--send-message
-         (dap--make-request (plist-get launch-args :request) launch-args)
-         (dap--session-init-resp-handler
-          debug-session
-          (apply-partially #'dap--configure-breakpoints
-                           debug-session
-                           breakpoints
-                           (apply-partially #'dap--send-configuration-done
-                                            debug-session)))
-         debug-session)))
-     debug-session)
-    (dap--set-cur-session debug-session)
-    (push (cons (plist-get launch-args :name) launch-args) dap--debug-configuration)))
+            (dap--set-sessions workspace (cons debug-session debug-sessions)))
+          (dap--send-message
+           (dap--make-request request launch-args)
+           (dap--session-init-resp-handler
+            debug-session
+            (apply-partially #'dap--configure-breakpoints
+                             debug-session
+                             breakpoints
+                             (apply-partially #'dap--send-configuration-done
+                                              debug-session)))
+           debug-session)))
+       debug-session)
+
+      (dap--set-cur-session debug-session)
+      (push (cons name launch-args) dap--debug-configuration))))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
   "Establish markers for FILE-BREAKPOINTS in FILE."

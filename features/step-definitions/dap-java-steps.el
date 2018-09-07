@@ -114,6 +114,15 @@
            (string= (buffer-string) buffer-content))))
      callback)))
 
+(Then "^I should see buffer \"\\([^\"]+\\)\" which contains \"\\([^\"]+\\)\"$"
+  (lambda (buffer-name buffer-content callback)
+    (dap-java-steps-async-wait
+     (lambda ()
+       (when-let (buffer (get-buffer buffer-name))
+         (with-current-buffer buffer
+           (s-contains? buffer-content (buffer-string)))))
+     callback)))
+
 
 (And "^I attach handler \"\\([^\"]+\\)\" to hook \"\\([^\"]+\\)\"$"
   (lambda (handler-name hook-name)
