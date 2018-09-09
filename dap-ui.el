@@ -294,7 +294,7 @@ SESSION-TREE will be the root of the threads(session holder)."
   :init-value nil
   :group dap-ui
   :keymap dap-ui-session-mode-map
-  (setq-local tree-widget-themes-directory "/home/kyoncho/Desktop/")
+  (setq-local tree-widget-themes-directory "/home/kyoncho/Sources/lsp/dap-mode/icons/eclipse/")
   (tree-widget-set-theme "test")
   (add-hook 'dap-terminated-hook 'dap-ui-sessions--schedule-refresh )
   (add-hook 'dap-session-changed-hook 'dap-ui-sessions--schedule-refresh)
