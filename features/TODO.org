@@ -19,10 +19,14 @@
    CLOSED: [2018-07-04 Wed 08:26]
 ** DONE Terminate to kill the tcp process.
    CLOSED: [2018-06-20 Wed 22:47]
-** TODO Run in terminal
-** TODO Run no debug
-** TODO Run last configurations
-** TODO Add option to specify environment variables in launch props
+** DONE Run in terminal
+   CLOSED: [2018-09-08 Sat 00:00]
+** DONE Run no debug
+   CLOSED: [2018-09-08 Sat 00:00]
+** DONE Run last configurations
+   CLOSED: [2018-09-09 Sun 11:14]
+** DONE Add option to specify environment variables in launch props
+   CLOSED: [2018-09-08 Sat 00:00]
 ** DONE Attach.
    CLOSED: [2018-07-18 Wed 21:53]
 * Beakpoints
@@ -34,7 +38,8 @@
    CLOSED: [2018-06-16 Sat 09:56]
 ** DONE Session selection and breakpoints
    CLOSED: [2018-06-18 Mon 21:09]
-** TODO Persist breakpoints using marker indicator.
+** DONE Persist breakpoints using marker indicator.
+   CLOSED: [2018-09-09 Sun 11:14]
 ** DONE Breakpoint conditions
    CLOSED: [2018-07-29 Sun 23:19]
 ** DONE Breakpoints hit count

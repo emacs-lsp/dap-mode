@@ -327,10 +327,19 @@ WORKSPACE will be used to calculate root folder."
 
 (defun dap--persist-breakpoints (breakpoints)
   "Persist BREAKPOINTS."
-  ;; filter markers before persisting the breakpoints (markers are not writeable)
+  ;; filter markers before persisting the breakpoints (markers are not
+  ;; writeable) and update the point based on the marker.
   (-let [filtered-breakpoints (make-hash-table :test 'equal)]
     (maphash (lambda (k v)
-               (puthash k (--map (dap--plist-delete it :marker) v) filtered-breakpoints))
+               (puthash k (-map (-lambda ((bkp &as &plist :marker :point))
+                                  (-> bkp
+                                      (dap--plist-delete :point)
+                                      (dap--plist-delete :marker)
+                                      (plist-put :point (if marker
+                                                            (marker-position marker)
+                                                          point))))
+                                v)
+                        filtered-breakpoints))
              breakpoints)
     (dap--persist lsp--cur-workspace dap--breakpoints-file filtered-breakpoints)))
 
@@ -951,7 +960,7 @@ should be started after the :port argument is taken.
     (with-current-buffer buffer
       (mapc (lambda (bkp)
               (-let [marker (or (plist-get bkp :marker) (make-marker))]
-                (set-marker marker (plist-get bkp :point))
+                (set-marker marker (dap-breakpoint-get-point bkp))
                 (plist-put bkp :marker marker)))
             file-breakpoints)
       (run-hooks 'dap-breakpoints-changed-hook))))
@@ -1179,10 +1188,32 @@ If the current session it will be terminated."
              (dap--breakpoints-changed nil file-name))
            (dap--get-breakpoints lsp--cur-workspace)))
 
+(defun dap--buffer-killed ()
+  "Buffer killed handler."
+  ;; make sure that the breakpoints are updated on close of the file since the
+  ;; file might have been edited so we need to recalculate the :point based on the marker.
+  (let* ((breakpoints (dap--get-breakpoints lsp--cur-workspace))
+         (file-breakpoints (gethash buffer-file-name breakpoints))
+         (updated-breakpoonts (-map (-lambda ((bkp &as &plist :marker :point))
+                                      (-> bkp
+                                          (dap--plist-delete :point)
+                                          (dap--plist-delete :marker)
+                                          (plist-put :point (if marker
+                                                                (marker-position marker)
+                                                              point))))
+                                    file-breakpoints)))
+    (if updated-breakpoonts
+        (puthash buffer-file-name updated-breakpoonts breakpoints)
+      (remhash buffer-file-name breakpoints))
+    (dap--persist-breakpoints breakpoints)))
+
 (defun dap--after-open ()
   "Handler of after open hook."
-  (let* ((breakpoints (dap--get-breakpoints lsp--cur-workspace)))
-    (dap--set-breakpoints-in-file buffer-file-name (gethash buffer-file-name  breakpoints)) ))
+  (->> lsp--cur-workspace
+       dap--get-breakpoints
+       (gethash buffer-file-name)
+       (dap--set-breakpoints-in-file buffer-file-name))
+  (add-hook 'kill-buffer-hook 'dap--buffer-killed nil t))
 
 ;;;###autoload
 (define-minor-mode dap-mode
