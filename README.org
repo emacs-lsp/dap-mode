@@ -165,7 +165,7 @@
     For full example you may check ~dap-java.el~.
     #+BEGIN_SRC emacs-lisp
       (dap-register-debug-provider
-       "java"
+       "programming-language-name"
        (lambda (conf)
          (plist-put conf :debugPort 1234)
          (plist-put conf :host "localhost")
