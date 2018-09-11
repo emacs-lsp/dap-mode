@@ -41,11 +41,6 @@
   :type 'hook
   :group 'dap-ui)
 
-(defcustom dap-ui-session-refresh-delay 0.5
-  "Delay before the session view is updated."
-  :type 'hook
-  :group 'dap-ui)
-
 (defcustom dap-ui-breakpoints-ui-list-displayed-hook nil
   "List of functions to run when breakpoints list is displayed."
   :type 'hook
@@ -57,28 +52,18 @@
   :group 'dap-ui)
 
 (defface dap-ui-sessions-active-session-face
-  '((t :inherit font-lock-function-name-face  :underline t))
+  '((t :inherit bold))
   "Face used for marking current session in sessions list."
   :group 'dap-ui)
 
 (defface dap-ui-sessions-terminated-face
-  '((t :inherit italic :underline t :weight bold))
+  '((t :inherit italic))
   "Face used for marking terminated session."
   :group 'dap-ui)
 
 (defface dap-ui-sessions-running-face
-  '((t :inherit font-lock-function-name-face :underline t :weight bold))
+  '((t :inherit default))
   "Face used for marking terminated session."
-  :group 'dap-ui)
-
-(defface dap-ui-sessions-thread-face
-  '((t :inherit font-lock-keyword-face))
-  "Face used for threads in sessions view."
-  :group 'dap-ui)
-
-(defface dap-ui-sessions-stack-frame-face
-  '((t :inherit font-lock-doc-face))
-  "Face used for threads in sessions view."
   :group 'dap-ui)
 
 (defface dap-ui-pending-breakpoint-face
@@ -148,8 +133,7 @@
   "Select the element under cursor."
   (interactive)
   (if-let (widget (dap-ui-sessions--tree-under-cursor))
-      (-let ((session (widget-get widget :session))
-             (dap-ui-session-refresh-delay nil))
+      (-let [session (widget-get widget :session)]
         (case (widget-get widget :element-type)
           (:session (dap--switch-to-session session))
           (:thread (-let ((thread  (widget-get widget :thread)))
@@ -159,8 +143,8 @@
           (:stack-frame (-let ((thread (widget-get widget :thread))
                                (stack-frame (widget-get widget :stack-frame)))
 
-                          (setf (dap--debug-session-thread-id session) (gethash "id" thread)
-                                (dap--debug-session-active-frame session) stack-frame)
+                          (setf (dap--debug-session-thread-id session) (gethash "id" thread) )
+                          (setf (dap--debug-session-active-frame session) stack-frame)
                           (dap--switch-to-session session)))))
     (message "Nothing under cursor.")))
 
@@ -179,24 +163,14 @@ THREAD-TREE will be widget element holding thread info."
                                           (gethash "path" source)))
                          (tag (if source
                                   (format "%s (%s:%s)" name source-name line)
-                                (format "%s (Unknown source)" name)))
-                         (current-session (dap--cur-session))
-                         (icon (if (and (equal session current-session)
-                                        (= thread-id (dap--debug-session-thread-id current-session))
-                                        (equal stack-frame (dap--debug-session-active-frame current-session)))
-                                   'dap-ui-stack-frame-running
-                                 'dap-ui-stack-frame)))
-                    `(tree-widget :node (push-button :format "%[%t%]\n"
-                                                     :tag ,tag)
+                                (format "%s (Unknown source)" name))))
+                    `(tree-widget :tag ,tag
+                                  :format "%[%t%]\n"
                                   :stack-frame ,stack-frame
-                                  :open-icon ,icon
-                                  :close-icon ,icon
-                                  :empty-icon ,icon
-                                  :leaf-icon ,icon
                                   :session ,session
                                   :element-type :stack-frame
                                   :thread ,thread
-                                  :button-face dap-ui-sessions-stack-frame-face
+                                  :dynargs dap-ui--stack-frames
                                   :open nil)))
                 stack-frames)
       (when (and (string= (gethash thread-id (dap--debug-session-thread-states session)) "stopped")
@@ -204,7 +178,7 @@ THREAD-TREE will be widget element holding thread info."
         (widget-put thread-tree :loading t)
         (dap--send-message
          (dap--make-request "stackTrace"
-                            (list :threadId thread-id))
+                           (list :threadId thread-id))
          (dap--resp-handler
           (lambda (stack-frames-resp)
             (with-current-buffer dap-ui--sessions-buffer
@@ -234,26 +208,19 @@ SESSION-TREE will be the root of the threads(session holder)."
   (let ((debug-session (widget-get session-tree :session)))
     (when (dap--session-running debug-session)
       (if-let (threads (dap--debug-session-threads debug-session))
-          (mapcar (-lambda ((thread &as &hash "name" "id"))
-                    (-let* ((status (gethash
-                                     id
-                                     (dap--debug-session-thread-states debug-session)))
-                            (label (if status (format "%s (%s)" name status) name))
-                            (icon (if (string= status "stopped")
-                                      'dap-ui-thread-stopped
-                                    'dap-ui-thread-running)))
+          (mapcar (-lambda ((thread &as &hash "name" name "id" thread-id))
+                    (-let [label (-if-let (status (gethash
+                                                   thread-id
+                                                   (dap--debug-session-thread-states debug-session)))
+                                     (format "%s (%s)" name status)
+                                   name)]
                       `(tree-widget
                         :node (push-button :tag ,label
                                            :format "%[%t%]\n")
                         :thread ,thread
                         :session ,debug-session
                         :dynargs dap-ui--stack-frames
-                        :open-icon    ,icon
-                        :close-icon   ,icon
-                        :empty-icon   ,icon
-                        :leaf-icon    ,icon
                         :element-type :thread
-                        :button-face dap-ui-sessions-thread-face
                         :open t)))
                   threads)
         (dap--send-message
@@ -277,6 +244,8 @@ SESSION-TREE will be the root of the threads(session holder)."
     (define-key map (kbd "RET") #'dap-ui-sessions-select)
     map))
 
+
+
 (defvar dap-ui-inspect-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "TAB") #'tree-mode-toggle-expand)
@@ -294,8 +263,7 @@ SESSION-TREE will be the root of the threads(session holder)."
   :init-value nil
   :group dap-ui
   :keymap dap-ui-session-mode-map
-  (setq-local tree-widget-themes-directory "/home/kyoncho/Sources/lsp/dap-mode/icons/eclipse/")
-  (tree-widget-set-theme "test")
+
   (add-hook 'dap-terminated-hook 'dap-ui-sessions--schedule-refresh )
   (add-hook 'dap-session-changed-hook 'dap-ui-sessions--schedule-refresh)
   (add-hook 'dap-continue-hook 'dap-ui-sessions--schedule-refresh)
@@ -308,7 +276,7 @@ SESSION-TREE will be the root of the threads(session holder)."
   (cond
    ((eq debug-session (dap--cur-session)) 'dap-ui-sessions-active-session-face)
    ((not (dap--session-running debug-session)) 'dap-ui-sessions-terminated-face)
-   (t 'dap-ui-sessions-running-face)))
+   (t 'dap-ui-pending-breakpoint-face)))
 
 (defun dap-ui--nearest-widget ()
   "Return widget at point or next nearest widget."
@@ -327,47 +295,6 @@ SESSION-TREE will be the root of the threads(session holder)."
                               (dap--debug-session-state session))
                 :button-face ,(dap-ui-session--calculate-face session)))
 
-(define-widget 'dap-ui-runnning 'tree-widget-icon
-  "Icon for a collapsed tree-widget node."
-  :tag        "[+]"
-  :glyph-name "runningproject")
-
-(define-widget 'dap-ui-terminated 'tree-widget-icon
-  "Icon for a collapsed tree-widget node."
-  :tag        "[.]"
-  :glyph-name "terminated")
-
-(define-widget 'dap-ui-thread-running 'tree-widget-icon
-  "Icon for a collapsed tree-widget node."
-  :tag        "[+]"
-  :glyph-name "thread-running")
-
-(define-widget 'dap-ui-thread-stopped 'tree-widget-icon
-  "Icon for a collapsed tree-widget node."
-  :tag        "[.]"
-  :glyph-name "thread-stopped")
-
-(define-widget 'dap-ui-stack-frame 'tree-widget-icon
-  "Icon for a collapsed tree-widget node."
-  :tag        "[+]"
-  :glyph-name "stack-frame")
-
-(define-widget 'dap-ui-stack-frame-running 'tree-widget-icon
-  "Icon for a collapsed tree-widget node."
-  :tag        "[+]"
-  :glyph-name "stack-frame-running")
-
-;; (define-widget 'no-guide 'item
-;;   "End of a vertical guide line."
-;;   :tag       " "
-;;   :format    "%t")
-
-;; (define-widget 'dap-ui-handle 'item
-;;   "End of a vertical guide line."
-;;   :tag       ""
-;;   :format    "%t"
-;;   )
-
 (defun dap-ui-sessions--render-session (session)
   "Render SESSION."
   (widget-create
@@ -375,31 +302,22 @@ SESSION-TREE will be the root of the threads(session holder)."
        `(tree-widget
          :node ,(dap-ui-sessions--render-session-node session)
          :open nil
-         :open-icon dap-ui-runnning
-         :close-icon dap-ui-runnning
-
          :session ,session
          :element-type :session
          :dynargs dap-ui--load-threads)
      `(tree-widget
        :node ,(dap-ui-sessions--render-session-node session)
        :open t
-       :end-guide tree-widget-no-guide
-       :handle no-guide
-       :guide tree-widget-no-guide
-
-       :open-icon dap-ui-terminated
-       :close-icon dap-ui-terminated
-       :empty-icon dap-ui-terminated
+       :open-icon tree-widget-leaf-icon
+       :close-icon tree-widget-leaf-icon
+       :empty-icon tree-widget-leaf-icon
        :element-type :session
        :session ,session))))
 
 (defun dap-ui-sessions--refresh (&rest _args)
   "Refresh ressions view."
-  (when dap-ui--sessions-refresh-timer
-    (cancel-timer dap-ui--sessions-refresh-timer)
-    (setq dap-ui--sessions-refresh-timer nil))
-
+  (cancel-timer dap-ui--sessions-refresh-timer )
+  (setq dap-ui--sessions-refresh-timer nil)
   (with-current-buffer (get-buffer-create dap-ui--sessions-buffer)
     (let ((debug-sessions (dap--get-sessions lsp--cur-workspace))
           (inhibit-read-only t)
@@ -432,10 +350,8 @@ SESSION-TREE will be the root of the threads(session holder)."
 
 (defun dap-ui-sessions--schedule-refresh (&rest _args)
   "Refresh ressions view."
-  (if dap-ui-session-refresh-delay
-      (when (not dap-ui--sessions-refresh-timer)
-        (setq dap-ui--sessions-refresh-timer (run-at-time dap-ui-session-refresh-delay nil 'dap-ui-sessions--refresh)))
-    (dap-ui-sessions--refresh)))
+  (when (not dap-ui--sessions-refresh-timer)
+    (setq dap-ui--sessions-refresh-timer (run-at-time 0.5 nil 'dap-ui-sessions--refresh))))
 
 (defun dap-ui-sessions ()
   "Show currently active sessions."
@@ -512,9 +428,7 @@ VISUALS and MSG will be used for the overlay."
 (defun dap-ui--breakpoint-visuals (breakpoint breakpoint-dap)
   "Calculate visuals for a BREAKPOINT based on the data comming from DAP server.
 BREAKPOINT-DAP - nil or the data comming from DAP."
-  (list :face (if (and breakpoint-dap (gethash "verified" breakpoint-dap))
-                  'dap-ui-verified-breakpoint-face
-                'dap-ui-pending-breakpoint-face)
+  (list :face 'dap-ui-verified-breakpoint-face
         :char "."
         :bitmap (cond
                  ((plist-get breakpoint :condition) 'filled-rectangle)
@@ -532,10 +446,10 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
   (dap-ui--clear-breakpoint-overlays)
   (-map (-lambda ((bp . remote-bp))
           (push (dap-ui--make-overlay-at buffer-file-name
-                                         (dap-breakpoint-get-point bp)
-                                         nil nil
-                                         "Breakpoint"
-                                         (dap-ui--breakpoint-visuals bp remote-bp))
+                                    (dap-breakpoint-get-point bp)
+                                    nil nil
+                                    "Breakpoint"
+                                    (dap-ui--breakpoint-visuals bp remote-bp))
                 dap-ui--breakpoint-overlays))
         (-zip-fill
          nil
@@ -645,11 +559,11 @@ DEBUG-SESSION is the active debug session."
       (or (widget-get tree :variables)
           (progn (dap--send-message
                   (dap--make-request "variables"
-                                     (list* :variablesReference variables-reference
-                                            (when (and indexed-variables
-                                                       (< dap-ui-default-fetch-count indexed-variables ))
-                                              (list :start 0
-                                                    :count dap-ui-default-fetch-count))))
+                                    (list* :variablesReference variables-reference
+                                           (when (and indexed-variables
+                                                      (< dap-ui-default-fetch-count indexed-variables ))
+                                             (list :start 0
+                                                   :count dap-ui-default-fetch-count))))
                   (dap--resp-handler
                    (-lambda ((&hash "body" (&hash "variables" variables)))
                      (widget-put tree :variables
@@ -729,11 +643,11 @@ DEBUG-SESSION is the active debug session."
                                         dap--debug-session-active-frame
                                         (gethash "id"))))
         (dap--send-message (dap--make-request
-                            "evaluate"
-                            (list :expression expression
-                                  :frameId active-frame-id))
-                           (dap--resp-handler (apply-partially 'dap-ui--inspect-value debug-session))
-                           debug-session)
+                           "evaluate"
+                           (list :expression expression
+                                 :frameId active-frame-id))
+                          (dap--resp-handler (apply-partially 'dap-ui--inspect-value debug-session))
+                          debug-session)
       (error "There is no stopped debug session"))))
 
 (defun dap-ui-inspect-thing-at-point ()
@@ -771,7 +685,7 @@ REQUEST-ID is the active request id. If it doesn't maches the
   (-let [(&hash "name" name "variablesReference" variables-reference) scope]
     (dap--send-message
      (dap--make-request "variables"
-                        (list :variablesReference variables-reference))
+                       (list :variablesReference variables-reference))
      (dap--resp-handler
       (-lambda ((&hash "body" (&hash "variables")))
         (with-current-buffer dap-ui--locals-buffer
@@ -801,12 +715,12 @@ REQUEST-ID is the active request id. If it doesn't maches the
                                       dap--debug-session-active-frame
                                       (gethash "id")))
               (dap--send-message (dap--make-request "scopes"
-                                                    (list :frameId frame-id))
-                                 (dap--resp-handler
-                                  (-lambda ((&hash "body" (&hash "scopes")))
-                                    (let ((inhibit-read-only t))
-                                      (mapc (apply-partially 'dap-ui--render-scope debug-session request-id) scopes))))
-                                 debug-session)
+                                                  (list :frameId frame-id))
+                                (dap--resp-handler
+                                 (-lambda ((&hash "body" (&hash "scopes")))
+                                   (let ((inhibit-read-only t))
+                                     (mapc (apply-partially 'dap-ui--render-scope debug-session request-id) scopes))))
+                                debug-session)
             (insert "Thread not stopped..."))
         (insert "Session is not running...")))))
 
