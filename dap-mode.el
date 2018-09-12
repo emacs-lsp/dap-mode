@@ -63,6 +63,12 @@ has been terminated."
   :type 'hook
   :group 'dap-mode)
 
+(defcustom dap-session-created-hook nil
+  "List of functions to be called after session have been created.
+It will be called with one argument - the created session."
+  :type 'hook
+  :group 'dap-mode)
+
 (defcustom dap-continue-hook nil
   "List of functions to be called after application started.
 
@@ -952,7 +958,8 @@ should be started after the :port argument is taken.
        debug-session)
 
       (dap--set-cur-session debug-session)
-      (push (cons name launch-args) dap--debug-configuration))))
+      (push (cons name launch-args) dap--debug-configuration)
+      (run-hook-with-args 'dap-session-created-hook debug-session))))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
   "Establish markers for FILE-BREAKPOINTS in FILE."
