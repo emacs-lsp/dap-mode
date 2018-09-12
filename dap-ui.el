@@ -159,12 +159,13 @@ THREAD-TREE will be widget element holding thread info."
     (if stack-frames
         ;; aldready loaded
         (mapcar (-lambda ((stack-frame &as &hash "name" "line" "source"))
-                  (let* ((source-name (when source
-                                        (or (gethash "name" source)
-                                            (gethash "path" source))))
-                         (tag (if source
-                                  (format "%s (%s:%s)" name source-name line)
-                                (format "%s (Unknown source)" name))))
+                  (let ((tag (if source
+                                 (format "%s (%s:%s)"
+                                         name
+                                         (or (gethash "name" source)
+                                             (gethash "path" source))
+                                         line)
+                               (format "%s (Unknown source)" name))))
                     `(tree-widget :tag ,tag
                                   :format "%[%t%]\n"
                                   :stack-frame ,stack-frame
