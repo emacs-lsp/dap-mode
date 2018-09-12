@@ -159,8 +159,9 @@ THREAD-TREE will be widget element holding thread info."
     (if stack-frames
         ;; aldready loaded
         (mapcar (-lambda ((stack-frame &as &hash "name" "line" "source"))
-                  (let* ((source-name (or (gethash "name" source)
-                                          (gethash "path" source)))
+                  (let* ((source-name (when source
+                                        (or (gethash "name" source)
+                                            (gethash "path" source))))
                          (tag (if source
                                   (format "%s (%s:%s)" name source-name line)
                                 (format "%s (Unknown source)" name))))
@@ -178,7 +179,7 @@ THREAD-TREE will be widget element holding thread info."
         (widget-put thread-tree :loading t)
         (dap--send-message
          (dap--make-request "stackTrace"
-                           (list :threadId thread-id))
+                            (list :threadId thread-id))
          (dap--resp-handler
           (lambda (stack-frames-resp)
             (with-current-buffer dap-ui--sessions-buffer
@@ -446,10 +447,10 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
   (dap-ui--clear-breakpoint-overlays)
   (-map (-lambda ((bp . remote-bp))
           (push (dap-ui--make-overlay-at buffer-file-name
-                                    (dap-breakpoint-get-point bp)
-                                    nil nil
-                                    "Breakpoint"
-                                    (dap-ui--breakpoint-visuals bp remote-bp))
+                                         (dap-breakpoint-get-point bp)
+                                         nil nil
+                                         "Breakpoint"
+                                         (dap-ui--breakpoint-visuals bp remote-bp))
                 dap-ui--breakpoint-overlays))
         (-zip-fill
          nil
@@ -559,11 +560,11 @@ DEBUG-SESSION is the active debug session."
       (or (widget-get tree :variables)
           (progn (dap--send-message
                   (dap--make-request "variables"
-                                    (list* :variablesReference variables-reference
-                                           (when (and indexed-variables
-                                                      (< dap-ui-default-fetch-count indexed-variables ))
-                                             (list :start 0
-                                                   :count dap-ui-default-fetch-count))))
+                                     (list* :variablesReference variables-reference
+                                            (when (and indexed-variables
+                                                       (< dap-ui-default-fetch-count indexed-variables ))
+                                              (list :start 0
+                                                    :count dap-ui-default-fetch-count))))
                   (dap--resp-handler
                    (-lambda ((&hash "body" (&hash "variables" variables)))
                      (widget-put tree :variables
@@ -643,11 +644,11 @@ DEBUG-SESSION is the active debug session."
                                         dap--debug-session-active-frame
                                         (gethash "id"))))
         (dap--send-message (dap--make-request
-                           "evaluate"
-                           (list :expression expression
-                                 :frameId active-frame-id))
-                          (dap--resp-handler (apply-partially 'dap-ui--inspect-value debug-session))
-                          debug-session)
+                            "evaluate"
+                            (list :expression expression
+                                  :frameId active-frame-id))
+                           (dap--resp-handler (apply-partially 'dap-ui--inspect-value debug-session))
+                           debug-session)
       (error "There is no stopped debug session"))))
 
 (defun dap-ui-inspect-thing-at-point ()
@@ -685,7 +686,7 @@ REQUEST-ID is the active request id. If it doesn't maches the
   (-let [(&hash "name" name "variablesReference" variables-reference) scope]
     (dap--send-message
      (dap--make-request "variables"
-                       (list :variablesReference variables-reference))
+                        (list :variablesReference variables-reference))
      (dap--resp-handler
       (-lambda ((&hash "body" (&hash "variables")))
         (with-current-buffer dap-ui--locals-buffer
@@ -715,12 +716,12 @@ REQUEST-ID is the active request id. If it doesn't maches the
                                       dap--debug-session-active-frame
                                       (gethash "id")))
               (dap--send-message (dap--make-request "scopes"
-                                                  (list :frameId frame-id))
-                                (dap--resp-handler
-                                 (-lambda ((&hash "body" (&hash "scopes")))
-                                   (let ((inhibit-read-only t))
-                                     (mapc (apply-partially 'dap-ui--render-scope debug-session request-id) scopes))))
-                                debug-session)
+                                                    (list :frameId frame-id))
+                                 (dap--resp-handler
+                                  (-lambda ((&hash "body" (&hash "scopes")))
+                                    (let ((inhibit-read-only t))
+                                      (mapc (apply-partially 'dap-ui--render-scope debug-session request-id) scopes))))
+                                 debug-session)
             (insert "Thread not stopped..."))
         (insert "Session is not running...")))))
 
