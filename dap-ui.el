@@ -41,6 +41,21 @@
   :type 'hook
   :group 'dap-ui)
 
+(defcustom dap-ui-session-refresh-delay 0.5
+  "Delay before the session view is updated."
+  :type 'hook
+  :group 'dap-ui)
+
+(defcustom dap-ui-themes-directory (f-join (f-dirname (or load-file-name buffer-file-name)) "icons")
+  "Directory containing themes."
+  :type 'directory
+  :group 'dap-ui)
+
+(defcustom dap-ui-theme "eclipse"
+  "Theme to use."
+  :type 'string
+  :group 'dap-ui)
+
 (defcustom dap-ui-breakpoints-ui-list-displayed-hook nil
   "List of functions to run when breakpoints list is displayed."
   :type 'hook
@@ -52,18 +67,48 @@
   :group 'dap-ui)
 
 (defface dap-ui-sessions-active-session-face
-  '((t :inherit bold))
+  '((t :inherit font-lock-function-name-face  :underline t))
   "Face used for marking current session in sessions list."
   :group 'dap-ui)
 
 (defface dap-ui-sessions-terminated-face
-  '((t :inherit italic))
+  '((t :inherit italic :underline t :weight bold))
   "Face used for marking terminated session."
   :group 'dap-ui)
 
 (defface dap-ui-sessions-running-face
-  '((t :inherit default))
+  '((t :inherit font-lock-function-name-face :underline t :weight bold))
   "Face used for marking terminated session."
+  :group 'dap-ui)
+
+(defface dap-ui-locals-scope-face
+  '((t :inherit font-lock-function-name-face :weight bold :underline t))
+  "Face used for scopes in locals view."
+  :group 'dap-ui)
+
+(defface dap-ui-inspect-face
+  '((t :inherit font-lock-function-name-face :weight bold :underline t))
+  "Face used for scopes in locals view."
+  :group 'dap-ui)
+
+(defface dap-ui-locals-variable-leaf-face
+  '((t :inherit font-lock-builtin-face :italic t))
+  "Face used for variables that does not have nested items."
+  :group 'dap-ui)
+
+(defface dap-ui-locals-variable-face
+  '((t :inherit  font-lock-builtin-face :weight bold))
+  "Face used for marking terminated session."
+  :group 'dap-ui)
+
+(defface dap-ui-sessions-thread-face
+  '((t :inherit font-lock-keyword-face))
+  "Face used for threads in sessions view."
+  :group 'dap-ui)
+
+(defface dap-ui-sessions-stack-frame-face
+  '((t :inherit font-lock-builtin-face))
+  "Face used for threads in sessions view."
   :group 'dap-ui)
 
 (defface dap-ui-pending-breakpoint-face
@@ -97,6 +142,58 @@
   "Default number of variables to load in inspect variables view for array variables."
   :group 'dap-ui
   :type 'number)
+
+(define-widget 'dap-ui-widget-guide 'item
+  "Vertical guide line."
+  :tag       " "
+  :format    "%t")
+
+(define-widget 'dap-ui-widget-end-guide 'item
+  "End of a vertical guide line."
+  :tag       " "
+  :format    "%t")
+
+(define-widget 'dap-ui-widget-handle 'item
+  "Horizontal guide line that joins a vertical guide line to a node."
+  :tag       " "
+  :format    "%t")
+
+(defmacro dap-ui-define-widget (name &optional image-open image-closed image-empty)
+  "Helper for defining widget icons."
+  (let ((open-icon (make-symbol (format "dap-ui-%s-open" name)))
+        (close-icon (make-symbol (format "dap-ui-%s-close" name)))
+        (empty-icon (make-symbol (format "dap-ui-%s-empty" name)))
+        (leaf-icon (make-symbol (format "dap-ui-%s-leaf" name))))
+    `(progn
+       (define-widget (quote ,open-icon) 'tree-widget-icon
+         "Icon for a open tree-widget node."
+         :tag        "[+]"
+         :glyph-name ,(or image-open name))
+       (define-widget (quote ,close-icon) 'tree-widget-icon
+         "Icon for a closed tree-widget node."
+         :tag        "[-]"
+         :glyph-name ,(or image-closed image-open name))
+       (define-widget (quote ,empty-icon) 'tree-widget-icon
+         "Icon for a closed tree-widget node."
+         :tag        "[.]"
+         :glyph-name ,(or image-empty image-open name))
+       (list :open-icon (quote ,open-icon)
+             :close-icon (quote ,close-icon)
+             :empty-icon (quote ,empty-icon)
+             :leaf-icon (quote ,leaf-icon)
+             :handle 'dap-ui-widget-handle
+             :end-guide 'dap-ui-widget-end-guide
+             :guide 'dap-ui-widget-guide))))
+
+(defvar dap-ui-icons-project-running (dap-ui-define-widget "project-running"))
+(defvar dap-ui-icons-project-stopped (dap-ui-define-widget "project-stopped"))
+(defvar dap-ui-icons-stack-frame-running (dap-ui-define-widget "stack-frame-running"))
+(defvar dap-ui-icons-stack-frame-stopped (dap-ui-define-widget "stack-frame-stopped"))
+(defvar dap-ui-icons-thread-running (dap-ui-define-widget "thread-running"))
+(defvar dap-ui-icons-thread-stopped (dap-ui-define-widget "thread-stopped"))
+(defvar dap-ui-icons-inspect (dap-ui-define-widget "inspect"))
+(defvar dap-ui-icons-scope (dap-ui-define-widget "scope"))
+(defvar dap-ui-icons-variable (dap-ui-define-widget "variable" "expanded" "collapsed"))
 
 (defconst dap-ui--loading-tree-widget
   (list '(tree-widget :tag "Loading..." :format "%[%t%]\n")))
@@ -133,7 +230,8 @@
   "Select the element under cursor."
   (interactive)
   (if-let (widget (dap-ui-sessions--tree-under-cursor))
-      (-let [session (widget-get widget :session)]
+      (-let ((session (widget-get widget :session))
+             (dap-ui-session-refresh-delay nil))
         (case (widget-get widget :element-type)
           (:session (dap--switch-to-session session))
           (:thread (-let ((thread  (widget-get widget :thread)))
@@ -143,8 +241,8 @@
           (:stack-frame (-let ((thread (widget-get widget :thread))
                                (stack-frame (widget-get widget :stack-frame)))
 
-                          (setf (dap--debug-session-thread-id session) (gethash "id" thread) )
-                          (setf (dap--debug-session-active-frame session) stack-frame)
+                          (setf (dap--debug-session-thread-id session) (gethash "id" thread)
+                                (dap--debug-session-active-frame session) stack-frame)
                           (dap--switch-to-session session)))))
     (message "Nothing under cursor.")))
 
@@ -159,21 +257,27 @@ THREAD-TREE will be widget element holding thread info."
     (if stack-frames
         ;; aldready loaded
         (mapcar (-lambda ((stack-frame &as &hash "name" "line" "source"))
-                  (let ((tag (if source
-                                 (format "%s (%s:%s)"
-                                         name
-                                         (or (gethash "name" source)
-                                             (gethash "path" source))
-                                         line)
-                               (format "%s (Unknown source)" name))))
-                    `(tree-widget :tag ,tag
-                                  :format "%[%t%]\n"
+                  (let* ((tag (if source
+                                  (format "%s (%s:%s)" name (or (gethash "name" source)
+                                                                (gethash "path" source))
+                                          line)
+                                (format "%s (Unknown source)" name)))
+                         (current-session (dap--cur-session))
+                         (icons (if (and (equal session current-session)
+                                         (= thread-id (dap--debug-session-thread-id current-session))
+                                         (equal stack-frame (dap--debug-session-active-frame current-session)))
+                                    dap-ui-icons-stack-frame-running
+                                  dap-ui-icons-stack-frame-stopped)))
+                    `(tree-widget :node (push-button :format "%[%t%]\n"
+                                                     :tag ,tag
+                                                     'action 'dap-ui-sessions-select)
                                   :stack-frame ,stack-frame
                                   :session ,session
                                   :element-type :stack-frame
                                   :thread ,thread
-                                  :dynargs dap-ui--stack-frames
-                                  :open nil)))
+                                  :button-face dap-ui-sessions-stack-frame-face
+                                  :open nil
+                                  ,@icons)))
                 stack-frames)
       (when (and (string= (gethash thread-id (dap--debug-session-thread-states session)) "stopped")
                  (widget-get thread-tree :loading))
@@ -210,20 +314,25 @@ SESSION-TREE will be the root of the threads(session holder)."
   (let ((debug-session (widget-get session-tree :session)))
     (when (dap--session-running debug-session)
       (if-let (threads (dap--debug-session-threads debug-session))
-          (mapcar (-lambda ((thread &as &hash "name" name "id" thread-id))
-                    (-let [label (-if-let (status (gethash
-                                                   thread-id
-                                                   (dap--debug-session-thread-states debug-session)))
-                                     (format "%s (%s)" name status)
-                                   name)]
+          (mapcar (-lambda ((thread &as &hash "name" "id"))
+                    (-let* ((status (gethash
+                                     id
+                                     (dap--debug-session-thread-states debug-session)))
+                            (label (if status (format "%s (%s)" name status) name))
+                            (icons (if (string= status "stopped")
+                                       dap-ui-icons-thread-stopped
+                                     dap-ui-icons-thread-running)))
                       `(tree-widget
                         :node (push-button :tag ,label
-                                           :format "%[%t%]\n")
+                                           :format "%[%t%]\n"
+                                           'action 'dap-ui-sessions-select)
                         :thread ,thread
                         :session ,debug-session
                         :dynargs dap-ui--stack-frames
                         :element-type :thread
-                        :open t)))
+                        :button-face dap-ui-sessions-thread-face
+                        :open t
+                        ,@icons)))
                   threads)
         (dap--send-message
          (dap--make-request "threads")
@@ -246,8 +355,6 @@ SESSION-TREE will be the root of the threads(session holder)."
     (define-key map (kbd "RET") #'dap-ui-sessions-select)
     map))
 
-
-
 (defvar dap-ui-inspect-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "TAB") #'tree-mode-toggle-expand)
@@ -266,6 +373,7 @@ SESSION-TREE will be the root of the threads(session holder)."
   :group dap-ui
   :keymap dap-ui-session-mode-map
 
+
   (add-hook 'dap-terminated-hook 'dap-ui-sessions--schedule-refresh )
   (add-hook 'dap-session-changed-hook 'dap-ui-sessions--schedule-refresh)
   (add-hook 'dap-continue-hook 'dap-ui-sessions--schedule-refresh)
@@ -278,7 +386,7 @@ SESSION-TREE will be the root of the threads(session holder)."
   (cond
    ((eq debug-session (dap--cur-session)) 'dap-ui-sessions-active-session-face)
    ((not (dap--session-running debug-session)) 'dap-ui-sessions-terminated-face)
-   (t 'dap-ui-pending-breakpoint-face)))
+   (t 'dap-ui-sessions-running-face)))
 
 (defun dap-ui--nearest-widget ()
   "Return widget at point or next nearest widget."
@@ -295,7 +403,8 @@ SESSION-TREE will be the root of the threads(session holder)."
                 :tag ,(format "%s (%s)"
                               (dap--debug-session-name session)
                               (dap--debug-session-state session))
-                :button-face ,(dap-ui-session--calculate-face session)))
+                :button-face ,(dap-ui-session--calculate-face session)
+                'action 'dap-ui-sessions-select))
 
 (defun dap-ui-sessions--render-session (session)
   "Render SESSION."
@@ -306,20 +415,21 @@ SESSION-TREE will be the root of the threads(session holder)."
          :open nil
          :session ,session
          :element-type :session
-         :dynargs dap-ui--load-threads)
+         :dynargs dap-ui--load-threads
+         ,@dap-ui-icons-project-running)
      `(tree-widget
        :node ,(dap-ui-sessions--render-session-node session)
        :open t
-       :open-icon tree-widget-leaf-icon
-       :close-icon tree-widget-leaf-icon
-       :empty-icon tree-widget-leaf-icon
        :element-type :session
-       :session ,session))))
+       :session ,session
+       ,@dap-ui-icons-project-stopped))))
 
 (defun dap-ui-sessions--refresh (&rest _args)
   "Refresh ressions view."
-  (cancel-timer dap-ui--sessions-refresh-timer )
-  (setq dap-ui--sessions-refresh-timer nil)
+  (when dap-ui--sessions-refresh-timer
+    (cancel-timer dap-ui--sessions-refresh-timer)
+    (setq dap-ui--sessions-refresh-timer nil))
+
   (with-current-buffer (get-buffer-create dap-ui--sessions-buffer)
     (let ((debug-sessions (dap--get-sessions lsp--cur-workspace))
           (inhibit-read-only t)
@@ -352,8 +462,10 @@ SESSION-TREE will be the root of the threads(session holder)."
 
 (defun dap-ui-sessions--schedule-refresh (&rest _args)
   "Refresh ressions view."
-  (when (not dap-ui--sessions-refresh-timer)
-    (setq dap-ui--sessions-refresh-timer (run-at-time 0.5 nil 'dap-ui-sessions--refresh))))
+  (if dap-ui-session-refresh-delay
+      (when (not dap-ui--sessions-refresh-timer)
+        (setq dap-ui--sessions-refresh-timer (run-at-time dap-ui-session-refresh-delay nil 'dap-ui-sessions--refresh)))
+    (dap-ui-sessions--refresh)))
 
 (defun dap-ui-sessions ()
   "Show currently active sessions."
@@ -367,6 +479,8 @@ SESSION-TREE will be the root of the threads(session holder)."
       (erase-buffer)
       (setq mode-line-format "Sessions")
       (setq-local lsp--cur-workspace workspace)
+      (setq-local tree-widget-themes-directory dap-ui-themes-directory)
+      (tree-widget-set-theme dap-ui-theme)
       (mapc 'dap-ui-sessions--render-session sessions)
       (dap-ui-sessions-mode t))
     (dap-ui--show-buffer buf)))
@@ -430,7 +544,9 @@ VISUALS and MSG will be used for the overlay."
 (defun dap-ui--breakpoint-visuals (breakpoint breakpoint-dap)
   "Calculate visuals for a BREAKPOINT based on the data comming from DAP server.
 BREAKPOINT-DAP - nil or the data comming from DAP."
-  (list :face 'dap-ui-verified-breakpoint-face
+  (list :face (if (and breakpoint-dap (gethash "verified" breakpoint-dap))
+                  'dap-ui-verified-breakpoint-face
+                'dap-ui-pending-breakpoint-face)
         :char "."
         :bitmap (cond
                  ((plist-get breakpoint :condition) 'filled-rectangle)
@@ -584,27 +700,33 @@ DEBUG-SESSION is the active debug session."
                 "indexedVariables" indexed-variables) variable]
     `(tree-widget
       :node (push-button :format "%[%t%]\n"
-                         :tag ,result)
+                         :tag ,result
+                         :button-face dap-ui-inspect-face)
       :open nil
       :variables-reference ,variables-reference
       :indexed-variables ,indexed-variables
       :dynargs ,(when (not (zerop variables-reference))
-                  (apply-partially 'dap-ui--load-variables debug-session)))))
+                  (apply-partially 'dap-ui--load-variables debug-session))
+      ,@dap-ui-icons-inspect)))
 
 (defun dap-ui--render-variable (debug-session variable)
   "Render VARIABLE for DEBUG-SESSION."
-  (-let [(&hash "variablesReference" variables-reference
-                "value" value
-                "name" name
-                "indexedVariables" indexed-variables) variable]
+  (-let* (((&hash "variablesReference" variables-reference
+                  "value" value
+                  "name" name
+                  "indexedVariables" indexed-variables) variable)
+          (has-children? (and variables-reference (not (zerop variables-reference))))
+          (face (if has-children? 'dap-ui-locals-variable-face 'dap-ui-locals-variable-leaf-face)))
     `(tree-widget
       :node (push-button :format "%[%t%]\n"
-                         :tag ,(format "%s=%s" name value))
+                         :tag ,(format "%s=%s" name value)
+                         :button-face ,face)
       :open nil
       :indexed-variables ,indexed-variables
       :variables-reference ,variables-reference
-      :dynargs ,(when (and variables-reference (not (zerop variables-reference)))
-                  (apply-partially 'dap-ui--load-variables debug-session)))))
+      :dynargs ,(when has-children?
+                  (apply-partially 'dap-ui--load-variables debug-session))
+      ,@dap-ui-icons-variable)))
 
 
 (defun dap-ui--show-buffer (buf)
@@ -630,6 +752,8 @@ DEBUG-SESSION is the active debug session."
       (erase-buffer)
       (setq mode-line-format "Inspect")
       (setq lsp--cur-workspace workspace)
+      (setq-local tree-widget-themes-directory dap-ui-themes-directory)
+      (tree-widget-set-theme dap-ui-theme)
 
       (widget-create
        (dap-ui--render-eval-result debug-session body))
@@ -640,7 +764,6 @@ DEBUG-SESSION is the active debug session."
   "Inspect EXPRESSION."
   (interactive "sInspect: ")
   (let ((debug-session (dap--cur-active-session-or-die)))
-
     (if-let ((active-frame-id (-some->> debug-session
                                         dap--debug-session-active-frame
                                         (gethash "id"))))
@@ -695,12 +818,14 @@ REQUEST-ID is the active request id. If it doesn't maches the
             (widget-create
              `(tree-widget
                :node (push-button :format "%[%t%]\n"
-                                  :tag ,name)
+                                  :tag ,name
+                                  :button-face dap-ui-locals-scope-face)
                :open t
                :dynargs ,(lambda (_)
                            (or (-map (apply-partially 'dap-ui--render-variable debug-session)
                                      variables)
-                               (vector)))))))))
+                               (vector)))
+               ,@dap-ui-icons-scope))))))
      debug-session)))
 
 (defun dap-ui-locals--refresh (&rest _)
@@ -734,6 +859,8 @@ REQUEST-ID is the active request id. If it doesn't maches the
          (workspace lsp--cur-workspace))
     (with-current-buffer buf
       (setq-local lsp--cur-workspace workspace)
+      (setq-local tree-widget-themes-directory dap-ui-themes-directory)
+      (tree-widget-set-theme dap-ui-theme)
       (dap-ui-locals-mode t)
       (dap-ui-locals--refresh)
       (dap-ui--show-buffer buf))))
