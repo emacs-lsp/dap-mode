@@ -857,23 +857,5 @@ REQUEST-ID is the active request id. If it doesn't maches the
   "Send current selection for evaluation to the DAP server."
   (interactive))
 
-(defvar dap-ui-debug-window-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'dap-ui-debug-sessions-send)
-    map))
-
-(define-minor-mode dap-ui-debug-window-mode
-  "Debug window mode."
-  :init-value nil
-  :group dap-ui
-  :keymap dap-ui-debug-window-mode-map)
-
-(defun dap-ui-debug-window ()
-  "Display debug window."
-  (interactive)
-
-  (dap-ui--show-buffer (get-buffer-create dap-ui--debug-window-buffer))
-  (debug-window-mode 1))
-
 (provide 'dap-ui)
 ;;; dap-ui.el ends here
