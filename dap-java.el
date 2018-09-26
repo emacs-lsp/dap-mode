@@ -181,13 +181,16 @@ test."
                                            (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
                                            (if run-method? to-run test-class-name)
                                            dap-java-test-additional-args))
-          :environment-variables `(("JUNIT_CLASS_PATH" . ,class-path)))))
+          :environment-variables `(("JUNIT_CLASS_PATH" . ,class-path))
+          :cwd (lsp-java--get-root))))
 
 (defun dap-java-run-test-method ()
   "Run JUnit test.
 If there is no method under cursor it will fallback to test class."
   (interactive)
-  (compile (plist-get (dap-java--run-unit-test-command lsp-java-java-path t) :program-to-start)))
+  (-> (dap-java--run-unit-test-command lsp-java-java-path t)
+      (plist-put :skip-debug-session t)
+      dap-start-debugging))
 
 (defun dap-java-debug-test-method (port)
   "Debug JUnit test.
@@ -210,7 +213,9 @@ attaching to the test."
 (defun dap-java-run-test-class ()
   "Run JUnit test."
   (interactive)
-  (compile (first (dap-java--run-unit-test-command lsp-java-java-path nil))))
+  (-> (dap-java--run-unit-test-command lsp-java-java-path nil)
+      (plist-put :skip-debug-session t)
+      dap-start-debugging))
 
 (defun dap-java-debug-test-class (port)
   "Debug JUnit test class.

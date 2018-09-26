@@ -922,44 +922,48 @@ Special arguments:
 should be started after the :port argument is taken.
 
 :program-to-start - when set it will be started using `compile' before starting the debug process."
-  (-let (((&plist :name :program-to-start :wait-for-port :type :request :port :environment-variables :hostName host) launch-args))
+  (-let* (((&plist :name :skip-debug-session :cwd :program-to-start
+                   :wait-for-port :type :request :port
+                   :environment-variables :hostName host) launch-args)
+          (default-directory cwd))
     (mapc (-lambda ((env . value)) (setenv env value)) environment-variables)
 
-    (when program-to-start (compile program-to-start))
+    (when program-to-start(compile program-to-start))
     (when wait-for-port (dap--wait-for-port host port))
 
-    (let ((debug-session (dap--create-session launch-args))
-          (workspace lsp--cur-workspace)
-          (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
-      (dap--send-message
-       (dap--initialize-message type)
-       (dap--session-init-resp-handler
-        debug-session
-        (lambda (initialize-result)
-          (-let [debug-sessions (dap--get-sessions workspace)]
+    (unless skip-debug-session
+      (let ((debug-session (dap--create-session launch-args))
+            (workspace lsp--cur-workspace)
+            (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
+        (dap--send-message
+         (dap--initialize-message type)
+         (dap--session-init-resp-handler
+          debug-session
+          (lambda (initialize-result)
+            (-let [debug-sessions (dap--get-sessions workspace)]
 
-            ;; update session name accordingly
-            (setf (dap--debug-session-name debug-session) (dap--calculate-unique-name
-                                                           (dap--debug-session-name debug-session)
-                                                           debug-sessions)
-                  (dap--debug-session-initialize-result debug-session) initialize-result)
+              ;; update session name accordingly
+              (setf (dap--debug-session-name debug-session) (dap--calculate-unique-name
+                                                             (dap--debug-session-name debug-session)
+                                                             debug-sessions)
+                    (dap--debug-session-initialize-result debug-session) initialize-result)
 
-            (dap--set-sessions workspace (cons debug-session debug-sessions)))
-          (dap--send-message
-           (dap--make-request request launch-args)
-           (dap--session-init-resp-handler
-            debug-session
-            (apply-partially #'dap--configure-breakpoints
-                             debug-session
-                             breakpoints
-                             (apply-partially #'dap--send-configuration-done
-                                              debug-session)))
-           debug-session)))
-       debug-session)
+              (dap--set-sessions workspace (cons debug-session debug-sessions)))
+            (dap--send-message
+             (dap--make-request request launch-args)
+             (dap--session-init-resp-handler
+              debug-session
+              (apply-partially #'dap--configure-breakpoints
+                               debug-session
+                               breakpoints
+                               (apply-partially #'dap--send-configuration-done
+                                                debug-session)))
+             debug-session)))
+         debug-session)
 
-      (dap--set-cur-session debug-session)
-      (push (cons name launch-args) dap--debug-configuration)
-      (run-hook-with-args 'dap-session-created-hook debug-session))))
+        (dap--set-cur-session debug-session)
+        (push (cons name launch-args) dap--debug-configuration)
+        (run-hook-with-args 'dap-session-created-hook debug-session)))))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
   "Establish markers for FILE-BREAKPOINTS in FILE."
