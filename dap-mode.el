@@ -1203,20 +1203,21 @@ If the current session it will be terminated."
   "Buffer killed handler."
   ;; make sure that the breakpoints are updated on close of the file since the
   ;; file might have been edited so we need to recalculate the :point based on the marker.
-  (let* ((breakpoints (dap--get-breakpoints lsp--cur-workspace))
-         (file-breakpoints (gethash buffer-file-name breakpoints))
-         (updated-breakpoonts (-map (-lambda ((bkp &as &plist :marker :point))
-                                      (-> bkp
-                                          (dap--plist-delete :point)
-                                          (dap--plist-delete :marker)
-                                          (plist-put :point (if marker
-                                                                (marker-position marker)
-                                                              point))))
-                                    file-breakpoints)))
-    (if updated-breakpoonts
-        (puthash buffer-file-name updated-breakpoonts breakpoints)
-      (remhash buffer-file-name breakpoints))
-    (dap--persist-breakpoints breakpoints)))
+  (when lsp--cur-workspace
+    (let* ((breakpoints (dap--get-breakpoints lsp--cur-workspace))
+           (file-breakpoints (gethash buffer-file-name breakpoints))
+           (updated-breakpoonts (-map (-lambda ((bkp &as &plist :marker :point))
+                                        (-> bkp
+                                            (dap--plist-delete :point)
+                                            (dap--plist-delete :marker)
+                                            (plist-put :point (if marker
+                                                                  (marker-position marker)
+                                                                point))))
+                                      file-breakpoints)))
+      (if updated-breakpoonts
+          (puthash buffer-file-name updated-breakpoonts breakpoints)
+        (remhash buffer-file-name breakpoints))
+      (dap--persist-breakpoints breakpoints))))
 
 (defun dap--after-open ()
   "Handler of after open hook."
