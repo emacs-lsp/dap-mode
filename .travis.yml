@@ -9,6 +9,7 @@ env:
   - EMACS_VERSION=25.3
    # - EMACS_VERSION=snapshot
 before_install:
+  - rm -rf ~/.emacs.d/eclipse.jdt.ls/
   - export PATH="$HOME/bin:$PATH"
   - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
   - make -f emacs-travis.mk install_emacs
