@@ -772,13 +772,13 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--create-session (launch-args)
   "Create debug session from LAUNCH-ARGS."
-  (-let* (((&plist :host :program :name session-name :debugServer port ) launch-args)
-          (proc (if program
+  (-let* (((&plist :host :dap-server-path :name session-name :debugServer port ) launch-args)
+          (proc (if dap-server-path
                     (make-process
                      :name session-name
                      :connection-type 'pipe
                      :coding 'no-conversion
-                     :command program
+                     :command dap-server-path
                      :stderr (generate-new-buffer-name
                               (concat "*" session-name " stderr*"))
                      :noquery t)
