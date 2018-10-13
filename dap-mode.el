@@ -932,7 +932,7 @@ should be started after the :port argument is taken.
   (-let* (((&plist :name :skip-debug-session :cwd :program-to-start
                    :wait-for-port :type :request :port
                    :environment-variables :hostName host) launch-args)
-          (default-directory cwd))
+          (default-directory (or cwd default-directory)))
     (mapc (-lambda ((env . value)) (setenv env value)) environment-variables)
 
     (when program-to-start(compile program-to-start))
