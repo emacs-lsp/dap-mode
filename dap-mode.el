@@ -772,15 +772,22 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--create-session (launch-args)
   "Create debug session from LAUNCH-ARGS."
-  (let* ((host (plist-get launch-args :host))
-         (port (plist-get launch-args :debugServer))
-         (session-name (plist-get launch-args :name))
-         (proc (open-network-stream session-name nil host port :type 'plain))
-         (debug-session (make-dap--debug-session
-                         :launch-args launch-args
-                         :proc proc
-                         :name (plist-get launch-args :name)
-                         :workspace lsp--cur-workspace)))
+  (-let* (((&plist :host :program :name session-name :debugServer port ) launch-args)
+          (proc (if program
+                    (make-process
+                     :name session-name
+                     :connection-type 'pipe
+                     :coding 'no-conversion
+                     :command program
+                     :stderr (generate-new-buffer-name
+                              (concat "*" session-name " stderr*"))
+                     :noquery t)
+                  (open-network-stream session-name nil host port :type 'plain)))
+          (debug-session (make-dap--debug-session
+                          :launch-args launch-args
+                          :proc proc
+                          :name (plist-get launch-args :name)
+                          :workspace lsp--cur-workspace)))
     (set-process-filter proc (dap--create-filter-function debug-session))
     debug-session))
 
