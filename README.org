@@ -155,7 +155,7 @@
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating
     startup parameters. It should either populate ~:debugPort~ and ~:host~ in
-    case of TCP Debug Adapter Server or ~:program~ when STD out must be used for
+    case of TCP Debug Adapter Server or ~:dap-server-path~ when STD out must be used for
     Debug Adapter Server communication.
   - ~dap-register-debug-template~ register a debug teplate which will be
     available when ~dap-debug~ is called. The debug template must specify
