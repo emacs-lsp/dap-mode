@@ -201,25 +201,24 @@ SLEEP-INTERVAL is the sleep interval between each retry."
 The handler will call `error' on failure.
 SUCCESS-CALLBACK will be called if it is provided and if the call
 has succeeded."
-  (-lambda ((result &as &hash "success" success "message" msg))
+  (-lambda ((result &as &hash "success" "message"))
     (if success
         (when success-callback (funcall  success-callback result))
-      (error msg))))
+      (error message))))
 
 (defun dap--session-init-resp-handler (debug-session &optional success-callback)
   "Returned handler will mark the DEBUG-SESSION as failed if call return error.
 
 SUCCESS-CALLBACK will be called if it is provided and if the call
 has succeeded."
-  (-lambda ((result &as &hash "success" success "message" msg))
+  (-lambda ((result &as &hash "success" "message"))
     (if success
         (when success-callback (funcall success-callback result))
-      (warn "%s" msg)
-
+      (warn "Initialize request failed: %s" message)
       (delete-process (dap--debug-session-proc debug-session))
 
-      (setf (dap--debug-session-state debug-session) 'failed)
-      (setf (dap--debug-session-error-message debug-session) msg)
+      (setf (dap--debug-session-state debug-session) 'failed
+            (dap--debug-session-error-message debug-session) message)
 
       (dap--refresh-breakpoints debug-session)
       (run-hook-with-args 'dap-terminated-hook debug-session)
