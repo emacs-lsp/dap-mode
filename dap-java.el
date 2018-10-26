@@ -38,7 +38,7 @@ If the port is taken, DAP will try the next port."
   :type 'number)
 
 (defcustom dap-java-test-runner
-  (expand-file-name (locate-user-emacs-file "eclipse.jdt.ls/runner/junit-platform-console-standalone.jar"))
+  (expand-file-name (locate-user-emacs-file "eclipse.jdt.ls/test-runner/junit-platform-console-standalone.jar"))
   "DAP Java test runner."
   :group 'dap-java-java
   :type 'file)
