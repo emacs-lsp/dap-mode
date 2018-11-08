@@ -60,6 +60,11 @@ If the port is taken, DAP will try the next port."
   :group 'dap-java
   :type 'number)
 
+(defvar-local dap-java-test-run-directory nil
+  "The directory from which dap-java will run a test.")
+
+(put 'dap-java-test-run-directory 'safe-local-variable #'stringp)
+
 (defun dap-java--select-main-class ()
   "Select main class from the current workspace."
   (let* ((main-classes (lsp-send-execute-command "vscode.java.resolveMainClass"))
@@ -91,7 +96,8 @@ Please check whether the server is configured propertly"))
 
   (-let [(&plist :mainClass main-class :projectName project-name) conf]
     (dap--put-if-absent conf :args "")
-    (dap--put-if-absent conf :cwd (lsp-java--get-root))
+    (dap--put-if-absent conf :cwd (or dap-java-test-run-directory
+                                      (lsp-java--get-root)))
     (dap--put-if-absent conf :stopOnEntry :json-false)
     (dap--put-if-absent conf :host "localhost")
     (dap--put-if-absent conf :request "launch")
@@ -182,7 +188,8 @@ test."
                                            (if run-method? to-run test-class-name)
                                            dap-java-test-additional-args))
           :environment-variables `(("JUNIT_CLASS_PATH" . ,class-path))
-          :cwd (lsp-java--get-root))))
+          :cwd (or dap-java-test-run-directory
+                   (lsp-java--get-root)))))
 
 (defun dap-java-run-test-method ()
   "Run JUnit test.
