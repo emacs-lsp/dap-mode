@@ -61,7 +61,7 @@ If the port is taken, DAP will try the next port."
   :type 'number)
 
 (defvar-local dap-java-test-run-directory nil
-  "The directory from which dap-java will run a test.")
+  "When set, the directory from which dap-java will run a test.")
 
 (put 'dap-java-test-run-directory 'safe-local-variable #'stringp)
 
