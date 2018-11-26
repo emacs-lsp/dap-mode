@@ -4,3 +4,4 @@
 .project
 .settings
 target
+/dap-autoloads.el
