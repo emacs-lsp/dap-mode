@@ -109,8 +109,9 @@ TEXT is the current input."
 (defun dap-ui-repl--post-completion (candidate)
   "Post completion handling for CANDIDATE."
   (let ((to-insert (plist-get (text-properties-at 0 candidate) :text)))
-    (delete-char (- (length candidate)))
-    (insert to-insert)))
+    (when to-insert
+      (delete-char (- (length candidate)))
+      (insert to-insert))))
 
 (defun dap-ui-repl--annotate (candidate)
   "Get annotation for CANDIDATE."
