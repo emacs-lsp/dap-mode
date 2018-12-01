@@ -37,8 +37,9 @@ If the port is taken, DAP will try the next port."
 
 (defun dap-python--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
-  (let ((debug-port (dap--find-available-port "localhost" dap-python-default-debug-port)))
-    (compile (format "python -m ptvsd --port %s %s" debug-port buffer-file-name))
+  (let* ((host "localhost")
+         (debug-port (dap--find-available-port host dap-python-default-debug-port)))
+    (compile (format "python -m ptvsd --wait --host %s --port %s %s" host debug-port buffer-file-name))
     (dap--wait-for-port (plist-get conf :host) debug-port)
     (plist-put conf :debugServer debug-port)
     conf))

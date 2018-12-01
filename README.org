@@ -144,7 +144,7 @@
     - Make sure you have installed and configured [[https://github.com/emacs-lsp/lsp-python][lsp-python]].
     - install latest version of ptvsd.
       #+BEGIN_SRC bash
-        pip install "ptvsd==4.1.1a11"
+        pip install "ptvsd>=4.2"
       #+END_SRC
       - Then add the following line in your config:
       #+BEGIN_SRC elisp
