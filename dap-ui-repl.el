@@ -13,6 +13,7 @@
 (require 'compile)
 (require 'dash)
 (require 'dap-mode)
+(require 'lsp)
 
 (defcustom dap-ui-repl-prompt ">> "
   "Prompt string for DAP REPL."
@@ -77,11 +78,11 @@ INPUT is the current input."
 (defun dap-ui-repl ()
   "Start a JavaScript REPL to be evaluated in the visiting browser."
   (interactive)
-  (let ((workspace lsp--cur-workspace ))
+  (let ((workspaces (lsp-workspaces)))
     (when (not (get-buffer "*dap-ui-repl*"))
       (with-current-buffer (get-buffer-create "*dap-ui-repl*")
         (dap-ui-repl-mode)
-        (setq-local lsp--cur-workspace workspace))))
+        (setq-local lsp--buffer-workspaces workspaces))))
   (pop-to-buffer (get-buffer "*dap-ui-repl*")))
 
 (defun dap-ui-repl--calculate-candidates ()
@@ -101,7 +102,7 @@ TEXT is the current input."
                                           :column (- (length text) (- (point-at-eol) (point)))))
                  (dap--resp-handler
                   (-lambda ((&hash "body" (&hash "targets")))
-                    (funcall callback (-map (-lambda ((item &as &hash "label" "text" "type" "number"))
+                    (funcall callback (-map (-lambda ((item &as &hash "label" "text" "type"))
                                               (propertize label :text text :type type :dap-completion-item item))
                                             targets))))
                  debug-session))))))

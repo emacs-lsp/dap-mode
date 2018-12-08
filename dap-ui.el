@@ -431,7 +431,7 @@ SESSION-TREE will be the root of the threads(session holder)."
     (setq dap-ui--sessions-refresh-timer nil))
 
   (with-current-buffer (get-buffer-create dap-ui--sessions-buffer)
-    (let ((debug-sessions (dap--get-sessions lsp--cur-workspace))
+    (let ((debug-sessions (dap--get-sessions))
           (inhibit-read-only t)
           present-sessions parent session present-widgets)
       ;; delete redundant sessions
@@ -470,7 +470,6 @@ SESSION-TREE will be the root of the threads(session holder)."
 (defun dap-ui-sessions ()
   "Show currently active sessions."
   (interactive)
-  (lsp--cur-workspace-check)
   (let ((sessions (reverse (lsp-workspace-get-metadata "debug-sessions")))
         (buf (get-buffer-create dap-ui--sessions-buffer))
         (inhibit-read-only t)
@@ -571,23 +570,23 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
                 dap-ui--breakpoint-overlays))
         (-zip-fill
          nil
-         (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))
+         (gethash buffer-file-name (dap--get-breakpoints))
          (-some->> (dap--cur-session) dap--debug-session-breakpoints (gethash buffer-file-name))))
   (save-mark-and-excursion
     (dap-ui--stack-frame-changed (dap--cur-session))))
 
-(defun dap-ui--clear-marker-overlay (debug-session)
+(defun dap-ui--clear-marker-overlay (&rest _rest)
   "Clear marker overlay for DEBUG-SESSION."
   (--map
    (with-current-buffer it
      (when dap-ui--cursor-overlay
        (delete-overlay dap-ui--cursor-overlay)
        (setq-local dap-ui--cursor-overlay nil)))
-   (lsp--workspace-buffers (dap--debug-session-workspace debug-session))))
+   (dap--buffer-list)))
 
-(defun dap-ui--set-debug-marker (debug-session file point)
+(defun dap-ui--set-debug-marker (file point)
   "Set debug marker for DEBUG-SESSION in FILE at POINT."
-  (dap-ui--clear-marker-overlay debug-session)
+  (dap-ui--clear-marker-overlay)
   (setq-local dap-ui--cursor-overlay
               (dap-ui--make-overlay-at
                file point nil nil
@@ -609,7 +608,7 @@ DEBUG-SESSION is the debug session triggering the event."
         (goto-char (point-min))
         (forward-line (1- line))
         (forward-char column)
-        (dap-ui--set-debug-marker debug-session path (point))))))
+        (dap-ui--set-debug-marker path (point))))))
 
 (defun dap-ui--after-open ()
   "Handler for `lsp-after-open-hook'."
@@ -890,7 +889,7 @@ REQUEST-ID is the active request id. If it doesn't maches the
                              (condition . ,condition))
                            result))
                    (-zip-fill nil breakpoints session-breakpoints)))))
-            (dap--get-breakpoints lsp--cur-workspace)))
+            (dap--get-breakpoints)))
     (or result (vector))))
 
 (define-button-type 'dap-ui-breakpoint-position
@@ -931,7 +930,7 @@ REQUEST-ID is the active request id. If it doesn't maches the
   "Delete BREAKPOINT on the current line."
   (interactive (list (bui-list-current-entry)))
   (-when-let* (((&alist 'file-name (file-name ui-list-point)) breakpoint)
-               (file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash file-name)))
+               (file-breakpoints (gethash file-name (dap--get-breakpoints)))
                (existing-breakpoint (cl-find-if
                                      (-lambda ((&plist :point)) (= ui-list-point point))
                                      file-breakpoints)))
@@ -972,12 +971,11 @@ REQUEST-ID is the active request id. If it doesn't maches the
 (defun dap-ui-breakpoints ()
   "List breakpoints."
   (interactive)
-  (lsp--cur-workspace-check)
-  (let ((workspace lsp--cur-workspace))
+  (let ((workspaces lsp--buffer-workspaces))
     (bui-get-display-entries 'dap-ui-breakpoints-ui 'list)
-    (setq-local lsp--cur-workspace workspace)
+    (setq-local lsp--buffer-workspaces workspaces)
     (add-hook 'bui-after-redisplay-hook
-              (lambda () (setq-local lsp--cur-workspace workspace)))
+              (lambda () (setq-local lsp--buffer-workspaces workspaces)))
     (run-hooks 'dap-ui-breakpoints-ui-list-displayed-hook)))
 
 (defun dap-ui-debug-sessions-send ()

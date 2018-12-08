@@ -27,9 +27,9 @@
 
 (add-hook 'java-mode-hook 'lsp-java-enable)
 
-(defun dap--get-sessions (workspace)
+(defun dap--get-sessions ()
   "Get sessions for WORKSPACE."
-  (lsp-workspace-get-metadata "debug-sessions" workspace))
+  (lsp-workspace-get-metadata "debug-sessions"))
 
 (Setup
  (setq lsp-java-workspace-dir (f-join dap-java-test-root "workspace")

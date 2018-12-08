@@ -26,13 +26,13 @@
 
 ;;; Code:
 
-(require 'lsp-mode)
+(require 'lsp)
 (require 'json)
 (require 'f)
 (require 'dash)
 (require 'dap-overlays)
 
-(defconst dap--breakpoints-file ".breakpoints"
+(defconst dap--breakpoints-file (expand-file-name (locate-user-emacs-file ".dap-breakpoints"))
   "Name of the file in which the breakpoints will be persisted.")
 
 (defcustom dap-print-io t
@@ -164,9 +164,9 @@ The hook will be called with the session file and the new set of breakpoint loca
   ;; Leftover data from previous chunk; to be processed
   (leftovers nil))
 
-(defun dap--get-sessions (workspace)
+(defun dap--get-sessions ()
   "Get sessions for WORKSPACE."
-  (lsp-workspace-get-metadata "debug-sessions" workspace))
+  (lsp-workspace-get-metadata "debug-sessions"))
 
 (defun dap--wait-for-port (host port &optional retry-count sleep-interval)
   "Wait for PORT to be open on HOST.
@@ -192,8 +192,7 @@ SLEEP-INTERVAL is the sleep interval between each retry."
 
 (defun dap--cur-session ()
   "Get currently active `dap--debug-session'."
-  (when lsp--cur-workspace
-    (lsp-workspace-get-metadata "default-session" lsp--cur-workspace)))
+  (lsp-workspace-get-metadata "default-session"))
 
 (defun dap--resp-handler (&optional success-callback)
   "Generate response handler.
@@ -220,7 +219,7 @@ has succeeded."
       (setf (dap--debug-session-state debug-session) 'failed
             (dap--debug-session-error-message debug-session) message)
 
-      (dap--refresh-breakpoints debug-session)
+      (dap--refresh-breakpoints)
       (run-hook-with-args 'dap-terminated-hook debug-session)
       (run-hooks 'dap-session-changed-hook))))
 
@@ -246,15 +245,11 @@ has succeeded."
 
 (defun dap--set-cur-session (debug-session)
   "Change the active debug session to DEBUG-SESSION."
-  (lsp-workspace-set-metadata "default-session" debug-session lsp--cur-workspace))
+  (lsp-workspace-set-metadata "default-session" debug-session))
 
 (defmacro dap--put-if-absent (config key form)
   "Update KEY to FORM if KEY does not exist in plist CONFIG."
   `(plist-put ,config ,key (or (plist-get ,config ,key) ,form)))
-
-(defun dap--locate-workspace-file (workspace file-name)
-  "Locate FILE-NAME with relatively to WORKSPACE root dir."
-  (f-join (lsp--workspace-root workspace) file-name))
 
 (defun dap--completing-read (prompt collection transform-fn &optional predicate
                                     require-match initial-input
@@ -307,28 +302,28 @@ This is in contrast to merely setting it to 0."
                  nil (format "Invalid Content-Length value: %s" val)))
     (cons key val)))
 
-(defun dap--get-breakpoints (workspace)
+(defun dap--get-breakpoints ()
   "Get breakpoints in WORKSPACE."
-  (or (lsp-workspace-get-metadata "Breakpoints" workspace)
-      (let ((it (make-hash-table :test 'equal)))
-        (lsp-workspace-set-metadata "Breakpoints" it)
-        it)))
+  (or (lsp-workspace-get-metadata "Breakpoints")
+      (let ((breakpoints (make-hash-table :test 'equal)))
+        (lsp-workspace-set-metadata "Breakpoints" breakpoints)
+        breakpoints)))
 
-(defun dap--persist (workspace file-name to-persist)
+(defun dap--persist (file-name to-persist)
   "Persist TO-PERSIST.
 
 FILE-NAME the file name.
 WORKSPACE will be used to calculate root folder."
   (with-demoted-errors
       "Failed to persist file: %S"
-    (with-temp-file (dap--locate-workspace-file workspace file-name)
+    (with-temp-file file-name
       (erase-buffer)
       (insert (prin1-to-string to-persist)))))
 
-(defun dap--set-sessions (workspace debug-sessions)
+(defun dap--set-sessions (debug-sessions)
   "Update list of debug sessions for WORKSPACE to DEBUG-SESSIONS."
-  (lsp-workspace-set-metadata "debug-sessions" debug-sessions workspace)
-  (run-hook-with-args 'dap-session-changed-hook workspace))
+  (lsp-workspace-set-metadata "debug-sessions" debug-sessions)
+  (run-hook-with-args 'dap-session-changed-hook))
 
 (defun dap--persist-breakpoints (breakpoints)
   "Persist BREAKPOINTS."
@@ -346,13 +341,13 @@ WORKSPACE will be used to calculate root folder."
                                 v)
                         filtered-breakpoints))
              breakpoints)
-    (dap--persist lsp--cur-workspace dap--breakpoints-file filtered-breakpoints)))
+    (dap--persist dap--breakpoints-file filtered-breakpoints)))
 
 (defun dap--breakpoints-changed (updated-file-breakpoints &optional file-name)
   "Common logic breakpoints related methods UPDATED-FILE-BREAKPOINTS.
 FILE-NAME is the filename in which the breakpoints have been udpated."
   (let* ((file-name (or file-name buffer-file-name (error "No file name")))
-         (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
+         (breakpoints (dap--get-breakpoints)))
     ;; update the list
     (if updated-file-breakpoints
         (puthash file-name updated-file-breakpoints breakpoints)
@@ -368,8 +363,7 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
     (let ((set-breakpoints-req (dap--set-breakpoints-request
                                 file-name
                                 updated-file-breakpoints)))
-      (-as-> lsp--cur-workspace $
-             dap--get-sessions
+      (-as-> (dap--get-sessions) $
              (-filter 'dap--session-running $)
              (--each $
                (dap--send-message set-breakpoints-req
@@ -384,8 +378,7 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
 (defun dap-breakpoint-toggle ()
   "Toggle breakpoint on the current line."
   (interactive)
-  (lsp--cur-workspace-check)
-  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
+  (let ((file-breakpoints (gethash buffer-file-name (dap--get-breakpoints))))
     (dap--breakpoints-changed (if-let (existing-breakpoint
                                        (cl-find-if
                                         (lambda (existing)
@@ -415,8 +408,7 @@ FILE-BREAKPOINTS is the list of breakpoints in the current file."
 (defun dap-breakpoint-delete ()
   "Delete breakpoint on the current line."
   (interactive)
-  (lsp--cur-workspace-check)
-  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
+  (let ((file-breakpoints (gethash buffer-file-name (dap--get-breakpoints))))
     (when-let (existing-breakpoint (dap--get-breakpoint-at-point file-breakpoints))
       (-some-> existing-breakpoint (plist-get :marker) (set-marker nil))
       (dap--breakpoints-changed (cl-remove existing-breakpoint file-breakpoints)))))
@@ -425,8 +417,7 @@ FILE-BREAKPOINTS is the list of breakpoints in the current file."
   "Common code for updating breakpoint.
 MESSAGE to be displayed to the user.
 PROPERTY is the breakpoint property that will be udpated."
-  (lsp--cur-workspace-check)
-  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
+  (let ((file-breakpoints (gethash buffer-file-name (dap--get-breakpoints))))
     (if-let (existing-breakpoint (dap--get-breakpoint-at-point file-breakpoints))
         (let ((value (read-string message
                                   (plist-get existing-breakpoint property))))
@@ -461,8 +452,7 @@ thread exection but the server will log message."
 (defun dap-breakpoint-add ()
   "Add breakpoint on the current line."
   (interactive)
-  (lsp--cur-workspace-check)
-  (let ((file-breakpoints (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name))))
+  (let ((file-breakpoints (gethash buffer-file-name (dap--get-breakpoints))))
     (when (not (cl-find-if
                 (lambda (existing)
                   (= (line-number-at-pos (plist-get existing :marker))
@@ -656,15 +646,18 @@ thread exection but the server will log message."
         (dap--go-to-stack-frame debug-session (first stack-frames)))))
    debug-session))
 
-(defun dap--refresh-breakpoints (debug-session)
+(defun dap--buffer-list ()
+  "Get all file backed buffers."
+  (-filter 'buffer-file-name (buffer-list)))
+
+(defun dap--refresh-breakpoints ()
   "Refresh breakpoints for DEBUG-SESSION."
-  (->> debug-session
-       dap--debug-session-workspace
-       lsp--workspace-buffers
-       (--map (with-current-buffer it
-                (dap--set-breakpoints-in-file
-                 buffer-file-name
-                 (->> lsp--cur-workspace dap--get-breakpoints (gethash buffer-file-name)))))))
+  (--each (dap--buffer-list)
+    (when buffer-file-name
+      (with-current-buffer it
+        (dap--set-breakpoints-in-file
+         buffer-file-name
+         (gethash buffer-file-name (dap--get-breakpoints)))))))
 
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."
@@ -696,7 +689,7 @@ thread exection but the server will log message."
        (setf (dap--debug-session-state debug-session) 'terminated)
        (delete-process (dap--debug-session-proc debug-session))
        (clrhash (dap--debug-session-breakpoints debug-session))
-       (dap--refresh-breakpoints debug-session)
+       (dap--refresh-breakpoints)
        (run-hook-with-args 'dap-terminated-hook debug-session))
       ("usernotification"
        (-let [(&hash "body" (&hash "notificationType" notification-type "message")) event]
@@ -940,13 +933,13 @@ should be started after the :port argument is taken.
     (unless skip-debug-session
       (let ((debug-session (dap--create-session launch-args))
             (workspace lsp--cur-workspace)
-            (breakpoints (dap--get-breakpoints lsp--cur-workspace)))
+            (breakpoints (dap--get-breakpoints)))
         (dap--send-message
          (dap--initialize-message type)
          (dap--session-init-resp-handler
           debug-session
           (lambda (initialize-result)
-            (-let [debug-sessions (dap--get-sessions workspace)]
+            (-let [debug-sessions (dap--get-sessions)]
 
               ;; update session name accordingly
               (setf (dap--debug-session-name debug-session) (dap--calculate-unique-name
@@ -954,7 +947,7 @@ should be started after the :port argument is taken.
                                                              debug-sessions)
                     (dap--debug-session-initialize-result debug-session) initialize-result)
 
-              (dap--set-sessions workspace (cons debug-session debug-sessions)))
+              (dap--set-sessions (cons debug-session debug-sessions)))
             (dap--send-message
              (dap--make-request request launch-args)
              (dap--session-init-resp-handler
@@ -993,24 +986,21 @@ should be started after the :port argument is taken.
   "After initialize handler."
   (with-demoted-errors
       "Failed to load breakpoints for the current workspace with error: %S"
-    (let ((breakpoints-file (dap--locate-workspace-file lsp--cur-workspace
-                                                        dap--breakpoints-file))
-          (workspace lsp--cur-workspace))
+    (let ((breakpoints-file dap--breakpoints-file))
       (when (f-exists? breakpoints-file)
         (-let [breakpoints (dap--read-from-file breakpoints-file)]
           (maphash (lambda (file file-breakpoints)
                      (dap--set-breakpoints-in-file file file-breakpoints))
                    breakpoints)
-          (lsp-workspace-set-metadata "Breakpoints"
-                                      breakpoints
-                                      workspace))))))
+          (lsp-workspace-set-metadata "Breakpoints" breakpoints))))))
 
 (defun dap-mode-line ()
   "Calculate DAP modeline."
-  (-when-let (debug-session (dap--cur-session))
-    (format "%s - %s|"
-            (dap--debug-session-name debug-session)
-            (dap--debug-session-state debug-session))))
+  (when lsp-mode
+    (-when-let (debug-session (dap--cur-session))
+      (format "%s - %s|"
+              (dap--debug-session-name debug-session)
+              (dap--debug-session-state debug-session)))))
 
 (defun dap--thread-label (debug-session thread)
   "Calculate thread name for THREAD from DEBUG-SESSION."
@@ -1061,12 +1051,12 @@ should be started after the :port argument is taken.
   "Make NEW-SESSION the active debug session."
   (dap--set-cur-session new-session)
 
-  (-some-> new-session
-           dap--debug-session-workspace
-           lsp--workspace-buffers
-           (--each (with-current-buffer it
-                     (dap--set-breakpoints-in-file buffer-file-name
-                                                   (gethash buffer-file-name (dap--get-breakpoints lsp--cur-workspace))))))
+  (when new-session
+    (let ((breakpoints (dap--get-breakpoints)))
+      (--each (dap--buffer-list) (with-current-buffer it
+                                   (->> breakpoints
+                                        (gethash buffer-file-name)
+                                        (dap--set-breakpoints-in-file buffer-file-name))))))
 
   (run-hook-with-args 'dap-session-changed-hook lsp--cur-workspace)
 
@@ -1083,11 +1073,11 @@ should be started after the :port argument is taken.
                                  (--remove
                                   (or (not (dap--session-running it))
                                       (eq it current-session))
-                                  (dap--get-sessions lsp--cur-workspace)))))
-    (case (length target-debug-sessions)
-      (0 (error "No active session to switch to"))
-      (1 (dap--switch-to-session (first target-debug-sessions)))
-      (t (dap--switch-to-session
+                                  (dap--get-sessions)))))
+    (pcase target-debug-sessions
+      ('() (error "No active session to switch to"))
+      (`(,debug-session) (dap--switch-to-session debug-session))
+      (_ (dap--switch-to-session
           (dap--completing-read "Select session: "
                                 target-debug-sessions
                                 'dap--debug-session-name))))))
@@ -1170,10 +1160,9 @@ after selecting configuration template."
 If the current session it will be terminated."
   (interactive (list (dap--cur-session-or-die)))
   (let* ((cleanup-fn (lambda ()
-                       (->> lsp--cur-workspace
-                            dap--get-sessions
+                       (->> (dap--get-sessions)
                             (-remove-item debug-session)
-                            (dap--set-sessions lsp--cur-workspace))
+                            (dap--set-sessions))
                        (when (eq (dap--cur-session) debug-session)
                          (dap--switch-to-session nil))
                        (-when-let (buffer (dap--debug-session-output-buffer debug-session))
@@ -1189,13 +1178,13 @@ If the current session it will be terminated."
 (defun dap-delete-all-sessions ()
   "Terminate/remove all sessions."
   (interactive)
-  (--each (dap--get-sessions lsp--cur-workspace)
+  (--each (dap--get-sessions)
     (when (not (eq 'terminated (dap--debug-session-state it)))
       (dap--send-message (dap--make-request "disconnect"
                                             (list :restart :json-false))
                          (dap--resp-handler)
                          it)))
-  (dap--set-sessions lsp--cur-workspace ())
+  (dap--set-sessions ())
   (dap--switch-to-session nil))
 
 (defun dap-breakpoint-delete-all ()
@@ -1203,14 +1192,14 @@ If the current session it will be terminated."
   (interactive)
   (maphash (lambda (file-name _)
              (dap--breakpoints-changed nil file-name))
-           (dap--get-breakpoints lsp--cur-workspace)))
+           (dap--get-breakpoints)))
 
 (defun dap--buffer-killed ()
   "Buffer killed handler."
   ;; make sure that the breakpoints are updated on close of the file since the
   ;; file might have been edited so we need to recalculate the :point based on the marker.
   (when lsp--cur-workspace
-    (let* ((breakpoints (dap--get-breakpoints lsp--cur-workspace))
+    (let* ((breakpoints (dap--get-breakpoints))
            (file-breakpoints (gethash buffer-file-name breakpoints))
            (updated-breakpoonts (-map (-lambda ((bkp &as &plist :marker :point))
                                         (-> bkp
@@ -1227,11 +1216,11 @@ If the current session it will be terminated."
 
 (defun dap--after-open ()
   "Handler of after open hook."
-  (->> lsp--cur-workspace
-       dap--get-breakpoints
-       (gethash buffer-file-name)
-       (dap--set-breakpoints-in-file buffer-file-name))
-  (add-hook 'kill-buffer-hook 'dap--buffer-killed nil t))
+  (when (buffer-file-name)
+    (->> (dap--get-breakpoints)
+         (gethash buffer-file-name)
+         (dap--set-breakpoints-in-file buffer-file-name))
+    (add-hook 'kill-buffer-hook 'dap--buffer-killed nil t)))
 
 ;;;###autoload
 (define-minor-mode dap-mode
@@ -1241,7 +1230,7 @@ If the current session it will be terminated."
   :global t
   :require 'dap-mode
   :lighter (:eval (dap-mode-line))
-  (add-hook 'lsp-after-initialize-hook 'dap--after-initialize)
+  (dap--after-initialize)
   (add-hook 'lsp-after-open-hook 'dap--after-open))
 
 (defun dap-turn-on-dap-mode ()
