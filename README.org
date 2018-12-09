@@ -21,6 +21,7 @@
     - [[#commands][Commands]]
   - [[#python][Python]]
     - [[#installation-1][Installation]]
+  - [[#ruby][Ruby]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
     - [[#example][Example]]
 - [[#links][Links]]
@@ -36,7 +37,7 @@
 ** Project status
    The project is in it's early stage and is still not extensively tested. The
    API considered unstable until 1.0 release is out. It is tested only against
-   Java and Python.
+   Java, Python and Ruby.
 * Screenshot
   [[file:screenshots/MultiSession.png]]
 * Features
@@ -152,6 +153,13 @@
         (require 'dap-python)
       #+END_SRC
       This will add the python related configuration to  ~dap-debug~.
+** Ruby
+   - Download and extract [[https://marketplace.visualstudio.com/items?itemName=rebornix.Ruby][VSCode Ruby Extension]] . Make sure that ~dap-ruby-debug-program~ is: ~("node" path-to-main-js)~ where ~node~ is either "node" if nodejs is on the path or path to nodejs and ~path-to-main-js~ is full path ~./out/debugger/main.js~ which is part of the downloaded VScode package.
+   - Follow the instructions on installing ~rdebug-ide~ from [[https://github.com/rubyide/vscode-ruby/wiki/1.-Debugger-Installation][Ruby Debug Installation]]
+   - Put in your emacs configuration.
+      #+BEGIN_SRC elisp
+        (require 'dap-ruby)
+      #+END_SRC
 * Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating
