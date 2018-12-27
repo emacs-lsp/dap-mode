@@ -1,4 +1,4 @@
-;;; dap-ruby.el --- Debug Adapter Protocol mode for Python      -*- lexical-binding: t; -*-
+;;; dap-ruby.el --- Debug Adapter Protocol mode for Ruby      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018  Ivan Yonchovski
 

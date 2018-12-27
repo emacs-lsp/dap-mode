@@ -54,8 +54,8 @@
 ** Debugger commands
    | Command                        | Description                                                     |
    |--------------------------------+-----------------------------------------------------------------|
-   | ~dap-breakpoint-toggle~        | Toggle java breakpoint at line                                  |
-   | ~dap-breakpoint-delete~        | Delete java breakpoint at line                                  |
+   | ~dap-breakpoint-toggle~        | Toggle breakpoint at line                                       |
+   | ~dap-breakpoint-delete~        | Delete breakpoint at line                                       |
    | ~dap-breakpoint-add~           | Add java breakpoint at line                                     |
    | ~dap-breakpoint-condition~     | Set/unset breakpoint condition                                  |
    | ~dap-breakpoint-hit-condition~ | Set/unset breakpoint hit condition                              |
@@ -166,7 +166,7 @@
     startup parameters. It should either populate ~:debugPort~ and ~:host~ in
     case of TCP Debug Adapter Server or ~:dap-server-path~ when STD out must be used for
     Debug Adapter Server communication.
-  - ~dap-register-debug-template~ register a debug teplate which will be
+  - ~dap-register-debug-template~ register a debug template which will be
     available when ~dap-debug~ is called. The debug template must specify
     ~:type~ key which will be used to determine the provider to be called to
     populate missing fields.
