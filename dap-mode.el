@@ -932,7 +932,6 @@ should be started after the :port argument is taken.
 
     (unless skip-debug-session
       (let ((debug-session (dap--create-session launch-args))
-            (workspace lsp--cur-workspace)
             (breakpoints (dap--get-breakpoints)))
         (dap--send-message
          (dap--initialize-message type)
