@@ -31,6 +31,8 @@
 (require 'f)
 (require 'dash)
 (require 'dap-overlays)
+(eval-when-compile
+  (require 'cl))
 
 (defconst dap--breakpoints-file (expand-file-name (locate-user-emacs-file ".dap-breakpoints"))
   "Name of the file in which the breakpoints will be persisted.")
