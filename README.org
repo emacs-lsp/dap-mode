@@ -40,6 +40,8 @@
    Java, Python, Ruby and LLDB (C/C++/Objective-C/Swift).
 * Screenshot
   [[file:screenshots/MultiSession.png]]
+** Swift
+  [[file:screenshots/Swift.png]]
 * Features
   - Launch/Attach
   - Breakpoints
