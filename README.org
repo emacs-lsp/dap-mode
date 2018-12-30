@@ -39,6 +39,7 @@
    API considered unstable until 1.0 release is out. It is tested only against
    Java, Python, Ruby and LLDB (C/C++/Objective-C/Swift).
 * Screenshot
+** Java
   [[file:screenshots/MultiSession.png]]
 ** Swift
   [[file:screenshots/Swift.png]]
