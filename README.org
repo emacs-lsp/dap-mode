@@ -37,7 +37,7 @@
 ** Project status
    The project is in it's early stage and is still not extensively tested. The
    API considered unstable until 1.0 release is out. It is tested only against
-   Java, Python and Ruby.
+   Java, Python, Ruby and LLDB (C/C++/Objective-C/Swift).
 * Screenshot
   [[file:screenshots/MultiSession.png]]
 * Features
@@ -160,6 +160,18 @@
       #+BEGIN_SRC elisp
         (require 'dap-ruby)
       #+END_SRC
+** LLDB
+*** Installation
+LLDB is a debugger that supports, among others, C, C++, Objective-C and Swift.
+
+   - Clone and follow the instructions to compile lldb-vscode from https://github.com/llvm-mirror/lldb/tree/master/tools/lldb-vscode
+   - Put in your emacs configuration.
+      #+BEGIN_SRC elisp
+        (require 'dap-lldb)
+      #+END_SRC
+
+*Note*: For proper Swift support, you need to compile LLDB from https://github.com/apple/swift-lldb and put the compiled LLDB library/framework in the "extensions" folder.
+
 * Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating
