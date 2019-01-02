@@ -33,7 +33,7 @@ buffer.")
   (get-buffer-process (current-buffer)))
 
 (define-derived-mode dap-ui-repl-mode comint-mode "DAP-REPL"
-  "Provide a REPL into the visiting browser."
+  "Provide a REPL for the active debug session."
   :group 'dap-ui
   :syntax-table emacs-lisp-mode-syntax-table
   (setq comint-prompt-regexp (concat "^" (regexp-quote dap-ui-repl-prompt))
@@ -79,9 +79,11 @@ INPUT is the current input."
   "Start a JavaScript REPL to be evaluated in the visiting browser."
   (interactive)
   (let ((workspaces (lsp-workspaces)))
-    (when (not (get-buffer "*dap-ui-repl*"))
+    (unless (get-buffer "*dap-ui-repl*")
       (with-current-buffer (get-buffer-create "*dap-ui-repl*")
         (dap-ui-repl-mode)
+        (when (functionp 'company-mode)
+          (company-mode 1))
         (setq-local lsp--buffer-workspaces workspaces))))
   (pop-to-buffer (get-buffer "*dap-ui-repl*")))
 
