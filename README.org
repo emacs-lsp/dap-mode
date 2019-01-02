@@ -5,6 +5,8 @@
 - [[#summary][Summary]]
   - [[#project-status][Project status]]
 - [[#screenshot][Screenshot]]
+  - [[#java][Java]]
+  - [[#swift][Swift]]
 - [[#features][Features]]
   - [[#debugger-commands][Debugger commands]]
   - [[#windows][Windows]]
@@ -16,16 +18,19 @@
   - [[#dap-debug-repl][DAP debug REPL]]
 - [[#configuration][Configuration]]
   - [[#dap-mode-configuration][DAP mode configuration]]
-  - [[#java][Java]]
+  - [[#java-1][Java]]
     - [[#installation][Installation]]
     - [[#commands][Commands]]
   - [[#python][Python]]
     - [[#installation-1][Installation]]
   - [[#ruby][Ruby]]
+  - [[#lldb][LLDB]]
+    - [[#installation-2][Installation]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
     - [[#example][Example]]
 - [[#links][Links]]
 - [[#troubleshooting][Troubleshooting]]
+- [[#acknowledgments][Acknowledgments]]
 - [[#whats-next][What's next]]
 
 * Summary
@@ -208,5 +213,7 @@ LLDB is a debugger that supports, among others, C, C++, Objective-C and Swift.
   - [[https://microsoft.github.io/debug-adapter-protocol/implementors/adapters/][Debug Adapter Protocol Server Implementations]]
 * Troubleshooting
   If you notice a bug, open an issue on Github Issues.
+* Acknowledgments
+  - [[https://github.com/danielmartin][Daniel Martin]] - LLDB integration.
 * What's next
   - Watches
