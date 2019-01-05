@@ -34,13 +34,20 @@
   :group 'dap-lldb
   :type '(repeat string))
 
+(defcustom dap-lldb-debugged-program-function 'buffer-file-name
+  "The function to get the path of the file to be debugged."
+  :group 'dap-lldb
+  :type 'symbol)
+
 (defun dap-lldb--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
   (-> conf
       (dap--put-if-absent :dap-server-path dap-lldb-debug-program)
       (dap--put-if-absent :type "lldb")
       (dap--put-if-absent :cwd default-directory)
-      (dap--put-if-absent :program (buffer-file-name))
+      (dap--put-if-absent :program (if (commandp dap-lldb-debugged-program-function)
+                                       (call-interactively dap-lldb-debugged-program-function)
+                                     (funcall dap-lldb-debugged-program-function)))
       (dap--put-if-absent :name "LLDB Debug")))
 
 (eval-after-load "dap-mode"
