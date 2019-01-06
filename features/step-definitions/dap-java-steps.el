@@ -90,7 +90,7 @@
   (lambda (status callback)
     (dap-java-steps-async-wait
      (lambda ()
-       (if (s-equals? (s-trim (lsp-mode-line)) status)
+       (if (s-matches? status (s-trim (lsp-mode-line)))
            t
          (progn
            (message "Server status is %s" (lsp-mode-line))

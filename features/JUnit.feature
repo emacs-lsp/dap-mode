@@ -2,7 +2,7 @@ Feature: JUnit tests
 
   Background:
     And I open a project file "test-project/src/test/java/temp/AppTest.java"
-    And The server status must become "LSP::Started"
+    And The server status must become "^LSP[jdtls:[0-9]+]$"
 
   @JUnit
   Scenario: Debug JUnit class

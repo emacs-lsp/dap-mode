@@ -32,7 +32,7 @@ Feature: Breakpoint tests which require multiple files
     And I call "save-buffer"
 
     And I start lsp-java
-    And The server status must become "LSP::Started"
+    And The server status must become "^LSP[jdtls:[0-9]+]$"
 
   @Breakpoints
   Scenario: Breakpoints in two files

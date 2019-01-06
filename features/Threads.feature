@@ -19,7 +19,7 @@ Feature: Threads
     """
     And I call "save-buffer"
     And I start lsp-java
-    And The server status must become "LSP::Started"
+    And The server status must become "^LSP[jdtls:[0-9]+]$"
     And I place the cursor before "System"
     And I call "dap-breakpoint-toggle"
     And I go to beginning of buffer

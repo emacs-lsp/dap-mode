@@ -18,7 +18,7 @@ Feature: Running without breakpoints
     """
     And I call "save-buffer"
     And I start lsp-java
-    And The server status must become "LSP::Started"
+    And The server status must become "^LSP[jdtls:[0-9]+]$"
     And I attach handler "terminated" to hook "dap-terminated-hook"
     When I call "dap-java-debug"
     Then The hook handler "terminated" would be called
@@ -56,7 +56,7 @@ Feature: Running without breakpoints
     """
     And I call "save-buffer"
     And I start lsp-java
-    And The server status must become "LSP::Started"
+    And The server status must become "^LSP[jdtls:[0-9]+]$"
     And I attach handler "terminated" to hook "dap-terminated-hook"
     And I start an action chain
     And I press "M-x"
@@ -109,7 +109,7 @@ Feature: Running without breakpoints
     """
     And I call "save-buffer"
     And I start lsp-java
-    And The server status must become "LSP::Started"
+    And The server status must become "^LSP[jdtls:[0-9]+]$"
     And I attach handler "terminated" to hook "dap-terminated-hook"
     And I start an action chain
     And I press "M-x"

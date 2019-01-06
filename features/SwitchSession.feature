@@ -19,7 +19,7 @@ Feature: Switching active session
     """
     And I call "save-buffer"
     And I start lsp-java
-    And The server status must become "LSP::Started"
+    And The server status must become "^LSP[jdtls:[0-9]+]$"
 
   @SwitchSession
   Scenario: No active session

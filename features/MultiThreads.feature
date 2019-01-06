@@ -26,7 +26,7 @@ Feature: Multiple threads
     """
     And I call "save-buffer"
     And I start lsp-java
-    And The server status must become "LSP::Started"
+    And The server status must become "^LSP[jdtls:[0-9]+]$"
     And I place the cursor before "888"
     And I call "dap-toggle-breakpoint"
     And I place the cursor before "999"

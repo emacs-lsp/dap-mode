@@ -19,7 +19,7 @@ Feature: Running without debug
     """
     And I call "save-buffer"
     And I start lsp-java
-    And The server status must become "LSP::Started"
+    And The server status must become "^LSP[jdtls:[0-9]+]$"
 
   @Eval
   Scenario: Eval successfull
