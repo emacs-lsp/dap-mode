@@ -25,7 +25,7 @@
   (require 'lsp-java)
   (require 'dap-ui))
 
-(add-hook 'java-mode-hook 'lsp-java-enable)
+(add-hook 'java-mode-hook 'lsp)
 
 (defun dap--get-sessions ()
   "Get sessions for WORKSPACE."
@@ -50,10 +50,10 @@
  (mkdir lsp-java-workspace-cache-dir t)
 
  (dap-turn-on-dap-mode)
- (add-to-list 'lsp-java--workspace-folders (f-join dap-java-maven-project-root "test-project"))
+ (lsp-workspace-folders-add (f-join dap-java-maven-project-root "test-project"))
 
  (find-file (f-join dap-java-maven-project-root "pom.xml"))
- (lsp-java-enable)
+ (lsp)
  (toggle-debug-on-error))
 
 (Before)
