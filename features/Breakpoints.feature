@@ -2,7 +2,7 @@ Feature: Breakpoint tests
 
   Background:
     And I open a project file "test-project/src/main/java/temp/App.java"
-    And The server status must become "LSP::Started"
+    And The server status must become "^LSP[jdtls:[0-9]+]$"
 
   @Breakpoints
   Scenario: Breakpoint + continue
