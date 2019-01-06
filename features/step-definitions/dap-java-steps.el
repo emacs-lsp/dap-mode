@@ -80,11 +80,11 @@
 
 (And "^I add project \"\\([^\"]+\\)\" folder \"\\([^\"]+\\)\" to the list of workspace folders$"
   (lambda (project dir-name)
-    (add-to-list 'lsp-java--workspace-folders (f-join dap-java-test-root dir-name project))))
+    (lsp-workspace-folders-add (f-join dap-java-test-root dir-name project))))
 
 (And "^I start lsp-java$"
   (lambda ()
-    (lsp-java-enable)))
+    (lsp)))
 
 (Then "^The server status must become \"\\([^\"]+\\)\"$"
   (lambda (status callback)
