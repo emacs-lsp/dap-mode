@@ -4,6 +4,7 @@
 * Table of Contents                                       :TOC_4_gh:noexport:
 - [[#summary][Summary]]
   - [[#project-status][Project status]]
+- [[#usage][Usage]]
 - [[#screenshot][Screenshot]]
   - [[#java][Java]]
   - [[#swift][Swift]]
@@ -34,16 +35,21 @@
 - [[#whats-next][What's next]]
 
 * Summary
-  Emacs client/library for [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]]
-  is a wire protocol for communication between client and Debug Server. It's
-  similar to the [[https://github.com/Microsoft/language-server-protocol][LSP]]
-  but providers integration with debug server.
+  Emacs client/library for [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]] is a wire protocol for
+  communication between client and Debug Server. It's similar to the [[https://github.com/Microsoft/language-server-protocol][LSP]] but
+  providers integration with debug server.
 
   *Note: dap-mode works only against lsp.el interface.*
 ** Project status
-   The project is in it's early stage and is still not extensively tested. The
-   API considered unstable until 1.0 release is out. It is tested only against
-   Java, Python, Ruby and LLDB (C/C++/Objective-C/Swift).
+   The project is in it's early stage but although it is not extensively tested
+   it is considered stable enough to be used. The API considered unstable until
+   1.0 release is out. It is tested against Java, Python, Ruby, Elixir and LLDB
+   (C/C++/Objective-C/Swift).
+* Usage
+  The main entry points are ~dap-debug~ and ~dap-debug-edit-template~. The first
+  one asks for a registered debug template and starts the configuration using
+  the default values for that particular configuration. The later creates a
+  debug template which could be customized before running.
 * Screenshot
 ** Java
   [[file:screenshots/MultiSession.png]]
@@ -82,6 +88,7 @@
    | ~dap-switch-stack-frame~       | Switch active stack frame                                       |
    | ~dap-switch-thread~            | Switch active thread                                            |
    | ~dap-switch-session~           | Switch active session                                           |
+   | ~dap-debug-edit-template~      | Generate run command                                            |
    | ~dap-debug~                    | Create and run new configuration using the available templates  |
    | ~dap-debug-last~               | Debug previous configuration                                    |
    | ~dap-debug-recent~             | Select configuration to run from the previously started command |
