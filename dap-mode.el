@@ -661,6 +661,19 @@ thread exection but the server will log message."
          buffer-file-name
          (gethash buffer-file-name (dap--get-breakpoints)))))))
 
+(defun dap--mark-session-as-terminated (debug-session)
+  "Mark DEBUG-SESSION as terminated."
+  (setf (dap--debug-session-state debug-session) 'terminated
+        (dap--debug-session-active-frame debug-session) nil)
+
+  (with-demoted-errors "Process cleanup failed with %s"
+    (delete-process (dap--debug-session-proc debug-session)))
+  (clrhash (dap--debug-session-breakpoints debug-session))
+
+  (run-hook-with-args 'dap-stack-frame-changed-hook debug-session)
+  (run-hook-with-args 'dap-terminated-hook debug-session)
+  (dap--refresh-breakpoints))
+
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."
   (let ((event-type (gethash "event" event)))
@@ -688,11 +701,7 @@ thread exection but the server will log message."
          (puthash thread-id reason (dap--debug-session-thread-states debug-session))
          (dap--select-thread-id debug-session thread-id)))
       ("terminated"
-       (setf (dap--debug-session-state debug-session) 'terminated)
-       (delete-process (dap--debug-session-proc debug-session))
-       (clrhash (dap--debug-session-breakpoints debug-session))
-       (dap--refresh-breakpoints)
-       (run-hook-with-args 'dap-terminated-hook debug-session))
+       (dap--mark-session-as-terminated debug-session))
       ("usernotification"
        (-let [(&hash "body" (&hash "notificationType" notification-type "message")) event]
          (warn  (format "[%s] %s" notification-type message))))
@@ -782,6 +791,10 @@ ADAPTER-ID the id of the adapter."
                           :proc proc
                           :name (plist-get launch-args :name)
                           :workspace lsp--cur-workspace)))
+    (set-process-sentinel proc
+                          (lambda (_process exit-str)
+                            (message "Debug session process exited with status: %s" exit-str)
+                            (dap--mark-session-as-terminated debug-session)))
     (set-process-filter proc (dap--create-filter-function debug-session))
     debug-session))
 

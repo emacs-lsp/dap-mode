@@ -601,14 +601,15 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
   "Handler for `dap-stack-frame-changed-hook'.
 DEBUG-SESSION is the debug session triggering the event."
   (when debug-session
-    (-when-let* (((&hash "source" "line" "column") (dap--debug-session-active-frame debug-session))
-                 (path (-some->> source (gethash "path") lsp--uri-to-path))
-                 (buffer (find-buffer-visiting path)))
-      (with-current-buffer buffer
-        (goto-char (point-min))
-        (forward-line (1- line))
-        (forward-char column)
-        (dap-ui--set-debug-marker path (point))))))
+    (-if-let* (((&hash "source" "line" "column") (dap--debug-session-active-frame debug-session))
+               (path (-some->> source (gethash "path") lsp--uri-to-path))
+               (buffer (find-buffer-visiting path)))
+        (with-current-buffer buffer
+          (goto-char (point-min))
+          (forward-line (1- line))
+          (forward-char column)
+          (dap-ui--set-debug-marker path (point)))
+      (dap-ui--clear-marker-overlay))))
 
 (defun dap-ui--after-open ()
   "Handler for `lsp-after-open-hook'."
