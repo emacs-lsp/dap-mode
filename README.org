@@ -27,6 +27,7 @@
   - [[#ruby][Ruby]]
   - [[#lldb][LLDB]]
     - [[#installation-2][Installation]]
+  - [[#elixir][Elixir]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
     - [[#example][Example]]
 - [[#links][Links]]
@@ -188,6 +189,15 @@ LLDB is a debugger that supports, among others, C, C++, Objective-C and Swift.
 
 *Note*: For proper Swift support, you need to compile LLDB from https://github.com/apple/swift-lldb and put the compiled LLDB library/framework in the "extensions" folder.
 
+** Elixir
+   Make sure that you have properly configured ~Elixir~ and that you have [[https://github.com/elixir-lsp/elixir-ls][Elixir LS]]
+   binaries on the path and put in your emacs configuration.
+      #+BEGIN_SRC elisp
+        (require 'dap-elixir)
+      #+END_SRC
+   Then when you do ~dap-debug-edit-template~ and select Elixir which will
+   generate runnable debug configuration. For more details on supported settings
+   by the Elixir Debug Server refer to it's documentation.
 * Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating
