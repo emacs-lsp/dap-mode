@@ -1114,21 +1114,44 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
 
 (defun dap--select-template ()
   "Select the configuration to launch."
-  (copy-tree (rest (dap--completing-read "Select configuration template:"
-                                         dap--debug-template-configurations
-                                         'first nil t))))
+  (let ((debug-args (-> (dap--completing-read "Select configuration template: "
+                                              dap--debug-template-configurations
+                                              'first nil t)
+                        rest
+                        copy-tree)))
+    (or (-some-> (plist-get debug-args :type)
+                 (gethash dap--debug-providers)
+                 (funcall debug-args))
+        (error "There is no debug provider for language %s"
+               (or (plist-get debug-args :type) "'Not specified'")))))
+
 (defun dap-debug (debug-args)
   "Run debug configuration DEBUG-ARGS.
 
 If DEBUG-ARGS is not specified the configuration is generated
 after selecting configuration template."
   (interactive (list (dap--select-template)))
-  (-if-let (updated-args (-some-> (plist-get debug-args :type)
-                                  (gethash dap--debug-providers)
-                                  (funcall debug-args)))
-      (dap-start-debugging updated-args)
-    (error "There is no debug provider for language %s"
-           (or (plist-get debug-args :type) "'Not specified'"))))
+  (dap-start-debugging debug-args))
+
+(defun dap-debug-edit-template (debug-args)
+  "Edit template DEBUG-ARGS."
+  (interactive (list (dap--select-template)))
+  (with-current-buffer (or (get-buffer "*DAP Templates*")
+                           (with-current-buffer (get-buffer-create "*DAP Templates*")
+                             (emacs-lisp-mode)
+                             (current-buffer)))
+    (goto-char (point-max))
+    (insert "\n\n(dap-debug `(")
+    (-let ((column (current-column))
+           ((fst snd . rst) debug-args))
+      (insert (format "%s %s" fst (prin1-to-string fst)))
+      (loop for (k v) on rst by (function cddr)
+            do (progn
+                 (insert "\n")
+                 (--dotimes column (insert " "))
+                 (insert (format "%s %s" k (prin1-to-string v))))))
+    (insert "))"))
+  (pop-to-buffer "*DAP Templates*"))
 
 (defun dap-debug-last ()
   "Debug last configuration."
