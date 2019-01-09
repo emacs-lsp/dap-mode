@@ -942,7 +942,7 @@ should be started after the :port argument is taken.
           (default-directory (or cwd default-directory)))
     (mapc (-lambda ((env . value)) (setenv env value)) environment-variables)
 
-    (when program-to-start(compile program-to-start))
+    (when program-to-start (compile program-to-start))
     (when wait-for-port (dap--wait-for-port host port))
 
     (unless skip-debug-session
@@ -1143,8 +1143,16 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
 
 If DEBUG-ARGS is not specified the configuration is generated
 after selecting configuration template."
-  (interactive (list (dap--select-template)))
-  (dap-start-debugging debug-args))
+  (interactive (list (-> (dap--completing-read "Select configuration template: "
+                                               dap--debug-template-configurations
+                                               'first nil t)
+                         rest
+                         copy-tree)))
+  (dap-start-debugging (or (-some-> (plist-get debug-args :type)
+                                    (gethash dap--debug-providers)
+                                    (funcall debug-args))
+                           (error "There is no debug provider for language %s"
+                                  (or (plist-get debug-args :type) "'Not specified'")))))
 
 (defun dap-debug-edit-template (debug-args)
   "Edit template DEBUG-ARGS."
