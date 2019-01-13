@@ -486,8 +486,9 @@ thread exection but the server will log message."
 
 (defun dap--parser-read (p output)
   "Parser OUTPUT using parser P."
-  (let ((messages '())
-        (chunk (concat (dap--parser-leftovers p) output)))
+  (let* ((messages '())
+         (output (string-as-unibyte output))
+         (chunk (concat (dap--parser-leftovers p) output)))
     (while (not (string-empty-p chunk))
       (if (not (dap--parser-reading-body p))
           ;; Read headers

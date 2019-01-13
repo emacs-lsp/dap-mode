@@ -47,13 +47,16 @@
 									 '("{\"somedata\":2}")))))
 
 (ert-deftest dap--parser-read--multiple-multibyte-chunks ()
-  (let* ((p (make-dap--parser)))
+  (let ((p (make-dap--parser)))
 		(should (equal (dap--parser-read p "Content-Length: 18\r") nil))
 		(should (equal (dap--parser-read p "\n\r\n{\"somedata\":\"\xe2\x80") nil))
 		(should (equal (dap--parser-read p "\x99\"}Content-Length: 14\r\n\r\n{")
 									 '("{\"somedata\":\"’\"}")))
 		(should (equal (dap--parser-read p "\"somedata\":2}")
-									 '("{\"somedata\":2}")))))
+									 '("{\"somedata\":2}"))))
+  (let ((p (make-dap--parser)))
+	  (should (equal (dap--parser-read p "Content-Length: 238\r\n\r\n{\"event\":\"output\",\"body\":{\"category\":\"stdout\",\"output\":\"2019-01-13 00:16:36  [ main ] - [ INFO com.inspur.common.utils.PropertiesBuilder.getConfig(32)]  从jar内加载:kafka-producer.properties\\n\",\"type\":\"output\"},\"seq\":9,\"type\":\"event\"}") '("{\"event\":\"output\",\"body\":{\"category\":\"stdout\",\"output\":\"2019-01-13 00:16:36  [ main ] - [ INFO com.inspur.common.utils.PropertiesBuilder.getConfig(32)]  从jar内加载:kafka-producer.properties\\n\",\"type\":\"output\"},\"seq\":9,\"type\":\"event\"}")))))
+
 
 (provide 'dap-test)
 ;;; dap-test.el ends here
