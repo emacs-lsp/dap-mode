@@ -381,12 +381,7 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
   "Toggle breakpoint on the current line."
   (interactive)
   (let ((file-breakpoints (gethash buffer-file-name (dap--get-breakpoints))))
-    (dap--breakpoints-changed (if-let (existing-breakpoint
-                                       (cl-find-if
-                                        (lambda (existing)
-                                          (= (line-number-at-pos (plist-get existing :marker))
-                                             (line-number-at-pos (point))))
-                                        file-breakpoints))
+    (dap--breakpoints-changed (if-let (existing-breakpoint (dap--get-breakpoint-at-point file-breakpoints) )
                                   ;; delete if already exists
                                   (progn
                                     (-some-> existing-breakpoint
@@ -402,9 +397,10 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
   "Get breakpoint on the current point.
 FILE-BREAKPOINTS is the list of breakpoints in the current file."
   (let ((current-line (line-number-at-pos (point))))
-    (cl-find-if
-     (-lambda ((&plist :marker))
-       (= current-line (line-number-at-pos marker)))
+    (-first
+     (-lambda ((&plist :marker :point))
+       (= current-line (line-number-at-pos (or (marker-position marker)
+                                               point))))
      file-breakpoints)))
 
 (defun dap-breakpoint-delete ()
@@ -455,11 +451,7 @@ thread exection but the server will log message."
   "Add breakpoint on the current line."
   (interactive)
   (let ((file-breakpoints (gethash buffer-file-name (dap--get-breakpoints))))
-    (when (not (cl-find-if
-                (lambda (existing)
-                  (= (line-number-at-pos (plist-get existing :marker))
-                     (line-number-at-pos (point))))
-                file-breakpoints))
+    (unless (dap--get-breakpoint-at-point file-breakpoints)
       (dap--breakpoints-changed (push (list :marker (point-marker)
                                             :point (point))
                                       file-breakpoints)))))
