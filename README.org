@@ -200,9 +200,10 @@ LLDB is a debugger that supports, among others, C, C++, Objective-C and Swift.
    generate runnable debug configuration. For more details on supported settings
    by the Elixir Debug Server refer to it's documentation.
 ** PHP
-   This is using [[https://github.com/felixfbecker/vscode-php-debug][felixbecker/vscode-php-debug]] as dap-server between
-   emacs and the xdebug-extension on the http-server side. Make sure it is trans/compiled to javascript properly. Only tested 
-   under linux with node.
+   This is using [[https://github.com/felixfbecker/vscode-php-debug][felixbecker/vscode-php-debug]]
+   ([[https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug][downloadable from the marketplace]])
+   as dap-server between emacs and the xdebug-extension on the http-server side. Make sure it is trans/compiled to 
+   javascript properly. Only tested under linux with node.
      #+BEGIN_SRC elisp
        (require 'dap-php)
      #+END_SRC
