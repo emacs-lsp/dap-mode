@@ -40,7 +40,7 @@
   (-> conf
       (dap--put-if-absent :dap-server-path dap-php-debug-program)
       (dap--put-if-absent :type "node")
-      (dap--put-if-absent :cwd (lsp-find-session-root))
+      (dap--put-if-absent :cwd (lsp-find-session-folder (lsp-session) (buffer-file-name)))
       (dap--put-if-absent :name "Php Debug")))
 
 (dap-register-debug-provider "php" 'dap-php--populate-start-file-args)
