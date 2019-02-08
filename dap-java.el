@@ -31,6 +31,10 @@
 (require 'lsp-java)
 (require 'dap-mode)
 
+(defvar dap-java--classpath-separator (if (string= system-type "windows-nt")
+                                          ";"
+                                        ":"))
+
 (defcustom  dap-java-compile-port 33000
   "The debug port which will be used for compile/attach configuration.
 If the port is taken, DAP will try the next port."
@@ -141,7 +145,7 @@ initiate `compile' and attach to the process."
            :wait-for-port t
            :program-to-start program-to-start
            :port port
-           :environment-variables '(("CLASSPATH_ARGS" . ,(s-join ":" classpaths)))))))
+           :environment-variables '(("CLASSPATH_ARGS" . ,(s-join dap-java--classpath-separator classpaths)))))))
 
 (defun dap-java--populate-default-args (conf)
   "Populate all of the fields that are not present in CONF."
@@ -174,7 +178,7 @@ test."
           (class-path (->> (list test-class-name nil)
                            (lsp-send-execute-command "vscode.java.resolveClasspath")
                            second
-                           (s-join ":"))))
+                           (s-join dap-java--classpath-separator))))
     (list :program-to-start (s-join " "
                                     (list* runner "-jar" dap-java-test-runner
                                            "-cp" "$JUNIT_CLASS_PATH"
