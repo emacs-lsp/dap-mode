@@ -29,17 +29,24 @@
 
 (require 'dap-mode)
 
-(defcustom  dap-python-default-debug-port 32000
+(defcustom dap-python-default-debug-port 32000
   "The debug port which will be used for ptvsd process.
 If the port is taken, DAP will try the next port."
   :group 'dap-python
   :type 'number)
 
+(defcustom dap-python-executable "python"
+  "The python executable to use."
+  :group 'dap-python
+  :risky t
+  :type 'file)
+
 (defun dap-python--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
   (let* ((host "localhost")
-         (debug-port (dap--find-available-port host dap-python-default-debug-port)))
-    (compile (format "python -m ptvsd --wait --host %s --port %s %s" host debug-port buffer-file-name))
+         (debug-port (dap--find-available-port host dap-python-default-debug-port))
+         (python-executable dap-python-executable))
+    (compile (format "%s -m ptvsd --wait --host %s --port %s %s" python-executable host debug-port buffer-file-name))
     (dap--wait-for-port host debug-port)
     (plist-put conf :debugServer debug-port)
     (plist-put conf :host host)

@@ -31,6 +31,14 @@
 (require 'lsp-java)
 (require 'dap-mode)
 
+(defvar dap-java--classpath-separator (if (string= system-type "windows-nt")
+                                          ";"
+                                        ":"))
+
+(defvar dap-java--var-format (if (string= system-type "windows-nt")
+                                 "%%%s%%"
+                               "$%s"))
+
 (defcustom  dap-java-compile-port 33000
   "The debug port which will be used for compile/attach configuration.
 If the port is taken, DAP will try the next port."
@@ -128,9 +136,10 @@ initiate `compile' and attach to the process."
   (dap-java--populate-launch-args conf)
   (-let* (((&plist :mainClass :projectName :classPaths classpaths) conf)
           (port   (dap--find-available-port "localhost" dap-java-compile-port))
-          (program-to-start (format "%s -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=%s,quiet=y -cp $CLASSPATH_ARGS %s"
+          (program-to-start (format "%s -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=%s,quiet=y -cp %s %s"
                                     lsp-java-java-path
                                     port
+                                    (format dap-java--var-format "CLASSPATH_ARGS")
                                     mainClass)))
     (dap-java--populate-attach-args
      (list :type "java"
@@ -141,7 +150,7 @@ initiate `compile' and attach to the process."
            :wait-for-port t
            :program-to-start program-to-start
            :port port
-           :environment-variables '(("CLASSPATH_ARGS" . ,(s-join ":" classpaths)))))))
+           :environment-variables '(("CLASSPATH_ARGS" . ,(s-join dap-java--classpath-separator classpaths)))))))
 
 (defun dap-java--populate-default-args (conf)
   "Populate all of the fields that are not present in CONF."
@@ -174,10 +183,11 @@ test."
           (class-path (->> (list test-class-name nil)
                            (lsp-send-execute-command "vscode.java.resolveClasspath")
                            second
-                           (s-join ":"))))
+                           (s-join dap-java--classpath-separator))))
+    (message "CLASSPATH: %s " class-path)
     (list :program-to-start (s-join " "
                                     (list* runner "-jar" dap-java-test-runner
-                                           "-cp" "$JUNIT_CLASS_PATH"
+                                           "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
                                            (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
                                            (if run-method? to-run test-class-name)
                                            dap-java-test-additional-args))
