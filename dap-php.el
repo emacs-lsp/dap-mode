@@ -45,7 +45,7 @@
 
 (dap-register-debug-provider "php" 'dap-php--populate-start-file-args)
 (dap-register-debug-template "Php Run Configuration"
-                             (list :type "node"
+                             (list :type "php"
                                    :cwd nil
                                    :request "launch"
                                    :name "Php Debug"
