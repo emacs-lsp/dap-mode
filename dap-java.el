@@ -76,7 +76,7 @@ If the port is taken, DAP will try the next port."
     (cond
      ((= main-classes-count 0) (error "Unable to find main class.
 Please check whether the server is configured propertly"))
-     ((= main-classes-count 1) (first main-classes))
+     ((= main-classes-count 1) (cl-first main-classes))
      ((setq current-class (--first (string= buffer-file-name (gethash "filePath" it))
                                    main-classes))
       current-class)
@@ -106,7 +106,7 @@ Please check whether the server is configured propertly"))
     (dap--put-if-absent conf :modulePaths (vector))
     (dap--put-if-absent conf
                         :classPaths
-                        (or (second
+                        (or (cl-second
                              (lsp-send-execute-command "vscode.java.resolveClasspath"
                                                        (list main-class project-name)))
                             (error "Unable to resolve classpath")))
@@ -178,15 +178,15 @@ test."
   (-let* ((to-run (->> (list :cursorOffset (point)
                              :sourceUri (lsp--path-to-uri (buffer-file-name)))
                        (lsp-send-execute-command "che.jdt.ls.extension.findTestByCursor")
-                       first))
-          (test-class-name (first (s-split "#" to-run)))
+                       cl-first))
+          (test-class-name (cl-first (s-split "#" to-run)))
           (class-path (->> (list test-class-name nil)
                            (lsp-send-execute-command "vscode.java.resolveClasspath")
-                           second
+                           cl-second
                            (s-join dap-java--classpath-separator))))
     (message "CLASSPATH: %s " class-path)
     (list :program-to-start (s-join " "
-                                    (list* runner "-jar" dap-java-test-runner
+                                    (cl-list* runner "-jar" dap-java-test-runner
                                            "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
                                            (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
                                            (if run-method? to-run test-class-name)

@@ -232,7 +232,7 @@
   (if-let (widget (dap-ui-sessions--tree-under-cursor))
       (-let ((session (widget-get widget :session))
              (dap-ui-session-refresh-delay nil))
-        (case (widget-get widget :element-type)
+        (cl-case (widget-get widget :element-type)
           (:session (dap--switch-to-session session))
           (:thread (-let ((thread  (widget-get widget :thread)))
                      (setf (dap--debug-session-thread-id session) (gethash "id" thread) )
@@ -512,7 +512,7 @@ E is the ending of the overlay.
 VISUALS and MSG will be used for the overlay."
   (let ((beg b)
         (end e))
-    (assert (and
+    (cl-assert (and
              file
              (or (integerp point)
                  (and (integerp beg)
@@ -677,7 +677,7 @@ DEBUG-SESSION is the active debug session."
       (or (widget-get tree :variables)
           (progn (dap--send-message
                   (dap--make-request "variables"
-                                     (list* :variablesReference variables-reference
+                                     (cl-list* :variablesReference variables-reference
                                             (when (and indexed-variables
                                                        (< dap-ui-default-fetch-count indexed-variables ))
                                               (list :start 0
@@ -735,7 +735,7 @@ DEBUG-SESSION is the active debug session."
                                             (or (-> buf
                                                     buffer-name
                                                     (assoc dap-ui-buffer-configurations)
-                                                    rest)
+                                                    cl-rest)
                                                 '((side . right)
                                                   (slot . 1)
                                                   (window-width . 0.20))))))
@@ -903,10 +903,10 @@ REQUEST-ID is the active request id. If it doesn't maches the
 
 (defun dap-ui--get-file-info (file-data &optional _)
   "Used to render FILE-DATA in breakpoints' list."
-  (list (f-filename (first file-data))
+  (list (f-filename (cl-first file-data))
         :type 'dap-ui-breakpoint-position
-        'file (first file-data)
-        'point (second file-data)))
+        'file (cl-first file-data)
+        'point (cl-second file-data)))
 
 (bui-define-interface dap-ui-breakpoints-ui list
   :buffer-name "*Breakpoints*"
@@ -942,7 +942,7 @@ REQUEST-ID is the active request id. If it doesn't maches the
   "Delete breakpoint on the current line."
   (interactive)
   (->> (bui-list-get-marked 'general)
-       (-map 'first)
+       (-map 'cl-first)
        (bui-entries-by-ids (bui-current-entries))
        (-map 'dap-ui-breakpoints-delete)))
 

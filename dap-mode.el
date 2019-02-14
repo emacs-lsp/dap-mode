@@ -31,7 +31,7 @@
 (require 'f)
 (require 'dash)
 (require 'dap-overlays)
-(require 'cl)
+(require 'cl-lib)
 
 (defconst dap--breakpoints-file (expand-file-name (locate-user-emacs-file ".dap-breakpoints"))
   "Name of the file in which the breakpoints will be persisted.")
@@ -262,7 +262,7 @@ TRANSFORM-FN will be used to transform each of the items before displaying.
 PROMPT COLLECTION PREDICATE REQUIRE-MATCH INITIAL-INPUT HIST DEF
 INHERIT-INPUT-METHOD will be proxied to `completing-read' without changes."
   (let* ((result (--map (cons (funcall transform-fn it) it) collection))
-         (completion (completing-read prompt (-map 'first result)
+         (completion (completing-read prompt (-map 'cl-first result)
                                       predicate require-match initial-input hist
                                       def inherit-input-method)))
     (cdr (assoc completion result))))
@@ -272,8 +272,8 @@ INHERIT-INPUT-METHOD will be proxied to `completing-read' without changes."
 This is in contrast to merely setting it to 0."
   (let (p)
     (while plist
-      (if (not (eq property (first plist)))
-          (setq p (plist-put p (first plist) (nth 1 plist))))
+      (if (not (eq property (cl-first plist)))
+          (setq p (plist-put p (cl-first plist) (nth 1 plist))))
       (setq plist (cddr plist)))
     p))
 
@@ -637,7 +637,7 @@ thread exection but the server will log message."
       ;; thread-id is the same as the active one
       (when (and (eq debug-session (dap--cur-session))
                  (= thread-id (dap--debug-session-thread-id (dap--cur-session))))
-        (dap--go-to-stack-frame debug-session (first stack-frames)))))
+        (dap--go-to-stack-frame debug-session (cl-first stack-frames)))))
    debug-session))
 
 (defun dap--buffer-list ()
@@ -985,7 +985,7 @@ should be started after the :port argument is taken.
   "Read FILE content."
   (with-temp-buffer
     (insert-file-contents-literally file)
-    (first (read-from-string
+    (cl-first (read-from-string
             (buffer-substring-no-properties (point-min) (point-max))))))
 
 (defun dap--after-initialize ()
@@ -1121,8 +1121,8 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
   "Select the configuration to launch."
   (let ((debug-args (-> (dap--completing-read "Select configuration template: "
                                               dap--debug-template-configurations
-                                              'first nil t)
-                        rest
+                                              'cl-first nil t)
+                        cl-rest
                         copy-tree)))
     (or (-some-> (plist-get debug-args :type)
                  (gethash dap--debug-providers)
@@ -1137,8 +1137,8 @@ If DEBUG-ARGS is not specified the configuration is generated
 after selecting configuration template."
   (interactive (list (-> (dap--completing-read "Select configuration template: "
                                                dap--debug-template-configurations
-                                               'first nil t)
-                         rest
+                                               'cl-first nil t)
+                         cl-rest
                          copy-tree)))
   (dap-start-debugging (or (-some-> (plist-get debug-args :type)
                                     (gethash dap--debug-providers)
@@ -1158,7 +1158,7 @@ after selecting configuration template."
     (-let ((column (current-column))
            ((fst snd . rst) debug-args))
       (insert (format "%s %s" fst (prin1-to-string snd)))
-      (loop for (k v) on rst by (function cddr)
+      (cl-loop for (k v) on rst by (function cddr)
             do (progn
                  (insert "\n")
                  (--dotimes column (insert " "))
@@ -1169,7 +1169,7 @@ after selecting configuration template."
 (defun dap-debug-last ()
   "Debug last configuration."
   (interactive)
-  (if-let (configuration (cdr (first dap--debug-configuration)))
+  (if-let (configuration (cdr (cl-first dap--debug-configuration)))
       (dap-debug configuration)
     (funcall-interactively 'dap-debug-select-configuration)))
 
@@ -1178,8 +1178,8 @@ after selecting configuration template."
   (interactive)
   (->> (dap--completing-read "Select configuration: "
                              dap--debug-configuration
-                             'first nil t)
-       rest
+                             'cl-first nil t)
+       cl-rest
        dap-debug))
 
 (defun dap-go-to-output-buffer ()
