@@ -36,7 +36,7 @@
 (defconst dap--breakpoints-file (expand-file-name (locate-user-emacs-file ".dap-breakpoints"))
   "Name of the file in which the breakpoints will be persisted.")
 
-(defcustom dap-print-io t
+(defcustom dap-print-io nil
   "If non-nil, print all messages to and from the DAP to messages."
   :group 'dap-mode
   :type 'boolean)
