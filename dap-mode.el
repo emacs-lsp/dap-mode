@@ -1259,6 +1259,30 @@ If the current session it will be terminated."
          (dap--set-breakpoints-in-file buffer-file-name))
     (add-hook 'kill-buffer-hook 'dap--buffer-killed nil t)))
 
+(defun dap-mode-mouse-set-clear-breakpoint (event)
+  "Set or remove a breakpoint at the position represented by an
+`event' mouse click. If `dap-mode' is not enabled, then only the
+point is set."
+  (interactive "e")
+  (mouse-minibuffer-check event)
+  (let ((posn (event-end event)))
+    (with-selected-window (posn-window posn)
+      (if (and (buffer-file-name) (bound-and-true-p dap-mode))
+          (if (numberp (posn-point posn))
+              (save-excursion
+                (goto-char (posn-point posn))
+                (dap-breakpoint-toggle))))
+      (posn-set-point posn))))
+
+(defvar dap-mode-map
+  (let ((dap-mode-map (make-sparse-keymap)))
+    (define-key dap-mode-map [left-margin mouse-1]
+      'dap-mode-mouse-set-clear-breakpoint)
+    (define-key dap-mode-map [left-fringe mouse-1]
+      'dap-mode-mouse-set-clear-breakpoint)
+    dap-mode-map)
+  "Keymap for `dap-mode'.")
+
 ;;;###autoload
 (define-minor-mode dap-mode
   "Global minor mode for DAP mode."
