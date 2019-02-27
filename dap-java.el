@@ -150,7 +150,7 @@ initiate `compile' and attach to the process."
            :wait-for-port t
            :program-to-start program-to-start
            :port port
-           :environment-variables '(("CLASSPATH_ARGS" . ,(s-join dap-java--classpath-separator classpaths)))))))
+           :environment-variables `(("CLASSPATH_ARGS" . ,(s-join dap-java--classpath-separator classpaths)))))))
 
 (defun dap-java--populate-default-args (conf)
   "Populate all of the fields that are not present in CONF."
