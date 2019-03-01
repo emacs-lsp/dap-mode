@@ -8,6 +8,7 @@
 - [[#screenshot][Screenshot]]
   - [[#java][Java]]
   - [[#swift][Swift]]
+  - [[#rust][RUST]]
 - [[#features][Features]]
   - [[#debugger-commands][Debugger commands]]
   - [[#windows][Windows]]
@@ -29,6 +30,8 @@
     - [[#installation-2][Installation]]
   - [[#elixir][Elixir]]
   - [[#php][PHP]]
+  - [[#native-debug-gdblldb][Native Debug (GDB/LLDB)]]
+    - [[#configuration-1][Configuration]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
     - [[#example][Example]]
 - [[#links][Links]]
@@ -54,9 +57,12 @@
   debug template which could be customized before running.
 * Screenshot
 ** Java
-  [[file:screenshots/MultiSession.png]]
+   [[file:screenshots/MultiSession.png]]
 ** Swift
-  [[file:screenshots/Swift.png]]
+   [[file:screenshots/Swift.png]]
+** RUST
+   #+caption: RUST via Native Debug
+   [[file:screenshots/rust.png]]
 * Features
   - Launch/Attach
   - Breakpoints
@@ -133,7 +139,7 @@
    breakpoints. The REPL has the same features as standart emacs shell (e. g.
    command history, ~C-p/n~ navigation through history, etc.) in addition to
    optional ~company-mode~ autocompletion.
-  [[file:screenshots/dap-ui-repl.png]]
+   [[file:screenshots/dap-ui-repl.png]]
 * Configuration
 ** DAP mode configuration
    Enable both ~dap-mode~ and ~dap-ui-mode~.
@@ -175,27 +181,27 @@
    - Download and extract [[https://marketplace.visualstudio.com/items?itemName=rebornix.Ruby][VSCode Ruby Extension]] . Make sure that ~dap-ruby-debug-program~ is: ~("node" path-to-main-js)~ where ~node~ is either "node" if nodejs is on the path or path to nodejs and ~path-to-main-js~ is full path ~./out/debugger/main.js~ which is part of the downloaded VScode package.
    - Follow the instructions on installing ~rdebug-ide~ from [[https://github.com/rubyide/vscode-ruby/wiki/1.-Debugger-Installation][Ruby Debug Installation]]
    - Put in your emacs configuration.
-      #+BEGIN_SRC elisp
-        (require 'dap-ruby)
-      #+END_SRC
+     #+BEGIN_SRC elisp
+       (require 'dap-ruby)
+     #+END_SRC
 ** LLDB
 *** Installation
-LLDB is a debugger that supports, among others, C, C++, Objective-C and Swift.
+    LLDB is a debugger that supports, among others, C, C++, Objective-C and Swift.
 
-   - Clone and follow the instructions to compile lldb-vscode from https://github.com/llvm-mirror/lldb/tree/master/tools/lldb-vscode
-   - Put in your emacs configuration.
+    - Clone and follow the instructions to compile lldb-vscode from https://github.com/llvm-mirror/lldb/tree/master/tools/lldb-vscode
+    - Put in your emacs configuration.
       #+BEGIN_SRC elisp
         (require 'dap-lldb)
       #+END_SRC
 
-*Note*: For proper Swift support, you need to compile LLDB from https://github.com/apple/swift-lldb and put the compiled LLDB library/framework in the "extensions" folder.
+    *Note*: For proper Swift support, you need to compile LLDB from https://github.com/apple/swift-lldb and put the compiled LLDB library/framework in the "extensions" folder.
 
 ** Elixir
    Make sure that you have properly configured ~Elixir~ and that you have [[https://github.com/elixir-lsp/elixir-ls][Elixir LS]]
    binaries on the path and put in your emacs configuration.
-      #+BEGIN_SRC elisp
-        (require 'dap-elixir)
-      #+END_SRC
+   #+BEGIN_SRC elisp
+     (require 'dap-elixir)
+   #+END_SRC
    Then when you do ~dap-debug-edit-template~ and select Elixir which will
    generate runnable debug configuration. For more details on supported settings
    by the Elixir Debug Server refer to it's documentation.
@@ -204,11 +210,19 @@ LLDB is a debugger that supports, among others, C, C++, Objective-C and Swift.
    ([[https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug][downloadable from the marketplace]])
    as dap-server between emacs and the xdebug-extension on the http-server side. Make sure it is trans/compiled to
    javascript properly. Only tested under linux with node.
-     #+BEGIN_SRC elisp
-       (require 'dap-php)
-     #+END_SRC
+   #+BEGIN_SRC elisp
+     (require 'dap-php)
+   #+END_SRC
    To begin debugging, select "PHP Run Configuration" from the ~dap-debug~ menu, issue the debug request in your browser,
    select the running thread (~dap-switch-thread~) and then ~dap-step-in~.
+** Native Debug (GDB/LLDB)
+   Using https://github.com/WebFreak001/code-debug
+*** Configuration
+    Download and extract [[https://marketplace.visualstudio.com/items?itemName=webfreak.debug][VSCode extension]] (make sure that ~dap-gdb-lldb-path~ is pointing to the extract location).
+   #+BEGIN_SRC elisp
+     (require 'dap-gdb-lldb)
+   #+END_SRC
+   Then do ~dap-debug~ or ~dap-debug-edit-template~ and selet GBD or LLDB configuration.
 * Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating
