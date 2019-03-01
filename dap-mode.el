@@ -41,6 +41,11 @@
   :group 'dap-mode
   :type 'boolean)
 
+(defcustom dap-auto-show-output t
+  "If non-nil, the output buffer will be showed automatically."
+  :group 'dap-mode
+  :type 'boolean)
+
 (defcustom dap-inhibit-io t
   "If non-nil, the messages will be inhibited."
   :group 'dap-mode
@@ -969,6 +974,8 @@ should be started after the :port argument is taken.
         (dap--set-cur-session debug-session)
         (push (cons name launch-args) dap--debug-configuration)
         (run-hook-with-args 'dap-session-created-hook debug-session)))))
+      (unless (and program-to-start dap-auto-show-output)
+        (save-excursion (dap-go-to-output-buffer))))))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
   "Establish markers for FILE-BREAKPOINTS in FILE."
