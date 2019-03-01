@@ -103,10 +103,12 @@ TEXT is the current input."
                                           :text text
                                           :column (- (length text) (- (point-at-eol) (point)))))
                  (dap--resp-handler
-                  (-lambda ((&hash "body" (&hash "targets")))
-                    (funcall callback (-map (-lambda ((item &as &hash "label" "text" "type"))
-                                              (propertize label :text text :type type :dap-completion-item item))
-                                            targets))))
+                  (lambda (result)
+                    (-if-let (targets (-some->> result (gethash "body") (gethash "targets")))
+                        (funcall callback (-map (-lambda ((item &as &hash "label" "text" "type"))
+                                                  (propertize label :text text :type type :dap-completion-item item))
+                                                targets))
+                      (funcall callback ()))))
                  debug-session))))))
 
 (defun dap-ui-repl--post-completion (candidate)
