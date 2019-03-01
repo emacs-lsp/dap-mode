@@ -702,6 +702,11 @@ thread exection but the server will log message."
       ("usernotification"
        (-let [(&hash "body" (&hash "notificationType" notification-type "message")) event]
          (warn  (format "[%s] %s" notification-type message))))
+      ("initialized"
+       (dap--configure-breakpoints
+        debug-session
+        (dap--get-breakpoints)
+        (apply-partially #'dap--send-configuration-done debug-session)))
       (_ (message (format "No messages handler for %s" event-type))))))
 
 (defun dap--create-filter-function (debug-session)
@@ -795,7 +800,7 @@ ADAPTER-ID the id of the adapter."
     (set-process-filter proc (dap--create-filter-function debug-session))
     debug-session))
 
-(defun dap--send-configuration-done (debug-session _)
+(defun dap--send-configuration-done (debug-session)
   "Send 'configurationDone' message for DEBUG-SESSION."
   (dap--send-message (dap--make-request "configurationDone")
                      (dap--resp-handler
@@ -821,7 +826,10 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
                                        (when hit-condition (plist-put result :hitCondition hit-condition))
                                        result)))
                              (apply 'vector))
-           :sourceModified :json-false))))
+           :sourceModified :json-false
+           :lines (->> file-breakpoints
+                       (--map (-> it dap-breakpoint-get-point line-number-at-pos))
+                       (apply 'vector))))))
 
 (defun dap--update-breakpoints (debug-session resp file-name)
   "Update breakpoints in FILE-NAME.
@@ -837,7 +845,7 @@ DEBUG-SESSION is the active debug session."
       (with-current-buffer buffer
         (run-hooks 'dap-breakpoints-changed-hook)))))
 
-(defun dap--configure-breakpoints (debug-session breakpoints callback result)
+(defun dap--configure-breakpoints (debug-session breakpoints callback)
   "Configure breakpoints for DEBUG-SESSION.
 
 BREAKPOINTS is the list of breakpoints to set.
@@ -847,7 +855,7 @@ RESULT to use for the callback."
         (finished 0))
     (if (zerop breakpoint-count)
         ;; no breakpoints to set
-        (funcall callback result)
+        (funcall callback)
       (maphash
        (lambda (file-name file-breakpoints)
          (condition-case _err
@@ -857,12 +865,12 @@ RESULT to use for the callback."
                (lambda (resp)
                  (setf finished (1+ finished))
                  (dap--update-breakpoints debug-session resp file-name)
-                 (when (= finished breakpoint-count) (funcall callback result))))
+                 (when (= finished breakpoint-count) (funcall callback))))
               debug-session)
            (file-missing
             (setf finished (1+ finished))
             (remhash file-name breakpoints)
-            (when (= finished breakpoint-count) (funcall callback result))
+            (when (= finished breakpoint-count) (funcall callback))
             (dap--persist-breakpoints breakpoints))))
        breakpoints))))
 
@@ -943,8 +951,7 @@ should be started after the :port argument is taken.
     (when wait-for-port (dap--wait-for-port host port))
 
     (unless skip-debug-session
-      (let ((debug-session (dap--create-session launch-args))
-            (breakpoints (dap--get-breakpoints)))
+      (let ((debug-session (dap--create-session launch-args)))
         (dap--send-message
          (dap--initialize-message type)
          (dap--session-init-resp-handler
@@ -959,21 +966,14 @@ should be started after the :port argument is taken.
                     (dap--debug-session-initialize-result debug-session) initialize-result)
 
               (dap--set-sessions (cons debug-session debug-sessions)))
-            (dap--send-message
-             (dap--make-request request launch-args)
-             (dap--session-init-resp-handler
-              debug-session
-              (apply-partially #'dap--configure-breakpoints
-                               debug-session
-                               breakpoints
-                               (apply-partially #'dap--send-configuration-done
-                                                debug-session)))
-             debug-session)))
+            (dap--send-message (dap--make-request request launch-args)
+                               (dap--session-init-resp-handler debug-session)
+                               debug-session)))
          debug-session)
 
         (dap--set-cur-session debug-session)
         (push (cons name launch-args) dap--debug-configuration)
-        (run-hook-with-args 'dap-session-created-hook debug-session)))))
+        (run-hook-with-args 'dap-session-created-hook debug-session))
       (unless (and program-to-start dap-auto-show-output)
         (save-excursion (dap-go-to-output-buffer))))))
 
