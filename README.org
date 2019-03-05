@@ -9,6 +9,7 @@
   - [[#java][Java]]
   - [[#swift][Swift]]
   - [[#rust][RUST]]
+  - [[#go][Go]]
 - [[#features][Features]]
   - [[#debugger-commands][Debugger commands]]
   - [[#windows][Windows]]
@@ -32,6 +33,8 @@
   - [[#php][PHP]]
   - [[#native-debug-gdblldb][Native Debug (GDB/LLDB)]]
     - [[#configuration-1][Configuration]]
+  - [[#go-1][Go]]
+    - [[#installation-3][Installation]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
     - [[#example][Example]]
 - [[#links][Links]]
@@ -63,6 +66,8 @@
 ** RUST
    #+caption: RUST via Native Debug
    [[file:screenshots/rust.png]]
+** Go
+   [[file:screenshots/go.png]]
 * Features
   - Launch/Attach
   - Breakpoints
@@ -223,6 +228,14 @@
      (require 'dap-gdb-lldb)
    #+END_SRC
    Then do ~dap-debug~ or ~dap-debug-edit-template~ and selet GBD or LLDB configuration.
+** Go
+*** Installation
+    - Download and extract [[https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go][VSCode Go Extension]].
+    - Install the delve command by following instructions on [[https://github.com/go-delve/delve/tree/master/Documentation/installation][delve - installation]].
+    - Put in your emacs configuration.
+      #+BEGIN_SRC elisp
+	(require 'dap-go)
+      #+END_SRC
 * Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating
