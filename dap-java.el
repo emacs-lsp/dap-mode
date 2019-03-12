@@ -108,7 +108,7 @@ Please check whether the server is configured propertly"))
                         :classPaths
                         (or (cl-second
                              (lsp-send-execute-command "vscode.java.resolveClasspath"
-                                                       (list main-class project-name)))
+                                                       (vector main-class project-name)))
                             (error "Unable to resolve classpath")))
     (dap--put-if-absent conf :name (format "%s (%s)"
                                            (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
