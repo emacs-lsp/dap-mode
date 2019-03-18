@@ -46,7 +46,7 @@ If the port is taken, DAP will try the next port."
   (let* ((host "localhost")
          (debug-port (dap--find-available-port host dap-python-default-debug-port))
          (python-executable dap-python-executable)
-         (python-args (if (plist-get conf :args) (plist-get conf :args) "")))
+         (python-args (or (plist-get conf :args) "")))
     (compile (format "%s -m ptvsd --wait --host %s --port %s %s %s" python-executable host debug-port buffer-file-name python-args))
     (dap--wait-for-port host debug-port)
     (plist-put conf :debugServer debug-port)
