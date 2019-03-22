@@ -614,7 +614,7 @@ thread exection but the server will log message."
       (-let (((&hash "line" line "column" column "name" name) stack-frame)
              (source (gethash "source" stack-frame)))
         (if source
-            (progn (find-file (lsp--uri-to-path (gethash "path" source)))
+            (progn (find-file (gethash "path" source))
                    (setf (dap--debug-session-active-frame debug-session) stack-frame)
 
                    (goto-char (point-min))

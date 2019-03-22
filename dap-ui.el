@@ -602,7 +602,7 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
 DEBUG-SESSION is the debug session triggering the event."
   (when debug-session
     (-if-let* (((&hash "source" "line" "column") (dap--debug-session-active-frame debug-session))
-               (path (-some->> source (gethash "path") lsp--uri-to-path))
+               (path (-some->> source (gethash "path")))
                (buffer (find-buffer-visiting path)))
         (with-current-buffer buffer
           (goto-char (point-min))
