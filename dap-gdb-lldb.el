@@ -66,7 +66,7 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
 (defun dap-gdb-lldb--populate-lldb (conf)
   "Populate CONF with the required arguments."
   (-> conf
-      (dap--put-if-absent :dap-server-path dap-gdb-lldb-debug-program)
+      (dap--put-if-absent :dap-server-path dap-gdb-lldb-path-lldb)
       (dap--put-if-absent :type "lldb")
       (dap--put-if-absent :cwd default-directory)
       (dap--put-if-absent :target (read-file-name "Select file to debug."))
