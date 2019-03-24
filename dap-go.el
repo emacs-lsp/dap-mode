@@ -47,7 +47,23 @@
   (setq conf (pcase (plist-get conf :mode)
                ("auto" (dap-go--populate-auto-args conf))
                ("debug" (dap--put-if-absent conf :program (lsp-find-session-folder (lsp-session) (buffer-file-name))))
-               ("exec" (dap--put-if-absent conf :program (read-file-name "Select executable to debug.")))))
+               ("exec" (dap--put-if-absent conf :program (read-file-name "Select executable to debug.")))
+               ("remote"
+                (dap--put-if-absent conf :program (lsp-find-session-folder (lsp-session) (buffer-file-name)))
+                (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "2345")))
+                (dap--put-if-absent conf :program-to-start
+                                    (concat dap-go-delve-path
+                                            " attach --headless --api-version=2 "
+                                            (format "--listen=:%d " (plist-get conf :port))
+                                            (number-to-string
+                                             (dap--completing-read "Select process: "
+                                                                   (list-system-processes)
+                                                                   (lambda (pid)
+                                                                     (-let (((&alist 'user 'comm)
+                                                                             (process-attributes pid)))
+                                                                       (format "%6d %-30s %s" pid comm user)))
+                                                                   nil t))))
+                )))
 
   (-> conf
       (dap--put-if-absent :dap-server-path dap-go-debug-program)
@@ -94,7 +110,17 @@
                                         :program nil
                                         :args nil
                                         :env nil
-                                        :envFile nil))))
+                                        :envFile nil))
+     (dap-register-debug-template "Go Attach Executable Configuration"
+                                  (list :type "go"
+                                        :request "launch"
+                                        :name "Attach Executable"
+                                        :mode "remote"
+                                        :program nil
+                                        :args nil
+                                        :env nil
+                                        :envFile nil))
+     ))
 
 (provide 'dap-go)
 ;;; dap-go.el ends here
