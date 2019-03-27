@@ -41,6 +41,8 @@ _o_: Step out       _sf_: Stack frame        _ba_: Add               _es_: Eval 
 _c_: Continue       _sl_: List locals        _bc_: Set condition     _eii_: Inspect
 _r_: Restart frame  _sb_: List breakpoints   _bh_: Set hit count     _eir_: Inspect region
 _Q_: Disconnect     _sS_: List sessions      _bl_: Set log message   _eis_: Inspect thing at point
+^^^^^^^^-----------------------------------------------------------------------------------------
+_R_: Run Configuration
 "
   ("n" dap-next)
   ("i" dap-step-in)
@@ -65,8 +67,9 @@ _Q_: Disconnect     _sS_: List sessions      _bl_: Set log message   _eis_: Insp
   ("eii" dap-ui-inspect)
   ("eir" dap-ui-inspect-region)
   ("eis" dap-ui-inspect-thing-at-point)
-  ("q" nil "quit" :color blue)
-  ("Q" dap-disconnect :color red))
+  ("Q" dap-disconnect :color red)
+  ("R" dap-debug)
+  ("q" nil "quit" :color blue))
 
 ;;;###autoload
 (defun dap-hydra ()
