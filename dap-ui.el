@@ -201,12 +201,7 @@
 (defconst dap-ui--locals-buffer "*dap-ui-locals*")
 (defconst dap-ui--sessions-buffer "*dap-ui-sessions*")
 (defconst dap-ui--inspect-buffer "*dap-ui-inspect*")
-(defconst dap-ui--debug-window-buffer  "*debug-window*")
-(defconst dap-ui--brekapoint-priority 200)
-
-;; define debug marker priority so it will be over the breakpoint marker if
-;; there is such on the current line.
-(defconst dap-ui--marker-priority 300)
+(defconst dap-ui--debug-window-buffer "*debug-window*")
 
 (defvar dap-ui-buffer-configurations
   `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.20)))
@@ -493,7 +488,7 @@ BUF is the active buffer."
     (overlay-put ov 'mouse-face     mouse-face)
     (overlay-put ov 'help-echo      tooltip-text)
     (overlay-put ov 'dap-ui-overlay  t)
-    (overlay-put ov 'priority 100)
+    (overlay-put ov 'priority (plist-get visuals :priority))
     (let ((char (plist-get visuals :char)))
       (if (window-system)
           (when char
@@ -505,31 +500,17 @@ BUF is the active buffer."
                                            (plist-get visuals :fringe)))))))
     ov))
 
-(defun dap-ui--make-overlay-at (file point b e msg visuals)
+(defun dap-ui--make-overlay-at (file point msg visuals)
   "Create an overlay highlighting the given POINT in FILE.
 B is the beginning of the overlay.
 E is the ending of the overlay.
 VISUALS and MSG will be used for the overlay."
-  (let ((beg b)
-        (end e))
-    (cl-assert (and
-             file
-             (or (integerp point)
-                 (and (integerp beg)
-                      (integerp end)))))
-    (-when-let (buf (find-buffer-visiting file))
-      (with-current-buffer buf
-        (if (and (integerp beg) (integerp end))
-            (progn
-              (setq beg beg)
-              (setq end end))
-          ;; If line provided, use line to define region
-          (save-excursion
-            (goto-char point)
-            (setq beg (point-at-bol))
-            (setq end (point-at-eol)))))
-
-      (dap-ui--make-overlay beg end msg visuals nil buf))))
+  (-when-let (buf (find-buffer-visiting file))
+    (with-current-buffer buf
+      ;; If line provided, use line to define region
+      (save-excursion
+        (goto-char point)
+        (dap-ui--make-overlay (point-at-bol) (point-at-eol) msg visuals nil buf)))))
 
 (defvar-local dap-ui--breakpoint-overlays '())
 
@@ -555,7 +536,7 @@ BREAKPOINT-DAP - nil or the data comming from DAP."
         :fringe (if (and breakpoint-dap (gethash "verified" breakpoint-dap))
                     'dap-ui-breakpoint-verified-fringe
                   'breakpoint-disabled)
-        :priority 'dap-ui--brekapoint-priority))
+        :priority 1))
 
 (defun dap-ui--refresh-breakpoints ()
   "Refresh breakpoints in FILE-NAME.
@@ -564,7 +545,6 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
   (-map (-lambda ((bp . remote-bp))
           (push (dap-ui--make-overlay-at buffer-file-name
                                          (dap-breakpoint-get-point bp)
-                                         nil nil
                                          "Breakpoint"
                                          (dap-ui--breakpoint-visuals bp remote-bp))
                 dap-ui--breakpoint-overlays))
@@ -589,13 +569,13 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
   (dap-ui--clear-marker-overlay)
   (setq-local dap-ui--cursor-overlay
               (dap-ui--make-overlay-at
-               file point nil nil
+               file point
                "Debug Marker"
                (list :face 'dap-ui-marker-face
                      :char ">"
                      :bitmap 'right-triangle
                      :fringe 'dap-ui-compile-errline
-                     :priority 'dap-ui--marker-priority))))
+                     :priority 2))))
 
 (defun dap-ui--stack-frame-changed (debug-session)
   "Handler for `dap-stack-frame-changed-hook'.
@@ -678,10 +658,10 @@ DEBUG-SESSION is the active debug session."
           (progn (dap--send-message
                   (dap--make-request "variables"
                                      (cl-list* :variablesReference variables-reference
-                                            (when (and indexed-variables
-                                                       (< dap-ui-default-fetch-count indexed-variables ))
-                                              (list :start 0
-                                                    :count dap-ui-default-fetch-count))))
+                                               (when (and indexed-variables
+                                                          (< dap-ui-default-fetch-count indexed-variables ))
+                                                 (list :start 0
+                                                       :count dap-ui-default-fetch-count))))
                   (dap--resp-handler
                    (-lambda ((&hash "body" (&hash "variables" variables)))
                      (widget-put tree :variables
@@ -750,8 +730,9 @@ DEBUG-SESSION is the active debug session."
          (body (gethash "body" value)))
     (with-current-buffer buf
       (erase-buffer)
-      (setq mode-line-format "Inspect")
-      (setq lsp--cur-workspace workspace)
+      (setq mode-line-format "Inspect"
+            lsp--cur-workspace workspace)
+
       (setq-local tree-widget-themes-directory dap-ui-themes-directory)
       (tree-widget-set-theme dap-ui-theme)
 
