@@ -679,7 +679,21 @@ thread exection but the server will log message."
                   (save-excursion
                     (goto-char (point-max))
                     (insert (gethash "output" (gethash "body" event))))))
-      ("breakpoint" ())
+      ("breakpoint" (-when-let* (((breakpoint &as &hash "id") (-some->> event
+                                                                        (gethash "body")
+                                                                        (gethash "breakpoint")))
+                                 (file-name (cl-first (ht-find (lambda (_ breakpoints)
+                                                                 (-first (-lambda ((bkp &as &hash "id" bkp-id))
+                                                                           (when (eq bkp-id id)
+                                                                             (ht-clear bkp)
+                                                                             (ht-aeach (ht-set bkp key value) breakpoint)
+                                                                             t))
+                                                                         breakpoints))
+                                                               (dap--debug-session-breakpoints debug-session)))))
+                      (when (eq debug-session (dap--cur-session))
+                        (-when-let (buffer (find-buffer-visiting file-name))
+                          (with-current-buffer buffer
+                            (run-hooks 'dap-breakpoints-changed-hook))))))
       ("thread" (-let [(&hash "body" (&hash "threadId" id "reason")) event]
                   (puthash id reason (dap--debug-session-thread-states debug-session))
                   (run-hooks 'dap-session-changed-hook)
@@ -993,7 +1007,7 @@ should be started after the :port argument is taken.
   (with-temp-buffer
     (insert-file-contents-literally file)
     (cl-first (read-from-string
-            (buffer-substring-no-properties (point-min) (point-max))))))
+               (buffer-substring-no-properties (point-min) (point-max))))))
 
 (defun dap--after-initialize ()
   "After initialize handler."
@@ -1166,10 +1180,10 @@ after selecting configuration template."
            ((fst snd . rst) debug-args))
       (insert (format "%s %s" fst (prin1-to-string snd)))
       (cl-loop for (k v) on rst by (function cddr)
-            do (progn
-                 (insert "\n")
-                 (--dotimes column (insert " "))
-                 (insert (format "%s %s" k (prin1-to-string v))))))
+               do (progn
+                    (insert "\n")
+                    (--dotimes column (insert " "))
+                    (insert (format "%s %s" k (prin1-to-string v))))))
     (insert "))"))
   (pop-to-buffer "*DAP Templates*"))
 

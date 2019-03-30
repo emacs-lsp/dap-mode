@@ -10,6 +10,7 @@
   - [[#swift][Swift]]
   - [[#rust][RUST]]
   - [[#go][Go]]
+  - [[#javascript][Javascript]]
 - [[#features][Features]]
   - [[#debugger-commands][Debugger commands]]
   - [[#windows][Windows]]
@@ -35,6 +36,13 @@
     - [[#configuration-1][Configuration]]
   - [[#go-1][Go]]
     - [[#installation-3][Installation]]
+  - [[#javascript-1][Javascript]]
+    - [[#firefox][Firefox]]
+      - [[#installation-4][Installation]]
+      - [[#usage-1][Usage]]
+    - [[#chrome][Chrome]]
+      - [[#installation-5][Installation]]
+      - [[#usage-2][Usage]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
     - [[#example][Example]]
 - [[#links][Links]]
@@ -68,6 +76,9 @@
    [[file:screenshots/rust.png]]
 ** Go
    [[file:screenshots/go.png]]
+** Javascript
+   #+caption: Javascript via Firefox debugger
+   [[file:screenshots/javascript.png]]
 * Features
   - Launch/Attach
   - Breakpoints
@@ -224,18 +235,39 @@
    Using https://github.com/WebFreak001/code-debug
 *** Configuration
     Download and extract [[https://marketplace.visualstudio.com/items?itemName=webfreak.debug][VSCode extension]] (make sure that ~dap-gdb-lldb-path~ is pointing to the extract location).
-   #+BEGIN_SRC elisp
-     (require 'dap-gdb-lldb)
-   #+END_SRC
-   Then do ~dap-debug~ or ~dap-debug-edit-template~ and selet GBD or LLDB configuration.
+    #+BEGIN_SRC elisp
+      (require 'dap-gdb-lldb)
+    #+END_SRC
+    Then do ~dap-debug~ or ~dap-debug-edit-template~ and selet GBD or LLDB configuration.
 ** Go
 *** Installation
     - Download and extract [[https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go][VSCode Go Extension]].
     - Install the delve command by following instructions on [[https://github.com/go-delve/delve/tree/master/Documentation/installation][delve - installation]].
     - Put in your emacs configuration.
       #+BEGIN_SRC elisp
-	(require 'dap-go)
+        (require 'dap-go)
       #+END_SRC
+** Javascript
+*** Firefox
+**** Installation
+     - Download and extract [[https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-firefox-debug][VSCode Firefox Debug Extension]].
+     - Make sure that ~dap-firefox-debug-program~ is pointing to the proper file.
+     - Put in your configuration file:
+       #+BEGIN_SRC elisp
+         (require 'dap-firefox)
+       #+END_SRC
+**** Usage
+     ~dap-debug~ or ~dap-debug-edit-template~ and select the firefox template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://github.com/hbenl/vscode-firefox-debug][Firefox Debug Adapter]].
+*** Chrome
+**** Installation
+     - Download and extract [[https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome][VSCode Chrome Debug Extension]].
+     - Make sure that ~dap-chrome-debug-program~ is pointing to the proper file.
+     - Put in your configuration file:
+       #+BEGIN_SRC elisp
+         (require 'dap-chrome)
+       #+END_SRC
+**** Usage
+     ~dap-debug~ or ~dap-debug-edit-template~ and select the chrome template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://github.com/Microsoft/vscode-chrome-debug][Chrome Debug Adapter]].
 * Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating
