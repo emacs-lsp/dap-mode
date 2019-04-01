@@ -180,17 +180,17 @@ test."
                        (lsp-send-execute-command "che.jdt.ls.extension.findTestByCursor")
                        cl-first))
           (test-class-name (cl-first (s-split "#" to-run)))
-          (class-path (->> (list test-class-name nil)
+          (class-path (->> (vector test-class-name nil)
                            (lsp-send-execute-command "vscode.java.resolveClasspath")
                            cl-second
                            (s-join dap-java--classpath-separator))))
     (message "CLASSPATH: %s " class-path)
     (list :program-to-start (s-join " "
                                     (cl-list* runner "-jar" dap-java-test-runner
-                                           "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
-                                           (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
-                                           (if run-method? to-run test-class-name)
-                                           dap-java-test-additional-args))
+                                              "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
+                                              (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
+                                              (if run-method? to-run test-class-name)
+                                              dap-java-test-additional-args))
           :environment-variables `(("JUNIT_CLASS_PATH" . ,class-path))
           :cwd (lsp-java--get-root))))
 
