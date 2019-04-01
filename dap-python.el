@@ -44,12 +44,19 @@ If the port is taken, DAP will try the next port."
 (defun dap-python--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
   (let* ((host "localhost")
-         (debug-port (dap--find-available-port host dap-python-default-debug-port))
-         (python-executable dap-python-executable)
-         (python-args (or (plist-get conf :args) "")))
-    (compile (format "%s -m ptvsd --wait --host %s --port %s %s %s" python-executable host debug-port buffer-file-name python-args))
-    (dap--wait-for-port host debug-port)
+	 (debug-port (dap--find-available-port host dap-python-default-debug-port))
+	 (python-executable dap-python-executable)
+	 (python-args (or (plist-get conf :args) ""))
+	 (python-target-module (or (plist-get conf :target-module) buffer-file-name)))
+
+    (dap--put-if-absent conf :program-to-start
+			(format "%s -m ptvsd --wait --host %s --port %s %s %s"
+				python-executable host debug-port python-target-module python-args))
+    (plist-put conf :target-module python-target-module)
     (plist-put conf :debugServer debug-port)
+    (plist-put conf :port debug-port)
+    (plist-put conf :wait-for-port t)
+    (plist-put conf :hostName host)
     (plist-put conf :host host)
     conf))
 
@@ -57,10 +64,12 @@ If the port is taken, DAP will try the next port."
   '(progn
      (dap-register-debug-provider "python" 'dap-python--populate-start-file-args)
      (dap-register-debug-template "Python :: Run Configuration"
-                                 (list :type "python"
-                                       :args ""
-                                       :request "launch"
-                                       :name "Python :: Run Configuration"))))
+				 (list :type "python"
+				       :args ""
+				       :cwd nil
+				       :target-module nil
+				       :request "launch"
+				       :name "Python :: Run Configuration"))))
 
 (provide 'dap-python)
 ;;; dap-python.el ends here
