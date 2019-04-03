@@ -1122,6 +1122,8 @@ arguments which contain the debug port to use for opening TCP connection."
   "Register configuration template CONFIGURATION-NAME.
 
 CONFIGURATION-SETTINGS - plist containing the preset settings for the configuration."
+  (setq dap--debug-template-configurations
+	(delq (assoc configuration-name dap--debug-template-configurations) dap--debug-template-configurations))
   (add-to-list
    'dap--debug-template-configurations
    (cons configuration-name configuration-settings)))
@@ -1138,18 +1140,20 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
         (file-error (setq success t))))
     port))
 
-(defun dap--select-template ()
-  "Select the configuration to launch."
+(defun dap--select-template (&optional origin)
+  "Select the configuration to launch.
+If ORIGIN is t, return the original configuration without prepopulation"
   (let ((debug-args (-> (dap--completing-read "Select configuration template: "
                                               dap--debug-template-configurations
                                               'cl-first nil t)
                         cl-rest
                         copy-tree)))
-    (or (-some-> (plist-get debug-args :type)
-                 (gethash dap--debug-providers)
-                 (funcall debug-args))
-        (error "There is no debug provider for language %s"
-               (or (plist-get debug-args :type) "'Not specified'")))))
+    (if origin debug-args
+      (or (-some-> (plist-get debug-args :type)
+		   (gethash dap--debug-providers)
+		   (funcall debug-args))
+	  (error "There is no debug provider for language %s"
+		 (or (plist-get debug-args :type) "'Not specified'"))))))
 
 (defun dap-debug (debug-args)
   "Run debug configuration DEBUG-ARGS.
@@ -1167,25 +1171,37 @@ after selecting configuration template."
                            (error "There is no debug provider for language %s"
                                   (or (plist-get debug-args :type) "'Not specified'")))))
 
-(defun dap-debug-edit-template (debug-args)
-  "Edit template DEBUG-ARGS."
-  (interactive (list (dap--select-template)))
-  (with-current-buffer (or (get-buffer "*DAP Templates*")
-                           (with-current-buffer (get-buffer-create "*DAP Templates*")
-                             (emacs-lisp-mode)
-                             (current-buffer)))
-    (goto-char (point-max))
-    (insert "\n\n(dap-debug `(")
-    (-let ((column (current-column))
-           ((fst snd . rst) debug-args))
-      (insert (format "%s %s" fst (prin1-to-string snd)))
-      (cl-loop for (k v) on rst by (function cddr)
-               do (progn
-                    (insert "\n")
-                    (--dotimes column (insert " "))
-                    (insert (format "%s %s" k (prin1-to-string v))))))
-    (insert "))"))
-  (pop-to-buffer "*DAP Templates*"))
+(defun dap-debug-edit-template (&optional parg debug-args)
+  "Edit registered template DEBUG-ARGS.
+When being invoked with prefix argument, poping up the prepopulated version of the template.
+Otherwise, return its original version. After registration, the new template can be used
+normally with dap-debug"
+
+  (interactive "P")
+  (let ((debug-args (dap--select-template(not parg))))
+    (progn
+      (with-current-buffer (or (get-buffer "*DAP Templates*")
+			       (with-current-buffer (get-buffer-create "*DAP Templates*")
+				 (emacs-lisp-mode)
+				 (current-buffer)))
+	  (goto-char (point-max))
+	  (insert
+	   (format "\n\n(dap-register-debug-template \"%s%s\"\n"
+		   (plist-get debug-args :name)
+		   (if parg " - Copy" "")))
+	  (insert "  (list ")
+	  (-let ((column (current-column))
+	     ((fst snd . rst) debug-args))
+	(insert (format "%s %s" fst (prin1-to-string snd)))
+	(cl-loop for (k v) on rst by (function cddr)
+		 do (if (not (equal k :program-to-start))
+			(progn
+			  (insert "\n")
+			  (--dotimes column (insert " "))
+			  (insert (format "%s %s" k (prin1-to-string v)))))))
+	  (insert "))"))
+	(pop-to-buffer "*DAP Templates*")
+	(goto-char (point-max)))))
 
 (defun dap-debug-last ()
   "Debug last configuration."
