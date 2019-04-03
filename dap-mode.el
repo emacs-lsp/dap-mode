@@ -1021,22 +1021,6 @@ should be started after the :port argument is taken.
                    breakpoints)
           (lsp-workspace-set-metadata "Breakpoints" breakpoints))))))
 
-(defun dap--remove-debug-template (template-name &optional all)
-  "Remove template configurations with template-name out of the registered list.
-If all is t then remove all configurations with the given name. Otherwise, remove
-the first found one"
-  (let* ((lst dap--debug-template-configurations)
-	 (cf (cl-first lst))
-	 (break nil))
-    (while (and cf (not break))
-      (if (equal (cl-first cf) template-name)
-	  (progn
-	    (setq dap--debug-template-configurations
-		  (delete cf dap--debug-template-configurations))
-	    (if (not all) (setq break t))))
-      (setq lst (cdr lst))
-      (setq cf (cl-first lst)))))
-
 (defun dap-mode-line ()
   "Calculate DAP modeline."
   (when lsp-mode
@@ -1138,7 +1122,8 @@ arguments which contain the debug port to use for opening TCP connection."
   "Register configuration template CONFIGURATION-NAME.
 
 CONFIGURATION-SETTINGS - plist containing the preset settings for the configuration."
-  (dap--remove-debug-template configuration-name t)
+  (setq dap--debug-template-configurations
+	(delq (assoc configuration-name dap--debug-template-configurations) dap--debug-template-configurations))
   (add-to-list
    'dap--debug-template-configurations
    (cons configuration-name configuration-settings)))
