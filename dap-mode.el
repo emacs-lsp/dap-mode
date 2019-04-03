@@ -1142,7 +1142,7 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
 
 (defun dap--select-template (&optional origin)
   "Select the configuration to launch.
-If origin is t, return the original configuration without prepopulation"
+If ORIGIN is t, return the original configuration without prepopulation"
   (let ((debug-args (-> (dap--completing-read "Select configuration template: "
                                               dap--debug-template-configurations
                                               'cl-first nil t)
@@ -1180,7 +1180,6 @@ normally with dap-debug"
   (interactive "P")
   (let ((debug-args (dap--select-template(not parg))))
     (progn
-      (message "debug-args: %s" debug-args)
       (with-current-buffer (or (get-buffer "*DAP Templates*")
 			       (with-current-buffer (get-buffer-create "*DAP Templates*")
 				 (emacs-lisp-mode)
