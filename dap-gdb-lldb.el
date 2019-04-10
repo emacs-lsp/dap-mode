@@ -28,16 +28,19 @@
 
 (require 'dap-mode)
 
-(defcustom dap-gdb-lldb-path (expand-file-name "~/.extensions/webfreak.debug")
+(defcustom dap-gdb-lldb-path (expand-file-name "vscode/webfreak.debug" dap-utils-extension-path)
   "The path to the place at which the webfreak.debug extension.
 Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
   :group 'dap-gdb-lldb
   :type 'string)
 
-(defcustom dap-gdb-lldb-debug-program `("node" ,(expand-file-name (f-join dap-gdb-lldb-path "extension/out/src/gdb.js")))
+(defcustom dap-gdb-lldb-debug-program `("node"
+                                        ,(f-join dap-gdb-lldb-path "extension/out/src/gdb.js"))
   "The path to the LLDB debugger."
   :group 'dap-gdb-lldb
   :type '(repeat string))
+
+(dap-utils-vscode-setup-function "dap-gdb-lldb" "webfreak" "debug" "0.23.1" dap-gdb-lldb-path)
 
 (defun dap-gdb-lldb--populate-gdb (conf)
   "Populate CONF with the required arguments."

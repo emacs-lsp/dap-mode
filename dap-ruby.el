@@ -28,11 +28,20 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'dap-utils)
 
-(defcustom dap-ruby-debug-program `("node" ,(expand-file-name "~/.extensions/ruby/out/debugger/main.js"))
+(defcustom dap-ruby-debug-path (expand-file-name "vscode/rebornix.Ruby" dap-utils-extension-path)
+  "The path to ruby vscode extension."
+  :group 'dap-ruby
+  :type 'string)
+
+(defcustom dap-ruby-debug-program `("node"
+                                    ,(f-join dap-ruby-debug-path "extension/out/debugger/main.js"))
   "The path to the ruby debugger."
   :group 'dap-ruby
   :type '(repeat string))
+
+(dap-utils-vscode-setup-function "dap-ruby" "rebornix" "Ruby" "0.22.3" dap-ruby-debug-path)
 
 (defun dap-ruby--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
