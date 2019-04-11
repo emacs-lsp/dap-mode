@@ -42,7 +42,7 @@
   :group 'dap-php
   :type '(repeat string))
 
-(dap-utils-vscode-setup-function "dap-php" "felixfbecker" "php-debug" "1.13.0" dap-php-debug-path)
+(dap-utils-vscode-setup-function "dap-php" "felixfbecker" "php-debug" dap-php-debug-path)
 
 (defun dap-php--populate-start-file-args (conf)
   "Populate CONF with the required arguments."

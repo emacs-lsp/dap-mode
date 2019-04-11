@@ -40,7 +40,7 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
   :group 'dap-gdb-lldb
   :type '(repeat string))
 
-(dap-utils-vscode-setup-function "dap-gdb-lldb" "webfreak" "debug" "0.23.1" dap-gdb-lldb-path)
+(dap-utils-vscode-setup-function "dap-gdb-lldb" "webfreak" "debug" dap-gdb-lldb-path)
 
 (defun dap-gdb-lldb--populate-gdb (conf)
   "Populate CONF with the required arguments."

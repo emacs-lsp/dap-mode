@@ -42,7 +42,7 @@
   :group 'dap-firefox
   :type '(repeat string))
 
-(dap-utils-vscode-setup-function "dap-firefox" "hbenl" "vscode-firefox-debug" "1.7.10" dap-firefox-debug-path)
+(dap-utils-vscode-setup-function "dap-firefox" "hbenl" "vscode-firefox-debug" dap-firefox-debug-path)
 
 (defun dap-firefox--populate-start-file-args (conf)
   "Populate CONF with the required arguments."

@@ -41,7 +41,7 @@
   :group 'dap-ruby
   :type '(repeat string))
 
-(dap-utils-vscode-setup-function "dap-ruby" "rebornix" "Ruby" "0.22.3" dap-ruby-debug-path)
+(dap-utils-vscode-setup-function "dap-ruby" "rebornix" "Ruby" dap-ruby-debug-path)
 
 (defun dap-ruby--populate-start-file-args (conf)
   "Populate CONF with the required arguments."

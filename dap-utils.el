@@ -61,26 +61,27 @@
   :group 'dap-utils
   :type 'directory)
 
-(defun dap-utils-get-vscode-extension (publisher name version &optional path)
+(defun dap-utils-get-vscode-extension (publisher name &optional version path)
   "Get vscode extension named NAME with VERSION."
-  (let ((url (format dap-utils-vscode-ext-url publisher name version))
-        (dest (or path
-                  (f-join dap-utils-extension-path "vscode" (concat publisher "." name)))))
+  (let* ((version (or version "latest"))
+         (url (format dap-utils-vscode-ext-url publisher name version))
+         (dest (or path
+                   (f-join dap-utils-extension-path "vscode" (concat publisher "." name)))))
     (dap-utils--get-extension url dest)))
 
-(defmacro dap-utils-vscode-setup-function (dapfile publisher name version &optional path)
+(defmacro dap-utils-vscode-setup-function (dapfile publisher name &optional path)
   "Helper to create setup function for vscode debug extension."
   (let* ((extension-name (concat publisher "." name))
          (dest (or path
-                  (f-join dap-utils-extension-path "vscode" extension-name)))
-        (help-string (format "Downloading %s to path specified.
+                   (f-join dap-utils-extension-path "vscode" extension-name)))
+         (help-string (format "Downloading %s to path specified.
 With prefix, FORCED to redownload the extension." extension-name)))
     `(progn
        (defun ,(intern (format "%s-setup" dapfile)) (&optional forced)
          ,help-string
          (interactive "P")
          (unless (and (not forced) (file-exists-p ,dest))
-           (dap-utils-get-vscode-extension ,publisher ,name ,version)
+           (dap-utils-get-vscode-extension ,publisher ,name nil ,dest)
            (message "%s: Downloading done!" ,dapfile)))
        (unless (file-exists-p ,dest)
          (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"

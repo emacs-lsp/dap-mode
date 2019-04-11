@@ -42,7 +42,7 @@
   :group 'dap-chrome
   :type '(repeat string))
 
-(dap-utils-vscode-setup-function "dap-chrome" "msjsdiag" "debugger-for-chrome" "4.11.3"
+(dap-utils-vscode-setup-function "dap-chrome" "msjsdiag" "debugger-for-chrome"
                                  dap-chrome-debug-path)
 
 (defun dap-chrome--populate-start-file-args (conf)
