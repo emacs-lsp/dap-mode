@@ -28,11 +28,22 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'dap-utils)
 
-(defcustom dap-chrome-debug-program `("node" ,(expand-file-name "/home/kyoncho/.vscode/extensions/msjsdiag.debugger-for-chrome-4.11.3/out/src/chromeDebug.js"))
+(defcustom dap-chrome-debug-path (expand-file-name "vscode/msjsdiag.debugger-for-chrome"
+                                                   dap-utils-extension-path)
+  "The path to chrome vscode extension."
+  :group 'dap-chrome
+  :type 'string)
+
+(defcustom dap-chrome-debug-program `("node"
+                                      ,(f-join dap-chrome-debug-path "extension/out/src/chromeDebug.js"))
   "The path to the chrome debugger."
   :group 'dap-chrome
   :type '(repeat string))
+
+(dap-utils-vscode-setup-function "dap-chrome" "msjsdiag" "debugger-for-chrome"
+                                 dap-chrome-debug-path)
 
 (defun dap-chrome--populate-start-file-args (conf)
   "Populate CONF with the required arguments."

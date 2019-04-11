@@ -29,11 +29,20 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'dap-utils)
 
-(defcustom dap-php-debug-program `("node" ,(expand-file-name "~/.extensions/php/out/phpDebug.js"))
+(defcustom dap-php-debug-path (expand-file-name "vscode/felixfbecker.php-debug" dap-utils-extension-path)
+  "The path to php-debug vscode extension."
+  :group 'dap-php
+  :type 'string)
+
+(defcustom dap-php-debug-program `("node"
+                                   ,(f-join dap-php-debug-path "extension/out/phpDebug.js"))
   "The path to the php debugger."
   :group 'dap-php
   :type '(repeat string))
+
+(dap-utils-vscode-setup-function "dap-php" "felixfbecker" "php-debug" dap-php-debug-path)
 
 (defun dap-php--populate-start-file-args (conf)
   "Populate CONF with the required arguments."

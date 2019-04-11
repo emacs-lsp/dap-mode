@@ -28,10 +28,15 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'dap-utils)
+
+(defcustom dap-go-debug-path (expand-file-name "vscode/ms-vscode.go" dap-utils-extension-path)
+  "The path to go vscode extension."
+  :group 'dap-go
+  :type 'string)
 
 (defcustom dap-go-debug-program `("node"
-                                  ,(concat (file-name-directory (or load-file-name buffer-file-name))
-                                           "/bin/go/out/src/debugAdapter/goDebug.js"))
+                                  ,(f-join dap-go-debug-path "extension/out/src/debugAdapter/goDebug.js"))
   "The path to the go debugger."
   :group 'dap-go
   :type '(repeat string))
@@ -41,6 +46,8 @@
   "The path to the delve command."
   :group 'dap-go
   :type 'string)
+
+(dap-utils-vscode-setup-function "dap-go" "ms-vscode" "go" dap-go-debug-path)
 
 (defun dap-go--populate-default-args (conf)
   "Populate CONF with the default arguments."
@@ -79,48 +86,45 @@
       (plist-put conf :mode "test")
     (plist-put conf :mode "debug")))
 
-(eval-after-load "dap-mode"
-  '(progn
-     (dap-register-debug-provider "go" 'dap-go--populate-default-args)
-     (dap-register-debug-template "Go Launch File Configuration"
-                                  (list :type "go"
-                                        :request "launch"
-                                        :name "Launch File"
-                                        :mode "auto"
-                                        :program nil
-                                        :buildFlags nil
-                                        :args nil
-                                        :env nil
-                                        :envFile nil))
-     (dap-register-debug-template "Go Launch Debug Package Configuration"
-                                  (list :type "go"
-                                        :request "launch"
-                                        :name "Launch Debug Package"
-                                        :mode "debug"
-                                        :program nil
-                                        :buildFlags nil
-                                        :args nil
-                                        :env nil
-                                        :envFile nil))
-     (dap-register-debug-template "Go Launch Executable Configuration"
-                                  (list :type "go"
-                                        :request "launch"
-                                        :name "Launch Executable"
-                                        :mode "exec"
-                                        :program nil
-                                        :args nil
-                                        :env nil
-                                        :envFile nil))
-     (dap-register-debug-template "Go Attach Executable Configuration"
-                                  (list :type "go"
-                                        :request "launch"
-                                        :name "Attach Executable"
-                                        :mode "remote"
-                                        :program nil
-                                        :args nil
-                                        :env nil
-                                        :envFile nil))
-     ))
+(dap-register-debug-provider "go" 'dap-go--populate-default-args)
+(dap-register-debug-template "Go Launch File Configuration"
+                             (list :type "go"
+                                   :request "launch"
+                                   :name "Launch File"
+                                   :mode "auto"
+                                   :program nil
+                                   :buildFlags nil
+                                   :args nil
+                                   :env nil
+                                   :envFile nil))
+(dap-register-debug-template "Go Launch Debug Package Configuration"
+                             (list :type "go"
+                                   :request "launch"
+                                   :name "Launch Debug Package"
+                                   :mode "debug"
+                                   :program nil
+                                   :buildFlags nil
+                                   :args nil
+                                   :env nil
+                                   :envFile nil))
+(dap-register-debug-template "Go Launch Executable Configuration"
+                             (list :type "go"
+                                   :request "launch"
+                                   :name "Launch Executable"
+                                   :mode "exec"
+                                   :program nil
+                                   :args nil
+                                   :env nil
+                                   :envFile nil))
+(dap-register-debug-template "Go Attach Executable Configuration"
+                             (list :type "go"
+                                   :request "launch"
+                                   :name "Attach Executable"
+                                   :mode "remote"
+                                   :program nil
+                                   :args nil
+                                   :env nil
+                                   :envFile nil))
 
 (provide 'dap-go)
 ;;; dap-go.el ends here

@@ -28,11 +28,21 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'dap-utils)
 
-(defcustom dap-firefox-debug-program `("node" ,(expand-file-name "~/.vscode/extensions/hbenl.vscode-firefox-debug-1.7.8/out/firefoxDebugAdapter.js"))
+(defcustom dap-firefox-debug-path (expand-file-name "vscode/hbenl.vscode-firefox-debug" dap-utils-extension-path)
+  "The path to firefox vscode extension."
+  :group 'dap-firefox
+  :type 'string)
+
+(defcustom dap-firefox-debug-program `("node"
+                                       ,(f-join dap-firefox-debug-path
+                                                "extension/out/firefoxDebugAdapter.js"))
   "The path to the firefox debugger."
   :group 'dap-firefox
   :type '(repeat string))
+
+(dap-utils-vscode-setup-function "dap-firefox" "hbenl" "vscode-firefox-debug" dap-firefox-debug-path)
 
 (defun dap-firefox--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
