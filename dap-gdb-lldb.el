@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'dap-utils)
 
 (defcustom dap-gdb-lldb-path (expand-file-name "vscode/webfreak.debug" dap-utils-extension-path)
   "The path to the place at which the webfreak.debug extension.
