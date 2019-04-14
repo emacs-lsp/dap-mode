@@ -613,12 +613,12 @@ thread exection but the server will log message."
     (when stack-frame
       (-let* (((&hash "line" line "column" column "name" name) stack-frame)
               (source (gethash "source" stack-frame))
-              (path (gethash "path" source)))
+              (path (and source (gethash "path" source))))
         (setf (dap--debug-session-active-frame debug-session) stack-frame)
         ;; If we have a source file with path attached, open it and
         ;; position the point in the line/column referenced in the
         ;; stack trace.
-        (if (and source path)
+        (if path
             (progn (find-file path)
                    (goto-char (point-min))
                    (forward-line (1- line))
