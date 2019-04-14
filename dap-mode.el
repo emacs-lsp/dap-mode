@@ -611,15 +611,18 @@ thread exection but the server will log message."
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
   (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
     (when stack-frame
-      (-let (((&hash "line" line "column" column "name" name) stack-frame)
-             (source (gethash "source" stack-frame)))
-        (if source
-            (progn (find-file (gethash "path" source))
-                   (setf (dap--debug-session-active-frame debug-session) stack-frame)
-
+      (-let* (((&hash "line" line "column" column "name" name) stack-frame)
+              (source (gethash "source" stack-frame))
+              (path (and source (gethash "path" source))))
+        (setf (dap--debug-session-active-frame debug-session) stack-frame)
+        ;; If we have a source file with path attached, open it and
+        ;; position the point in the line/column referenced in the
+        ;; stack trace.
+        (if path
+            (progn (find-file path)
                    (goto-char (point-min))
-                   (forward-line (1- (gethash "line" stack-frame)))
-                   (forward-char (gethash "column" stack-frame)))
+                   (forward-line (1- line))
+                   (forward-char column))
           (message "No source code for %s. Cursor at %s:%s." name line column))))
     (run-hook-with-args 'dap-stack-frame-changed-hook debug-session)))
 
