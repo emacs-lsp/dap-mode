@@ -961,8 +961,10 @@ should be started after the :port argument is taken.
   (-let* (((&plist :name :skip-debug-session :cwd :program-to-start
                    :wait-for-port :type :request :port
                    :environment-variables :hostName host) launch-args)
+          (session-name (dap--calculate-unique-name name (dap--get-sessions)))
           (default-directory (or cwd default-directory)))
     (mapc (-lambda ((env . value)) (setenv env value)) environment-variables)
+    (plist-put launch-args :name session-name)
 
     (when program-to-start (compile program-to-start))
     (when wait-for-port (dap--wait-for-port host port))
@@ -976,11 +978,7 @@ should be started after the :port argument is taken.
           (lambda (initialize-result)
             (-let [debug-sessions (dap--get-sessions)]
 
-              ;; update session name accordingly
-              (setf (dap--debug-session-name debug-session) (dap--calculate-unique-name
-                                                             (dap--debug-session-name debug-session)
-                                                             debug-sessions)
-                    (dap--debug-session-initialize-result debug-session) initialize-result)
+              (setf (dap--debug-session-initialize-result debug-session) initialize-result)
 
               (dap--set-sessions (cons debug-session debug-sessions)))
             (dap--send-message (dap--make-request request launch-args)
@@ -989,7 +987,7 @@ should be started after the :port argument is taken.
          debug-session)
 
         (dap--set-cur-session debug-session)
-        (push (cons name launch-args) dap--debug-configuration)
+        (push (cons session-name launch-args) dap--debug-configuration)
         (run-hook-with-args 'dap-session-created-hook debug-session))
       (unless (and program-to-start dap-auto-show-output)
         (save-excursion (dap-go-to-output-buffer))))))
