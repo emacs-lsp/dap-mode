@@ -68,6 +68,37 @@ If the port is taken, DAP will try the next port."
   :group 'dap-java
   :type 'number)
 
+(defun dap-java-test-class ()
+  "Get class FDQN."
+  (-if-let* ((symbols (lsp--get-document-symbols))
+             (package-name (-some->> symbols
+                                     (-first (-lambda ((&hash "kind")) (= kind 4)))
+                                     (gethash "name")))
+             (class-name (->> symbols
+                              (--first (= (gethash "kind" it) 5))
+                              (gethash "name"))))
+      (concat package-name "." class-name)
+    (user-error "No class found")))
+
+(defun dap-java-test-method-at-point ()
+  "Get method at point."
+  (-let* ((symbols (lsp--get-document-symbols))
+          (package-name (-some->> symbols
+                                  (-first (-lambda ((&hash "kind")) (= kind 4)))
+                                  (gethash "name"))))
+    (or (->> symbols
+             (-keep (-lambda ((&hash "children" "kind" "name" class-name))
+                      (and (= kind 5)
+                           (seq-some
+                            (-lambda ((&hash "kind" "range" "selectionRange" selection-range))
+                              (-let (((beg . end) (lsp--range-to-region range)))
+                                (and (= 6 kind ) (<= beg (point) end)
+                                     (concat package-name "." class-name "#"
+                                             (lsp-region-text selection-range)))))
+                            children))))
+             (cl-first))
+        (user-error "No method at point"))))
+
 (defun dap-java--select-main-class ()
   "Select main class from the current workspace."
   (let* ((main-classes (lsp-send-execute-command "vscode.java.resolveMainClass"))
@@ -175,10 +206,9 @@ initiate `compile' and attach to the process."
 RUNNER is the test executor. RUN-METHOD? when t it will try to
 run the surrounding method. Otherwise it will run the surronding
 test."
-  (-let* ((to-run (->> (list :cursorOffset (point)
-                             :sourceUri (lsp--path-to-uri (buffer-file-name)))
-                       (lsp-send-execute-command "che.jdt.ls.extension.findTestByCursor")
-                       cl-first))
+  (-let* ((to-run (if run-method?
+                      (dap-java-test-method-at-point)
+                    (dap-java-test-class)))
           (test-class-name (cl-first (s-split "#" to-run)))
           (class-path (->> (vector test-class-name nil)
                            (lsp-send-execute-command "vscode.java.resolveClasspath")
@@ -245,39 +275,37 @@ attaching to the test."
                     port)
             nil))))
 
-(eval-after-load "dap-mode"
-  '(progn
-     (dap-register-debug-provider "java" 'dap-java--populate-default-args)
-     (dap-register-debug-template "Java Run Configuration"
-                                  (list :type "java"
-                                        :request "launch"
-                                        :args ""
-                                        :cwd nil
-                                        :stopOnEntry :json-false
-                                        :host "localhost"
-                                        :request "launch"
-                                        :modulePaths (vector)
-                                        :classPaths nil
-                                        :name "Run Configuration"
-                                        :projectName nil
-                                        :mainClass nil))
-     (dap-register-debug-template "Java Run Configuration (compile/attach)"
-                                  (list :type "java"
-                                        :request "compile_attach"
-                                        :args ""
-                                        :cwd nil
-                                        :host "localhost"
-                                        :request "launch"
-                                        :modulePaths (vector)
-                                        :classPaths nil
-                                        :name "Run"
-                                        :projectName nil
-                                        :mainClass nil))
-     (dap-register-debug-template "Java Attach"
-                                  (list :type "java"
-                                        :request "attach"
-                                        :hostName "localhost"
-                                        :port nil))))
+(dap-register-debug-provider "java" 'dap-java--populate-default-args)
+(dap-register-debug-template "Java Run Configuration"
+                             (list :type "java"
+                                   :request "launch"
+                                   :args ""
+                                   :cwd nil
+                                   :stopOnEntry :json-false
+                                   :host "localhost"
+                                   :request "launch"
+                                   :modulePaths (vector)
+                                   :classPaths nil
+                                   :name "Run Configuration"
+                                   :projectName nil
+                                   :mainClass nil))
+(dap-register-debug-template "Java Run Configuration (compile/attach)"
+                             (list :type "java"
+                                   :request "compile_attach"
+                                   :args ""
+                                   :cwd nil
+                                   :host "localhost"
+                                   :request "launch"
+                                   :modulePaths (vector)
+                                   :classPaths nil
+                                   :name "Run"
+                                   :projectName nil
+                                   :mainClass nil))
+(dap-register-debug-template "Java Attach"
+                             (list :type "java"
+                                   :request "attach"
+                                   :hostName "localhost"
+                                   :port nil))
 
 (provide 'dap-java)
 ;;; dap-java.el ends here
