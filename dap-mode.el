@@ -112,9 +112,6 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defvar dap--debug-configuration ()
   "List of the previous configuration that have been executed.")
 
-(defvar dap--use-last-output-buffer t
-  "Whether to use the *out* and *stderr* buffers from the previous session.")
-
 (cl-defstruct dap--debug-session
   (name nil)
   ;; ‘last-id’ is the last JSON-RPC identifier used.
@@ -128,7 +125,7 @@ The hook will be called with the session file and the new set of breakpoint loca
   (response-handlers (make-hash-table :test 'eql) :read-only t)
   ;; DAP parser.
   (parser (make-dap--parser) :read-only t)
-  (output-buffer (if dap--use-last-output-buffer (get-buffer-create "*out*") (generate-new-buffer "*out*")))
+  (output-buffer nil)
   (thread-id nil)
   ;; reference to the workspace that holds the information about the lsp workspace.
   (workspace nil)
@@ -804,17 +801,14 @@ ADAPTER-ID the id of the adapter."
                      :connection-type 'pipe
                      :coding 'no-conversion
                      :command dap-server-path
-                     :stderr (-let [error-buffer-name
-                                    (concat "*" session-name " stderr*")]
-                               (if dap--use-last-output-buffer
-                                   (get-buffer-create error-buffer-name)
-                                 (generate-new-buffer-name error-buffer-name)))
+                     :stderr (concat "*" session-name " stderr*")
                      :noquery t)
                   (open-network-stream session-name nil host port :type 'plain)))
           (debug-session (make-dap--debug-session
                           :launch-args launch-args
                           :proc proc
-                          :name (plist-get launch-args :name)
+                          :name session-name
+                          :output-buffer (get-buffer-create (concat "*" session-name " out*"))
                           :workspace lsp--cur-workspace)))
     (set-process-sentinel proc
                           (lambda (_process exit-str)
