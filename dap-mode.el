@@ -618,7 +618,7 @@ thread exection but the server will log message."
         ;; If we have a source file with path attached, open it and
         ;; position the point in the line/column referenced in the
         ;; stack trace.
-        (if path
+        (if (file-exists-p path)
             (progn (find-file path)
                    (goto-char (point-min))
                    (forward-line (1- line))
