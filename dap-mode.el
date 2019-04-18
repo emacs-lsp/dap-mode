@@ -125,7 +125,7 @@ The hook will be called with the session file and the new set of breakpoint loca
   (response-handlers (make-hash-table :test 'eql) :read-only t)
   ;; DAP parser.
   (parser (make-dap--parser) :read-only t)
-  (output-buffer (generate-new-buffer "*out*"))
+  (output-buffer nil)
   (thread-id nil)
   ;; reference to the workspace that holds the information about the lsp workspace.
   (workspace nil)
@@ -801,14 +801,14 @@ ADAPTER-ID the id of the adapter."
                      :connection-type 'pipe
                      :coding 'no-conversion
                      :command dap-server-path
-                     :stderr (generate-new-buffer-name
-                              (concat "*" session-name " stderr*"))
+                     :stderr (concat "*" session-name " stderr*")
                      :noquery t)
                   (open-network-stream session-name nil host port :type 'plain)))
           (debug-session (make-dap--debug-session
                           :launch-args launch-args
                           :proc proc
-                          :name (plist-get launch-args :name)
+                          :name session-name
+                          :output-buffer (get-buffer-create (concat "*" session-name " out*"))
                           :workspace lsp--cur-workspace)))
     (set-process-sentinel proc
                           (lambda (_process exit-str)
@@ -961,8 +961,10 @@ should be started after the :port argument is taken.
   (-let* (((&plist :name :skip-debug-session :cwd :program-to-start
                    :wait-for-port :type :request :port
                    :environment-variables :hostName host) launch-args)
+          (session-name (dap--calculate-unique-name name (dap--get-sessions)))
           (default-directory (or cwd default-directory)))
     (mapc (-lambda ((env . value)) (setenv env value)) environment-variables)
+    (plist-put launch-args :name session-name)
 
     (when program-to-start (compile program-to-start))
     (when wait-for-port (dap--wait-for-port host port))
@@ -976,11 +978,7 @@ should be started after the :port argument is taken.
           (lambda (initialize-result)
             (-let [debug-sessions (dap--get-sessions)]
 
-              ;; update session name accordingly
-              (setf (dap--debug-session-name debug-session) (dap--calculate-unique-name
-                                                             (dap--debug-session-name debug-session)
-                                                             debug-sessions)
-                    (dap--debug-session-initialize-result debug-session) initialize-result)
+              (setf (dap--debug-session-initialize-result debug-session) initialize-result)
 
               (dap--set-sessions (cons debug-session debug-sessions)))
             (dap--send-message (dap--make-request request launch-args)
@@ -989,7 +987,7 @@ should be started after the :port argument is taken.
          debug-session)
 
         (dap--set-cur-session debug-session)
-        (push (cons name launch-args) dap--debug-configuration)
+        (push (cons session-name launch-args) dap--debug-configuration)
         (run-hook-with-args 'dap-session-created-hook debug-session))
       (unless (and program-to-start dap-auto-show-output)
         (save-excursion (dap-go-to-output-buffer))))))
