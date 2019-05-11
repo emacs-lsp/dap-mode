@@ -29,7 +29,7 @@
 
 (require 'dap-mode)
 
-(defconst dap-utils--ext-unzip-script "mkdir -p %2$s && unzip -qq %1$s -d %2$s"
+(defconst dap-utils--ext-unzip-script "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'"
   "Unzip script to unzip vscode extension package file.")
 
 (defconst dap-utils--ext-pwsh-script "powershell -noprofile -noninteractive \
@@ -89,4 +89,3 @@ With prefix, FORCED to redownload the extension." extension-name)))
 
 (provide 'dap-utils)
 ;;; dap-utils.el ends here
-
