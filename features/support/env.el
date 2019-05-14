@@ -32,15 +32,12 @@
   (lsp-workspace-get-metadata "debug-sessions"))
 
 (Setup
- (setq lsp-java-workspace-dir (f-join dap-java-test-root "workspace")
+ (setq lsp-java-workspace-dir (make-temp-file "test-dir" t)
        lsp-java-workspace-cache-dir (f-join dap-java-test-root "workspace-cache/")
        lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
        dap-print-io t
        dap-inhibit-io nil
-       lsp-java-bundles (thread-first "eclipse.jdt.ls/plugins/com.microsoft.java.debug.plugin-0.10.0.jar"
-                          locate-user-emacs-file
-                          expand-file-name
-                          list)
+       dap-auto-show-output nil
        lsp-response-timeout 60)
 
  (lsp-java-update-server)
