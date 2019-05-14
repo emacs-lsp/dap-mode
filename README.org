@@ -43,8 +43,11 @@
     - [[#chrome][Chrome]]
       - [[#installation-5][Installation]]
       - [[#usage-2][Usage]]
+    - [[#microsoft-edge][Microsoft Edge]]
+      - [[#installation-6][Installation]]
+      - [[#usage-3][Usage]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
-    - [[#example][Example]]
+  - [[#example][Example]]
 - [[#links][Links]]
 - [[#troubleshooting][Troubleshooting]]
 - [[#acknowledgments][Acknowledgments]]
@@ -277,6 +280,17 @@
        #+END_SRC
 **** Usage
      ~dap-debug~ or ~dap-debug-edit-template~ and select the chrome template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://github.com/Microsoft/vscode-chrome-debug][Chrome Debug Adapter]].
+*** Microsoft Edge
+**** Installation
+     - For easier of setting up vscode extension, you only need call ~dap-edge-setup~ after requiring ~dap-edge~.
+       - Or manually download and extract [[https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-edge][VSCode Edge Debug Extension]].
+     - Make sure that ~dap-edge-debug-program~ is pointing to the proper file.
+     - Put in your configuration file:
+       #+BEGIN_SRC elisp
+         (require 'dap-edge)
+       #+END_SRC
+**** Usage
+     ~dap-debug~ or ~dap-debug-edit-template~ and select the chrome template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://github.com/microsoft/vscode-edge-debug2][Edge Debug Adapter]].
 * Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating
