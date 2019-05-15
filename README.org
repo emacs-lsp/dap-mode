@@ -47,7 +47,7 @@
       - [[#installation-6][Installation]]
       - [[#usage-3][Usage]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
-  - [[#example][Example]]
+    - [[#example][Example]]
 - [[#links][Links]]
 - [[#troubleshooting][Troubleshooting]]
 - [[#acknowledgments][Acknowledgments]]
@@ -228,7 +228,7 @@
    by the Elixir Debug Server refer to it's documentation.
 ** PHP
    For easier of setting up vscode extension, you only need to call ~dap-php-setup~ after requiring ~dap-php~.
-   
+
    This is using [[https://github.com/felixfbecker/vscode-php-debug][felixbecker/vscode-php-debug]]
    ([[https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug][downloadable from the marketplace]])
    as dap-server between emacs and the xdebug-extension on the http-server side. Make sure it is trans/compiled to
@@ -242,7 +242,7 @@
    Using https://github.com/WebFreak001/code-debug
 *** Configuration
     For easier of setting up vscode extension, you only need call ~dap-gdb-lldb-setup~ after requiring ~dap-gdb-lldb~.
-    
+
     Or download and extract [[https://marketplace.visualstudio.com/items?itemName=webfreak.debug][VSCode extension]] (make sure that ~dap-gdb-lldb-path~ is pointing to the extract location).
     #+BEGIN_SRC elisp
       (require 'dap-gdb-lldb)
@@ -325,5 +325,8 @@
   If you notice a bug, open an issue on Github Issues.
 * Acknowledgments
   - [[https://github.com/danielmartin][Daniel Martin]] - LLDB integration.
+  - [[https://github.com/kiennq][Kien Nguyen]] - NodeJS debugger, Edge debuggers, automatic extension installation.
+  - [[https://github.com/Ladicle][Aya Igarashi]] - Go debugger integration.
+
 * What's next
   - Watches
