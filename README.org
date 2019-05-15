@@ -46,6 +46,9 @@
     - [[#microsoft-edge][Microsoft Edge]]
       - [[#installation-6][Installation]]
       - [[#usage-3][Usage]]
+    - [[#node][Node]]
+      - [[#installation-7][Installation]]
+      - [[#usage-4][Usage]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
   - [[#example][Example]]
 - [[#links][Links]]
@@ -290,7 +293,18 @@
          (require 'dap-edge)
        #+END_SRC
 **** Usage
-     ~dap-debug~ or ~dap-debug-edit-template~ and select the chrome template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://github.com/microsoft/vscode-edge-debug2][Edge Debug Adapter]].
+     ~dap-debug~ or ~dap-debug-edit-template~ and select the edge template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://github.com/microsoft/vscode-edge-debug2][Edge Debug Adapter]].
+*** Node
+**** Installation
+     - For easier of setting up vscode extension, you only need call ~dap-node-setup~ after requiring ~dap-node~.
+       - Or manually download and extract [[https://marketplace.visualstudio.com/items?itemName=ms-vscode.node-debug2][VSCode Node Debug Extension]].
+     - Make sure that ~dap-node-debug-program~ is pointing to the proper file.
+     - Put in your configuration file:
+       #+BEGIN_SRC elisp
+         (require 'dap-node)
+       #+END_SRC
+**** Usage
+     ~dap-debug~ or ~dap-debug-edit-template~ and select the node template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://code.visualstudio.com/docs/nodejs/nodejs-debugging][Nodejs Debugging]].
 * Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating
