@@ -606,27 +606,30 @@ thread exection but the server will log message."
                        debug-session)
     (dap--resume-application debug-session)))
 
+(defun dap--get-path-for-frame (stack-frame)
+  "Get file path for a STACK-FRAME."
+  (-when-let* ((source (gethash "source" stack-frame))
+               (path (gethash "path" source)))
+    (if (-> path url-unhex-string url-generic-parse-url url-type)
+        (lsp--uri-to-path path)
+      path)))
 
 (defun dap--go-to-stack-frame (debug-session stack-frame)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
   (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
     (when stack-frame
       (-let* (((&hash "line" line "column" column "name" name) stack-frame)
-              (source (gethash "source" stack-frame))
-              (path (and source
-                         (let ((path (gethash "path" source)))
-                           (if (-> path url-unhex-string url-generic-parse-url url-type)
-                               (lsp--uri-to-path path)
-                             path)))))
+              (path (dap--get-path-for-frame stack-frame)))
         (setf (dap--debug-session-active-frame debug-session) stack-frame)
         ;; If we have a source file with path attached, open it and
         ;; position the point in the line/column referenced in the
         ;; stack trace.
         (if (and path (file-exists-p path))
-            (progn (find-file path)
-                   (goto-char (point-min))
-                   (forward-line (1- line))
-                   (forward-char column))
+            (progn
+              (find-file path)
+              (goto-char (point-min))
+              (forward-line (1- line))
+              (forward-char column))
           (message "No source code for %s. Cursor at %s:%s." name line column))))
     (run-hook-with-args 'dap-stack-frame-changed-hook debug-session)))
 
@@ -1128,7 +1131,8 @@ arguments which contain the debug port to use for opening TCP connection."
 
 CONFIGURATION-SETTINGS - plist containing the preset settings for the configuration."
   (setq dap--debug-template-configurations
-	(delq (assoc configuration-name dap--debug-template-configurations) dap--debug-template-configurations))
+        (delq (assoc configuration-name dap--debug-template-configurations)
+              dap--debug-template-configurations))
   (add-to-list
    'dap--debug-template-configurations
    (cons configuration-name configuration-settings)))
@@ -1155,10 +1159,10 @@ If ORIGIN is t, return the original configuration without prepopulation"
                         copy-tree)))
     (if origin debug-args
       (or (-some-> (plist-get debug-args :type)
-		   (gethash dap--debug-providers)
-		   (funcall debug-args))
-	  (error "There is no debug provider for language %s"
-		 (or (plist-get debug-args :type) "'Not specified'"))))))
+                   (gethash dap--debug-providers)
+                   (funcall debug-args))
+          (error "There is no debug provider for language %s"
+                 (or (plist-get debug-args :type) "'Not specified'"))))))
 
 (defun dap-debug (debug-args)
   "Run debug configuration DEBUG-ARGS.
@@ -1186,27 +1190,27 @@ normally with dap-debug"
   (let ((debug-args (dap--select-template(not parg))))
     (progn
       (with-current-buffer (or (get-buffer "*DAP Templates*")
-			       (with-current-buffer (get-buffer-create "*DAP Templates*")
-				 (emacs-lisp-mode)
-				 (current-buffer)))
-	  (goto-char (point-max))
-	  (insert
-	   (format "\n\n(dap-register-debug-template \"%s%s\"\n"
-		   (plist-get debug-args :name)
-		   (if parg " - Copy" "")))
-	  (insert "  (list ")
-	  (-let ((column (current-column))
-	     ((fst snd . rst) debug-args))
-	(insert (format "%s %s" fst (prin1-to-string snd)))
-	(cl-loop for (k v) on rst by (function cddr)
-		 do (if (not (equal k :program-to-start))
-			(progn
-			  (insert "\n")
-			  (--dotimes column (insert " "))
-			  (insert (format "%s %s" k (prin1-to-string v)))))))
-	  (insert "))"))
-	(pop-to-buffer "*DAP Templates*")
-	(goto-char (point-max)))))
+                               (with-current-buffer (get-buffer-create "*DAP Templates*")
+                                 (emacs-lisp-mode)
+                                 (current-buffer)))
+        (goto-char (point-max))
+        (insert
+         (format "\n\n(dap-register-debug-template \"%s%s\"\n"
+                 (plist-get debug-args :name)
+                 (if parg " - Copy" "")))
+        (insert "  (list ")
+        (-let ((column (current-column))
+               ((fst snd . rst) debug-args))
+          (insert (format "%s %s" fst (prin1-to-string snd)))
+          (cl-loop for (k v) on rst by (function cddr)
+                   do (if (not (equal k :program-to-start))
+                          (progn
+                            (insert "\n")
+                            (--dotimes column (insert " "))
+                            (insert (format "%s %s" k (prin1-to-string v)))))))
+        (insert "))"))
+      (pop-to-buffer "*DAP Templates*")
+      (goto-char (point-max)))))
 
 (defun dap-debug-last ()
   "Debug last configuration."

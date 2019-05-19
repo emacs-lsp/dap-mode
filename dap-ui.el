@@ -235,7 +235,6 @@
                      (dap--select-thread-id session (gethash "id" thread))))
           (:stack-frame (-let ((thread (widget-get widget :thread))
                                (stack-frame (widget-get widget :stack-frame)))
-
                           (setf (dap--debug-session-thread-id session) (gethash "id" thread)
                                 (dap--debug-session-active-frame session) stack-frame)
                           (dap--switch-to-session session)))))
@@ -581,8 +580,9 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
   "Handler for `dap-stack-frame-changed-hook'.
 DEBUG-SESSION is the debug session triggering the event."
   (when debug-session
-    (-if-let* (((&hash "source" "line" "column") (dap--debug-session-active-frame debug-session))
-               (path (-some->> source (gethash "path")))
+    (-if-let* (((stack-frame &as &hash "source" "line" "column")
+                (dap--debug-session-active-frame debug-session))
+               (path (dap--get-path-for-frame stack-frame))
                (buffer (find-buffer-visiting path)))
         (with-current-buffer buffer
           (goto-char (point-min))
