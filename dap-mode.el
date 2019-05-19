@@ -613,7 +613,11 @@ thread exection but the server will log message."
     (when stack-frame
       (-let* (((&hash "line" line "column" column "name" name) stack-frame)
               (source (gethash "source" stack-frame))
-              (path (and source (gethash "path" source))))
+              (path (and source
+                         (let ((path (gethash "path" source)))
+                           (if (-> path url-unhex-string url-generic-parse-url url-type)
+                               (lsp--uri-to-path path)
+                             path)))))
         (setf (dap--debug-session-active-frame debug-session) stack-frame)
         ;; If we have a source file with path attached, open it and
         ;; position the point in the line/column referenced in the
