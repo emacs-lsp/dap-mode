@@ -47,23 +47,41 @@
 
 (defun dap-chrome--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
-  (-> conf
-      (dap--put-if-absent :dap-server-path dap-chrome-debug-program)
-      (dap--put-if-absent :type "chrome")
-      (dap--put-if-absent :cwd default-directory)
-      (dap--put-if-absent :file (read-file-name "Select the file to open in the browser:" nil (buffer-file-name) t))
-      (dap--put-if-absent :name "Chrome Debug")))
+  (setq conf (-> conf
+                 (plist-put :type "chrome")
+                 (plist-put :dap-server-path dap-chrome-debug-program)
+                 (dap--put-if-absent :cwd default-directory)))
+  (dap--plist-delete
+   (pcase (plist-get conf :mode)
+     ("url" (-> conf
+                (dap--put-if-absent :url (read-string
+                                          "Browse url: "
+                                          "http://localhost:4200" t))
+                (dap--put-if-absent :webRoot (lsp-workspace-root))))
+     ("file" (dap--put-if-absent conf :file
+                                 (read-file-name "Select the file to open in the browser:"
+                                                 nil (buffer-file-name) t))))
+   :mode))
 
 (dap-register-debug-provider "chrome" #'dap-chrome--populate-start-file-args)
 
-(dap-register-debug-template "Chrome Run Configuration"
+(dap-register-debug-template "Chrome Browse File"
                              (list :type "chrome"
+                                   :mode "file"
                                    :cwd nil
                                    :request "launch"
                                    :file nil
                                    :reAttach t
-                                   :program nil
-                                   :name "Chrome::Run"))
+                                   :name "Chrome Browse File"))
+
+(dap-register-debug-template "Chrome Browse URL"
+                             (list :type "chrome"
+                                   :cwd nil
+                                   :mode "url"
+                                   :request "launch"
+                                   :webRoot nil
+                                   :url nil
+                                   :name "Chrome Browse URL"))
 
 (provide 'dap-chrome)
 ;;; dap-chrome.el ends here
