@@ -403,7 +403,7 @@ FILE-BREAKPOINTS is the list of breakpoints in the current file."
   (let ((current-line (line-number-at-pos (point))))
     (-first
      (-lambda ((&plist :marker :point))
-       (= current-line (line-number-at-pos (or (marker-position marker)
+       (= current-line (line-number-at-pos (or (and marker (marker-position marker))
                                                point))))
      file-breakpoints)))
 
@@ -626,7 +626,7 @@ thread exection but the server will log message."
         ;; stack trace.
         (if (and path (file-exists-p path))
             (progn
-              (find-file path)
+              (switch-to-buffer (find-file-noselect path))
               (goto-char (point-min))
               (forward-line (1- line))
               (forward-char column))
