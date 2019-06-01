@@ -189,7 +189,6 @@
     | ~dap-java-debug-test-class~  | Debug test class  |
 ** Python
 *** Installation
-    - Make sure you have installed and configured [[https://github.com/emacs-lsp/lsp-python][lsp-python]].
     - install latest version of ptvsd.
       #+BEGIN_SRC bash
         pip install "ptvsd>=4.2"
