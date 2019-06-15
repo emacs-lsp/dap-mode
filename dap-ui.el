@@ -501,15 +501,14 @@ BUF is the active buffer."
 
 (defun dap-ui--make-overlay-at (file point msg visuals)
   "Create an overlay highlighting the given POINT in FILE.
-B is the beginning of the overlay.
-E is the ending of the overlay.
 VISUALS and MSG will be used for the overlay."
   (-when-let (buf (find-buffer-visiting file))
     (with-current-buffer buf
-      ;; If line provided, use line to define region
-      (save-excursion
-        (goto-char point)
-        (dap-ui--make-overlay (point-at-bol) (point-at-eol) msg visuals nil buf)))))
+      ;; If point is provided, use it to define region
+      (when (integer-or-marker-p point)
+        (save-excursion
+          (goto-char point)
+          (dap-ui--make-overlay (point-at-bol) (point-at-eol) msg visuals nil buf))))))
 
 (defvar-local dap-ui--breakpoint-overlays '())
 
