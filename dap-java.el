@@ -39,6 +39,11 @@
                                  "%%%s%%"
                                "$%s"))
 
+(defcustom dap-java-java-command "java"
+  "Path of the java executable."
+  :group 'dap-java
+  :type 'string)
+
 (defcustom  dap-java-compile-port 33000
   "The debug port which will be used for compile/attach configuration.
 If the port is taken, DAP will try the next port."
@@ -168,7 +173,7 @@ initiate `compile' and attach to the process."
   (-let* (((&plist :mainClass :projectName :classPaths classpaths) conf)
           (port   (dap--find-available-port "localhost" dap-java-compile-port))
           (program-to-start (format "%s -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=%s,quiet=y -cp %s %s"
-                                    lsp-java-java-path
+                                    dap-java-java-command
                                     port
                                     (format dap-java--var-format "CLASSPATH_ARGS")
                                     mainClass)))
@@ -228,7 +233,7 @@ test."
   "Run JUnit test.
 If there is no method under cursor it will fallback to test class."
   (interactive)
-  (-> (dap-java--run-unit-test-command lsp-java-java-path t)
+  (-> (dap-java--run-unit-test-command dap-java-java-command t)
       (plist-put :skip-debug-session t)
       dap-start-debugging))
 
@@ -245,7 +250,7 @@ attaching to the test."
             :wait-for-port t)
       (append (dap-java--run-unit-test-command
                (format "%s -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=%s"
-                       lsp-java-java-path
+                       dap-java-java-command
                        port)
                t))
       dap-debug))
@@ -253,7 +258,7 @@ attaching to the test."
 (defun dap-java-run-test-class ()
   "Run JUnit test."
   (interactive)
-  (-> (dap-java--run-unit-test-command lsp-java-java-path nil)
+  (-> (dap-java--run-unit-test-command dap-java-java-command nil)
       (plist-put :skip-debug-session t)
       dap-start-debugging))
 
@@ -271,7 +276,7 @@ attaching to the test."
                  :wait-for-port t)
            (dap-java--run-unit-test-command
             (format "%s -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=%s"
-                    lsp-java-java-path
+                    dap-java-java-command
                     port)
             nil))))
 
