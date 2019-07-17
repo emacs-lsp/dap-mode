@@ -41,11 +41,33 @@ If the port is taken, DAP will try the next port."
   :risky t
   :type 'file)
 
+(defun dap-python--pyenv-executable-find (command)
+  "Find executable taking pyenv shims into account.
+If the executable is a system executable and not in the same path
+as the pyenv version then also return nil. This works around https://github.com/pyenv/pyenv-which-ext
+"
+  (if (executable-find "pyenv")
+      (progn
+        (let ((pyenv-string (shell-command-to-string (concat "pyenv which " command)))
+              (pyenv-version-names (split-string (string-trim (shell-command-to-string "pyenv version-name")) ":"))
+              (executable nil)
+              (i 0))
+          (if (not (string-match "not found" pyenv-string))
+              (while (and (not executable)
+                          (< i (length pyenv-version-names)))
+                (if (string-match (elt pyenv-version-names i) (string-trim pyenv-string))
+                    (setq executable (string-trim pyenv-string)))
+                (if (string-match (elt pyenv-version-names i) "system")
+                    (setq executable (string-trim (executable-find command))))
+                (setq i (1+ i))))
+          executable))
+    (executable-find command)))
+
 (defun dap-python--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
   (let* ((host "localhost")
 	 (debug-port (dap--find-available-port host dap-python-default-debug-port))
-	 (python-executable dap-python-executable)
+	 (dap-python--pyenv-executable-find dap-python-executable)
 	 (python-args (or (plist-get conf :args) ""))
 	 (python-target-module (or (plist-get conf :target-module) buffer-file-name)))
 
