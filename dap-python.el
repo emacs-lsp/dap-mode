@@ -66,14 +66,14 @@ as the pyenv version then also return nil. This works around https://github.com/
 (defun dap-python--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
   (let* ((host "localhost")
-	 (debug-port (dap--find-available-port host dap-python-default-debug-port))
-	 (dap-python--pyenv-executable-find dap-python-executable)
-	 (python-args (or (plist-get conf :args) ""))
-	 (python-target-module (or (plist-get conf :target-module) buffer-file-name)))
+         (debug-port (dap--find-available-port host dap-python-default-debug-port))
+         (python-executable (dap-python--pyenv-executable-find dap-python-executable))
+         (python-args (or (plist-get conf :args) ""))
+         (python-target-module (or (plist-get conf :target-module) buffer-file-name)))
 
     (dap--put-if-absent conf :program-to-start
-			(format "%s -m ptvsd --wait --host %s --port %s %s %s"
-				python-executable host debug-port python-target-module python-args))
+                        (format "%s -m ptvsd --wait --host %s --port %s %s %s"
+                                python-executable host debug-port python-target-module python-args))
     (plist-put conf :target-module python-target-module)
     (plist-put conf :debugServer debug-port)
     (plist-put conf :port debug-port)
@@ -82,16 +82,14 @@ as the pyenv version then also return nil. This works around https://github.com/
     (plist-put conf :host host)
     conf))
 
-(eval-after-load "dap-mode"
-  '(progn
-     (dap-register-debug-provider "python" 'dap-python--populate-start-file-args)
-     (dap-register-debug-template "Python :: Run Configuration"
-				 (list :type "python"
-				       :args ""
-				       :cwd nil
-				       :target-module nil
-				       :request "launch"
-				       :name "Python :: Run Configuration"))))
+(dap-register-debug-provider "python" 'dap-python--populate-start-file-args)
+(dap-register-debug-template "Python :: Run Configuration"
+                             (list :type "python"
+                                   :args ""
+                                   :cwd nil
+                                   :target-module nil
+                                   :request "launch"
+                                   :name "Python :: Run Configuration"))
 
 (provide 'dap-python)
 ;;; dap-python.el ends here
