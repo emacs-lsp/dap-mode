@@ -33,8 +33,10 @@
 (require 'dap-overlays)
 (require 'cl-lib)
 
-(defconst dap--breakpoints-file (expand-file-name (locate-user-emacs-file ".dap-breakpoints"))
-  "Name of the file in which the breakpoints will be persisted.")
+(defcustom dap-breakpoints-file (expand-file-name (locate-user-emacs-file ".dap-breakpoints"))
+  "Where to persist breakpoints"
+  :group 'dap-mode
+  :type 'string)
 
 (defcustom dap-print-io nil
   "If non-nil, print all messages to and from the DAP to messages."
@@ -347,7 +349,7 @@ WORKSPACE will be used to calculate root folder."
                                 v)
                         filtered-breakpoints))
              breakpoints)
-    (dap--persist dap--breakpoints-file filtered-breakpoints)))
+    (dap--persist dap-breakpoints-file filtered-breakpoints)))
 
 (defun dap--breakpoints-changed (updated-file-breakpoints &optional file-name)
   "Common logic breakpoints related methods UPDATED-FILE-BREAKPOINTS.
@@ -1021,7 +1023,7 @@ should be started after the :port argument is taken.
   "After initialize handler."
   (with-demoted-errors
       "Failed to load breakpoints for the current workspace with error: %S"
-    (let ((breakpoints-file dap--breakpoints-file))
+    (let ((breakpoints-file dap-breakpoints-file))
       (when (f-exists? breakpoints-file)
         (-let [breakpoints (dap--read-from-file breakpoints-file)]
           (maphash (lambda (file file-breakpoints)
