@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'dap-utils)
 
 (defcustom dap-lldb-debug-program `(,(expand-file-name "~/.vscode/extensions/llvm-org.lldb-vscode-0.1.0/bin/lldb-vscode"))
   "The path to the LLDB debugger."
