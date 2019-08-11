@@ -87,5 +87,18 @@ With prefix, FORCED to redownload the extension." extension-name)))
          (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
                   ,dapfile ,extension-name ,dapfile)))))
 
+(defun dap-get-process-id-executed-in-eshell (process-name)
+  "return pocess id that is run in eshell"
+  (interactive)
+  (if (not (get-buffer "*eshell*"))
+      (eshell))
+  (while (ignore-errors (kill-process  (file-name-nondirectory process-name)))
+    (sleep-for 0 1))
+  (with-current-buffer "*eshell*"
+    (goto-char (point-max))
+    (insert process-name)
+    (eshell-send-input))
+  (number-to-string (process-id (get-buffer-process "*eshell*"))))
+
 (provide 'dap-utils)
 ;;; dap-utils.el ends here
