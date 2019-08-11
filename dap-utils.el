@@ -92,7 +92,7 @@ With prefix, FORCED to redownload the extension." extension-name)))
   (interactive)
   (if (not (get-buffer "*eshell*"))
       (eshell))
-  (while (ignore-errors (kill-process  (file-name-nondirectory process-name)))
+  (while (ignore-errors (kill-process  (process-name (get-buffer-process "*eshell*"))))
     (sleep-for 0 1))
   (with-current-buffer "*eshell*"
     (goto-char (point-max))
