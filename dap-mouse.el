@@ -88,12 +88,13 @@ ACTIVATEP non-nil means activate mouse motion events."
       (kill-local-variable 'dap-tooltip-mouse-motions-active)
       (kill-local-variable 'track-mouse))))
 
-(defun dap-tooltip-mouse-motion (_event)
+(defun dap-tooltip-mouse-motion (event)
   "Command handler for mouse movement events in `dap-mode-map'."
   (interactive "e")
   (tooltip-hide)
   (when (car (mouse-pixel-position))
-    (tooltip-start-delayed-tip)))
+    (tooltip-start-delayed-tip)
+    (setq tooltip-last-mouse-motion-event event)))
 
 (defun dap-tooltip-thing-bounds (point)
   "Return the thing at POINT that will be introspected.
