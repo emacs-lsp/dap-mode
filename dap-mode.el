@@ -1,6 +1,6 @@
 ;;; dap-mode.el --- Debug Adapter Protocol mode      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018  Ivan Yonchovski
+;; Copyright (C) 2019  Ivan Yonchovski
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 ;; Keywords: languages, debug
 ;; URL: https://github.com/yyoncho/dap-mode
 ;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "6.0") (dash-functional "1.2.0") (tree-mode "1.1.1.1") (bui "1.1.0") (f "0.20.0") (s "1.12.0"))
-;; Version: 0.2
+;; Version: 0.3
 
 ;;; Commentary:
 ;; Debug Adapter Protocol client for Emacs.

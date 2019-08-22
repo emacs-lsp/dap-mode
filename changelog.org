@@ -2,7 +2,11 @@
 #+STARTUP: content
 
 * Changelog
-** Current master
+** 0.3
+   - Added node/go/chrome/firefox/php/ruby/elixir/go/LLDB debuggers support
+   - Added support for mouse hover
+   - Added automatic installation of debuggers
+** 0.2
    - Added python support
    - Added ~dap-hydra~
    - Added ~dap-ui-repl~
