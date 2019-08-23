@@ -58,7 +58,6 @@
                                    :cwd nil
                                    :request "launch"
                                    :name "Php Debug"
-                                   :args '("--server=4711")
                                    :sourceMaps t
                                    ))
 
