@@ -58,6 +58,15 @@
                                    :cwd nil
                                    :request "launch"
                                    :name "Php Debug"
+                                   :args '("--server=4711")
+                                   :sourceMaps t
+                                   ))
+(dap-register-debug-template "Php Stop On Entry"
+                             (list :type "php"
+                                   :cwd nil
+                                   :request "launch"
+                                   :name "Php SOE Debug"
+                                   :stopOnEntry t
                                    :sourceMaps t
                                    ))
 
