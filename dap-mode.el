@@ -43,6 +43,11 @@
   :group 'dap-mode
   :type 'boolean)
 
+(defcustom dap-debug-output-filter '("stdout")
+  "If non-nil, a list of output types to display in the debug output buffer."
+  :group 'dap-mode
+  :type 'list)
+
 (defcustom dap-auto-show-output t
   "If non-nil, the output buffer will be showed automatically."
   :group 'dap-mode
@@ -683,14 +688,36 @@ thread exection but the server will log message."
   (run-hook-with-args 'dap-terminated-hook debug-session)
   (dap--refresh-breakpoints))
 
+(defun dap--debug-output-buffer-format (category output)
+  "Formats a string suitable for printing to the output buffer using CATEGORY and OUTPUT."
+  (let ((message (format "%s: %s" category output)))
+    (if (string= (substring message -1) "\n")
+        message
+      (concat message "\n"))))
+
+(defun dap--print-to-debug-output-buffer (debug-session str)
+  "Insert content from STR into the debug output"
+  (with-current-buffer (dap--debug-session-output-buffer debug-session)
+    (let ((win (get-buffer-window (current-buffer))))
+      (goto-char (point-max))
+      (insert str)
+      (set-window-point win (point-max)))))
+
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."
   (let ((event-type (gethash "event" event)))
     (pcase event-type
-      ("output" (with-current-buffer (dap--debug-session-output-buffer debug-session)
-                  (save-excursion
-                    (goto-char (point-max))
-                    (insert (gethash "output" (gethash "body" event))))))
+      ("output" (let* ((event-category (->> event
+                                            (gethash "body")
+                                            (gethash "category")))
+                       (event-output (->> event
+                                          (gethash "body")
+                                          (gethash "output")))
+                       (formatted-output (dap--debug-output-buffer-format event-category event-output)))
+                  (if dap-debug-output-filter
+                      (when (member event-category dap-debug-output-filter)
+                        (dap--print-to-debug-output-buffer debug-session formatted-output))
+                    (dap--print-to-debug-output-buffer debug-session formatted-output))))
       ("breakpoint" (-when-let* (((breakpoint &as &hash "id") (-some->> event
                                                                         (gethash "body")
                                                                         (gethash "breakpoint")))
