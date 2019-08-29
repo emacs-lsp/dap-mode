@@ -36,8 +36,7 @@
   :group 'dap-react-native
   :type 'string)
 
-(defcustom dap-react-native-debug-program `("node" 
-                                      ,"--inspect-brk"
+(defcustom dap-react-native-debug-program `("node"
                                       ,(f-join dap-react-native-debug-path "extension/src/debugger/reactNativeDebugEntryPoint.js"))
   "The path to the React Native debugger."
   :group 'dap-react-native
