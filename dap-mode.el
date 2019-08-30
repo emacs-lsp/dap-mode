@@ -81,6 +81,11 @@ has been terminated."
   :type 'hook
   :group 'dap-mode)
 
+(defcustom dap-loaded-sources-changed-hook nil
+  "List of functions to be called after loaded sources have changed for the session."
+  :type 'hook
+  :group 'dap-mode)
+
 (defcustom dap-session-created-hook nil
   "List of functions to be called after session have been created.
 It will be called with one argument - the created session."
@@ -158,7 +163,8 @@ The hook will be called with the session file and the new set of breakpoint loca
   (launch-args nil)
   ;; The result of initialize request. It holds the server capabilities.
   (initialize-result nil)
-  (error-message nil))
+  (error-message nil)
+  (loaded-sources nil))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -770,7 +776,11 @@ thread exection but the server will log message."
         debug-session
         (dap--get-breakpoints)
         (apply-partially #'dap--send-configuration-done debug-session)))
-      (_ (message (format "No messages handler for %s" event-type))))))
+      ("loadedSource"
+       (-let [(&hash "body" (&hash "source")) event]
+         (cl-pushnew source (dap--debug-session-loaded-sources debug-session))
+         (run-hook-with-args 'dap-loaded-sources-changed-hook debug-session)))
+      (_ (message (format "No message handler for %s" event-type))))))
 
 (defun dap--create-filter-function (debug-session)
   "Create filter function for DEBUG-SESSION."
@@ -860,8 +870,7 @@ ADAPTER-ID the id of the adapter."
                           :launch-args launch-args
                           :proc proc
                           :name session-name
-                          :output-buffer (dap--create-output-buffer session-name)
-                          :workspace lsp--cur-workspace)))
+                          :output-buffer (dap--create-output-buffer session-name))))
     (set-process-sentinel proc
                           (lambda (_process exit-str)
                             (message "Debug session process exited with status: %s" exit-str)
