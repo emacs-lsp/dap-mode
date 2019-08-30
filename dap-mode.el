@@ -706,11 +706,19 @@ thread exection but the server will log message."
       (dap--output-buffer-format-with-category (gethash "category" output-body) (gethash "output" output-body))
     (gethash "output" output-body)))
 
+(defun dap--insert-at-point-max (str)
+  "Inserts STR at point-max of the buffer."
+  (goto-char (point-max))
+  (insert str))
+
 (defun dap--print-to-output-buffer (debug-session str)
   "Insert content from STR into the output buffer associated with DEBUG-SESSION."
   (with-current-buffer (dap--debug-session-output-buffer debug-session)
-    (goto-char (point-max))
-    (insert str)))
+    (if (and (eq (current-buffer) (window-buffer (selected-window)))
+             (not (= (point) (point-max))))
+        (save-excursion
+          (dap--insert-at-point-max str))
+      (dap--insert-at-point-max str))))
 
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."
