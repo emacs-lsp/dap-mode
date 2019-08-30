@@ -711,8 +711,7 @@ thread exection but the server will log message."
   (with-current-buffer (dap--debug-session-output-buffer debug-session)
     (let ((win (get-buffer-window (current-buffer))))
       (goto-char (point-max))
-      (insert str)
-      (set-window-point win (point-max)))))
+      (insert str))))
 
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."
@@ -791,6 +790,12 @@ thread exection but the server will log message."
                                 (message "Unable to find handler for %s." (pp parsed-msg)))))))
             (dap--parser-read parser msg)))))
 
+(defun dap--create-output-buffer (session-name)
+  "Creates an output buffer with with name SESSION-NAME."
+  (with-current-buffer (get-buffer-create (concat "*" session-name " out*"))
+    (set (make-local-variable 'window-point-insertion-type) t)
+    (current-buffer)))
+
 (defun dap--make-request (command &optional args)
   "Make request for COMMAND with arguments ARGS."
   (if args
@@ -850,7 +855,7 @@ ADAPTER-ID the id of the adapter."
                           :launch-args launch-args
                           :proc proc
                           :name session-name
-                          :output-buffer (get-buffer-create (concat "*" session-name " out*"))
+                          :output-buffer (dap--create-output-buffer session-name)
                           :workspace lsp--cur-workspace)))
     (set-process-sentinel proc
                           (lambda (_process exit-str)
