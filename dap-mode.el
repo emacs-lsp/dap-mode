@@ -43,6 +43,16 @@
   :group 'dap-mode
   :type 'boolean)
 
+(defcustom dap-output-buffer-filter '("stdout" "stderr")
+  "If non-nil, a list of output types to display in the debug output buffer."
+  :group 'dap-mode
+  :type 'list)
+
+(defcustom dap-label-output-buffer-category nil
+  "If non-nil, content that is printed to the output buffer will be labelled based on DAP protocol category."
+  :group 'dap-mode
+  :type 'boolean)
+
 (defcustom dap-auto-show-output t
   "If non-nil, the output buffer will be showed automatically."
   :group 'dap-mode
@@ -683,14 +693,41 @@ thread exection but the server will log message."
   (run-hook-with-args 'dap-terminated-hook debug-session)
   (dap--refresh-breakpoints))
 
+(defun dap--output-buffer-format-with-category (category output)
+  "Formats a string suitable for printing to the output buffer using CATEGORY and OUTPUT."
+  (let ((message (format "%s: %s" category output)))
+    (if (string= (substring message -1) "\n")
+        message
+      (concat message "\n"))))
+
+(defun dap--output-buffer-format (output-body)
+  "Formats a string suitable for printing to the output buffer using an OUTPUT-BODY."
+  (if dap-label-output-buffer-category
+      (dap--output-buffer-format-with-category (gethash "category" output-body) (gethash "output" output-body))
+    (gethash "output" output-body)))
+
+(defun dap--insert-at-point-max (str)
+  "Inserts STR at point-max of the buffer."
+  (goto-char (point-max))
+  (insert str))
+
+(defun dap--print-to-output-buffer (debug-session str)
+  "Insert content from STR into the output buffer associated with DEBUG-SESSION."
+  (with-current-buffer (dap--debug-session-output-buffer debug-session)
+    (if (and (eq (current-buffer) (window-buffer (selected-window)))
+             (not (= (point) (point-max))))
+        (save-excursion
+          (dap--insert-at-point-max str))
+      (dap--insert-at-point-max str))))
+
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."
   (let ((event-type (gethash "event" event)))
     (pcase event-type
-      ("output" (with-current-buffer (dap--debug-session-output-buffer debug-session)
-                  (save-excursion
-                    (goto-char (point-max))
-                    (insert (gethash "output" (gethash "body" event))))))
+      ("output" (let* ((event-body (gethash "body" event))
+                       (formatted-output (dap--output-buffer-format event-body)))
+                  (when (or (not dap-output-buffer-filter) (member (gethash "category" event-body) dap-output-buffer-filter))
+                    (dap--print-to-output-buffer debug-session formatted-output))))
       ("breakpoint" (-when-let* (((breakpoint &as &hash "id") (-some->> event
                                                                         (gethash "body")
                                                                         (gethash "breakpoint")))
@@ -758,6 +795,12 @@ thread exection but the server will log message."
                                 (message "Unable to find handler for %s." (pp parsed-msg)))))))
             (dap--parser-read parser msg)))))
 
+(defun dap--create-output-buffer (session-name)
+  "Creates an output buffer with with name SESSION-NAME."
+  (with-current-buffer (get-buffer-create (concat "*" session-name " out*"))
+    (set (make-local-variable 'window-point-insertion-type) t)
+    (current-buffer)))
+
 (defun dap--make-request (command &optional args)
   "Make request for COMMAND with arguments ARGS."
   (if args
@@ -817,7 +860,7 @@ ADAPTER-ID the id of the adapter."
                           :launch-args launch-args
                           :proc proc
                           :name session-name
-                          :output-buffer (get-buffer-create (concat "*" session-name " out*"))
+                          :output-buffer (dap--create-output-buffer session-name)
                           :workspace lsp--cur-workspace)))
     (set-process-sentinel proc
                           (lambda (_process exit-str)
