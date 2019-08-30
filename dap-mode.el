@@ -709,9 +709,8 @@ thread exection but the server will log message."
 (defun dap--print-to-output-buffer (debug-session str)
   "Insert content from STR into the output buffer associated with DEBUG-SESSION."
   (with-current-buffer (dap--debug-session-output-buffer debug-session)
-    (let ((win (get-buffer-window (current-buffer))))
-      (goto-char (point-max))
-      (insert str))))
+    (goto-char (point-max))
+    (insert str)))
 
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."
