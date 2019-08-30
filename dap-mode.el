@@ -43,7 +43,7 @@
   :group 'dap-mode
   :type 'boolean)
 
-(defcustom dap-output-buffer-filter '("stdout")
+(defcustom dap-output-buffer-filter '("stdout" "stderr")
   "If non-nil, a list of output types to display in the debug output buffer."
   :group 'dap-mode
   :type 'list)
