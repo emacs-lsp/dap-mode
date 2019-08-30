@@ -719,9 +719,7 @@ thread exection but the server will log message."
     (pcase event-type
       ("output" (let* ((event-body (gethash "body" event))
                        (formatted-output (dap--output-buffer-format event-body)))
-                  (if dap-output-buffer-filter
-                      (when (member (gethash "category" event-body) dap-output-buffer-filter)
-                        (dap--print-to-output-buffer debug-session formatted-output))
+                  (when (or (not dap-output-buffer-filter) (member (gethash "category" event-body) dap-output-buffer-filter))
                     (dap--print-to-output-buffer debug-session formatted-output))))
       ("breakpoint" (-when-let* (((breakpoint &as &hash "id") (-some->> event
                                                                         (gethash "body")
