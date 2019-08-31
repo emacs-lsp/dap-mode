@@ -628,7 +628,7 @@ thread exection but the server will log message."
 
 (defun dap--go-to-stack-frame (debug-session stack-frame)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
-  (let ((lsp--cur-workspace (dap--debug-session-workspace debug-session)))
+  (with-lsp-workspace (dap--debug-session-workspace debug-session)
     (when stack-frame
       (-let* (((&hash "line" line "column" column "name" name) stack-frame)
               (path (dap--get-path-for-frame stack-frame)))
@@ -1262,7 +1262,7 @@ normally with dap-debug"
   (interactive)
   (if-let (configuration (cdr (cl-first dap--debug-configuration)))
       (dap-debug configuration)
-    (funcall-interactively 'dap-debug-select-configuration)))
+    (call-interactively 'dap-debug)))
 
 (defun dap-debug-recent ()
   "Debug last configuration."
@@ -1326,21 +1326,20 @@ If the current session it will be terminated."
   "Buffer killed handler."
   ;; make sure that the breakpoints are updated on close of the file since the
   ;; file might have been edited so we need to recalculate the :point based on the marker.
-  (when lsp--cur-workspace
-    (let* ((breakpoints (dap--get-breakpoints))
-           (file-breakpoints (gethash buffer-file-name breakpoints))
-           (updated-breakpoonts (-map (-lambda ((bkp &as &plist :marker :point))
-                                        (-> bkp
-                                            (dap--plist-delete :point)
-                                            (dap--plist-delete :marker)
-                                            (plist-put :point (if marker
-                                                                  (marker-position marker)
-                                                                point))))
-                                      file-breakpoints)))
-      (if updated-breakpoonts
-          (puthash buffer-file-name updated-breakpoonts breakpoints)
-        (remhash buffer-file-name breakpoints))
-      (dap--persist-breakpoints breakpoints))))
+  (let* ((breakpoints (dap--get-breakpoints))
+         (file-breakpoints (gethash buffer-file-name breakpoints))
+         (updated-breakpoints (-map (-lambda ((bkp &as &plist :marker :point))
+                                      (-> bkp
+                                          (dap--plist-delete :point)
+                                          (dap--plist-delete :marker)
+                                          (plist-put :point (if marker
+                                                                (marker-position marker)
+                                                              point))))
+                                    file-breakpoints)))
+    (if updated-breakpoints
+        (puthash buffer-file-name updated-breakpoints breakpoints)
+      (remhash buffer-file-name breakpoints))
+    (dap--persist-breakpoints breakpoints)))
 
 (defun dap--after-open ()
   "Handler of after open hook."
