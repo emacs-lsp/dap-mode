@@ -882,7 +882,7 @@ ADAPTER-ID the id of the adapter."
   "Make `setBreakpoints' request for FILE-NAME.
 FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
   (with-temp-buffer
-    (insert-file-contents-literally file-name)
+    (insert-file-contents file-name)
     (dap--make-request
      "setBreakpoints"
      (list :source (list :name (f-filename file-name)
@@ -1058,7 +1058,7 @@ should be started after the :port argument is taken.
 (defun dap--read-from-file (file)
   "Read FILE content."
   (with-temp-buffer
-    (insert-file-contents-literally file)
+    (insert-file-contents file)
     (cl-first (read-from-string
                (buffer-substring-no-properties (point-min) (point-max))))))
 
