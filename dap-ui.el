@@ -856,7 +856,7 @@ REQUEST-ID is the active request id. If it doesn't maches the
                                                    dap--debug-session-breakpoints
                                                    (gethash file-name))))
                 (with-temp-buffer
-                  (insert-file-contents-literally file-name)
+                  (insert-file-contents file-name)
                   (mapc
                    (-lambda (((&plist :point :condition :hit-condition :log-message) . remote-bp))
                      (push `((id ,(setq id (1+ id)))
