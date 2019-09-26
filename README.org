@@ -19,6 +19,7 @@
   - [[#locals][Locals]]
   - [[#breakpoints][Breakpoints]]
     - [[#keybindings-1][Keybindings]]
+  - [[#loaded-sources][Loaded sources]]
   - [[#dap-debug-repl][DAP debug REPL]]
 - [[#configuration][Configuration]]
   - [[#dap-mode-configuration][DAP mode configuration]]
@@ -27,6 +28,7 @@
     - [[#commands][Commands]]
   - [[#python][Python]]
     - [[#installation-1][Installation]]
+    - [[#usage-1][Usage]]
   - [[#ruby][Ruby]]
   - [[#lldb][LLDB]]
     - [[#installation-2][Installation]]
@@ -39,16 +41,16 @@
   - [[#javascript-1][Javascript]]
     - [[#firefox][Firefox]]
       - [[#installation-4][Installation]]
-      - [[#usage-1][Usage]]
+      - [[#usage-2][Usage]]
     - [[#chrome][Chrome]]
       - [[#installation-5][Installation]]
-      - [[#usage-2][Usage]]
+      - [[#usage-3][Usage]]
     - [[#microsoft-edge][Microsoft Edge]]
       - [[#installation-6][Installation]]
-      - [[#usage-3][Usage]]
+      - [[#usage-4][Usage]]
     - [[#node][Node]]
       - [[#installation-7][Installation]]
-      - [[#usage-4][Usage]]
+      - [[#usage-5][Usage]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
     - [[#example][Example]]
 - [[#links][Links]]
@@ -168,6 +170,8 @@
     | ~bui-list-mark~                      | Mark breakpoint under point    | m           |
     | ~bui-list-unmark~                    | Unmark breakpoint under point  | u           |
     | ~bui-list-unmark-all~                | Unmark breakpoint under point  | U           |
+** Loaded sources
+   Loaded sources can be viewed by invoking ~dap-tm-loaded-sources~.
 ** DAP debug REPL
    DAP provides a debug shell to execute commands when the program has hit
    breakpoints. The REPL has the same features as regular emacs shells (e.g.
@@ -289,7 +293,7 @@ case, define a template:
    #+BEGIN_SRC elisp
      (require 'dap-php)
    #+END_SRC
-   Start debugging by selecting "PHP Run Configuration" from the ~dap-debug~ menu, issue the debug request in your 
+   Start debugging by selecting "PHP Run Configuration" from the ~dap-debug~ menu, issue the debug request in your
    browser by choosing the running thread (~dap-switch-thread~) and then ~dap-step-in~.
 ** Native Debug (GDB/LLDB)
    Using https://github.com/WebFreak001/code-debug

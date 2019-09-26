@@ -18,7 +18,7 @@
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords: languages, debug
 ;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "6.0") (dash-functional "1.2.0") (tree-mode "1.1.1.1") (bui "1.1.0") (f "0.20.0") (s "1.12.0"))
+;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "6.0") (dash-functional "1.2.0") (tree-mode "1.1.1.1") (bui "1.1.0") (f "0.20.0") (s "1.12.0") (treemacs "2.5"))
 ;; Version: 0.3
 
 ;;; Commentary:
@@ -88,6 +88,11 @@ has been terminated."
 
 (defcustom dap-session-changed-hook nil
   "List of functions to be called after sessions have changed."
+  :type 'hook
+  :group 'dap-mode)
+
+(defcustom dap-loaded-sources-changed-hook nil
+  "List of functions to be called after loaded sources have changed for the session."
   :type 'hook
   :group 'dap-mode)
 
@@ -170,7 +175,8 @@ The hook will be called with the session file and the new set of breakpoint loca
   (launch-args nil)
   ;; The result of initialize request. It holds the server capabilities.
   (initialize-result nil)
-  (error-message nil))
+  (error-message nil)
+  (loaded-sources nil))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -803,7 +809,11 @@ thread exection but the server will log message."
         debug-session
         (dap--get-breakpoints)
         (apply-partially #'dap--send-configuration-done debug-session)))
-      (_ (message (format "No messages handler for %s" event-type))))))
+      ("loadedSource"
+       (-let [(&hash "body" (&hash "source")) event]
+         (cl-pushnew source (dap--debug-session-loaded-sources debug-session))
+         (run-hook-with-args 'dap-loaded-sources-changed-hook debug-session)))
+      (_ (message "No message handler for %s" event-type)))))
 
 (defun dap--create-filter-function (debug-session)
   "Create filter function for DEBUG-SESSION."
@@ -893,8 +903,7 @@ ADAPTER-ID the id of the adapter."
                           :launch-args launch-args
                           :proc proc
                           :name session-name
-                          :output-buffer (dap--create-output-buffer session-name)
-                          :workspace lsp--cur-workspace)))
+                          :output-buffer (dap--create-output-buffer session-name))))
     (set-process-sentinel proc
                           (lambda (_process exit-str)
                             (message "Debug session process exited with status: %s" exit-str)
