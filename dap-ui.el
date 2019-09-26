@@ -959,6 +959,84 @@ REQUEST-ID is the active request id. If it doesn't maches the
               (lambda () (setq-local lsp--buffer-workspaces workspaces)))
     (run-hooks 'dap-ui-breakpoints-ui-list-displayed-hook)))
 
+
+;; dap-ui posframe stuff
+(defvar dap-ui--control-images-root-dir (f-join (f-dirname (or load-file-name buffer-file-name)) "icons/vscode"))
+(defvar dap-ui--control-buffer " *dap-ui*")
+
+(defun dap-ui--create-command (image command hover-text)
+  (propertize "    "
+              'display `(image :type png
+                               :file ,(f-join dap-ui--control-images-root-dir image)
+                               :ascent center
+                               :background ,(face-attribute 'mode-line :background nil t))
+              'local-map (--doto (make-sparse-keymap)
+                           (define-key it [mouse-1] command))
+              'help-echo hover-text))
+
+(declare-function posframe-show "posframe")
+(declare-function posframe-hide "posframe")
+
+(defun dap-ui--update-controls (&rest _)
+  (let* ((session (dap--cur-session))
+         (stopped? (and session (dap--debug-session-active-frame session)))
+         (running? (and session (dap--session-running session))))
+    (if running?
+        (let ((content (s-concat
+                        (dap-ui--create-command "continue.png" #'dap-continue "Continue")
+                        (dap-ui--create-command (if stopped?
+                                                          "step-over.png"
+                                                        "step-over-disabled.png")
+                                                      (when stopped? #'dap-next)
+                                                      (if stopped? "Step over"
+                                                        "Session not stopped?"))
+                        (dap-ui--create-command (if stopped? "step-out.png"
+                                                        "step-out-disabled.png")
+                                                      (when stopped? #'dap-step-out)
+                                                      (if stopped? "Step out"
+                                                        "Session not stopped? "))
+                        (dap-ui--create-command (if stopped? "step-into.png"
+                                                        "step-into-disabled.png")
+                                                      (when stopped? #'dap-step-in)
+                                                      (if stopped? "Step in"
+                                                        "Session not stopped?"))
+                        (dap-ui--create-command "disconnect.png" #'dap-continue "Disconnect")
+                        (dap-ui--create-command "restart.png" #'dap-debug-restart "Restart")))
+              (posframe-mouse-banish nil)
+              (pos-frame (-first
+                          (lambda (frame)
+                            (let ((buffer-info (frame-parameter frame 'posframe-buffer)))
+                              (or (equal dap-ui--control-buffer (car buffer-info))
+                                  (equal dap-ui--control-buffer (cdr buffer-info)))))
+                          (frame-list))))
+          (when (eq (selected-frame) pos-frame)
+            (select-frame (frame-parent pos-frame)))
+          (posframe-show dap-ui--control-buffer
+                         :string content
+                         :poshandler #'posframe-poshandler-frame-top-center))
+      (posframe-hide dap-ui--control-buffer))))
+
+(define-minor-mode dap-ui-controls-mode
+  "Displaying DAP visuals."
+  :init-value nil
+  :global t
+  :require 'dap-ui
+  (cond
+   (dap-ui-mode
+    (add-hook 'dap-session-changed-hook 'dap-ui--update-controls)
+    (add-hook 'dap-terminated-hook 'dap-ui--update-controls )
+    (add-hook 'dap-session-changed-hook 'dap-ui--update-controls)
+    (add-hook 'dap-continue-hook 'dap-ui--update-controls)
+    (add-hook 'dap-stack-frame-changed-hook 'dap-ui--update-controls))
+   (t
+    (remove-hook 'dap-session-changed-hook 'dap-ui--update-controls)
+    (remove-hook 'dap-terminated-hook 'dap-ui--update-controls )
+    (remove-hook 'dap-session-changed-hook 'dap-ui--update-controls)
+    (remove-hook 'dap-continue-hook 'dap-ui--update-controls)
+    (remove-hook 'dap-stack-frame-changed-hook 'dap-ui--update-controls))))
+
+
+
 (defun dap-ui-debug-sessions-send ()
   "Send current selection for evaluation to the DAP server."
   (interactive))
