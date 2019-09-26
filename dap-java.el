@@ -219,7 +219,6 @@ test."
                            (lsp-send-execute-command "vscode.java.resolveClasspath")
                            cl-second
                            (s-join dap-java--classpath-separator))))
-    (message "CLASSPATH: %s " class-path)
     (list :program-to-start (s-join " "
                                     (cl-list* runner "-jar" dap-java-test-runner
                                               "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
