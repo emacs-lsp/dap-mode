@@ -1000,7 +1000,7 @@ REQUEST-ID is the active request id. If it doesn't maches the
                                                       (when stopped? #'dap-step-in)
                                                       (if stopped? "Step in"
                                                         "Session not stopped?"))
-                        (dap-ui--create-command "disconnect.png" #'dap-continue "Disconnect")
+                        (dap-ui--create-command "disconnect.png" #'dap-disconnect "Disconnect")
                         (dap-ui--create-command "restart.png" #'dap-debug-restart "Restart")))
               (posframe-mouse-banish nil)
               (pos-frame (-first
