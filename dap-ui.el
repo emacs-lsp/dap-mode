@@ -1016,6 +1016,7 @@ REQUEST-ID is the active request id. If it doesn't maches the
                          :poshandler #'posframe-poshandler-frame-top-center))
       (posframe-hide dap-ui--control-buffer))))
 
+;;;###autoload
 (define-minor-mode dap-ui-controls-mode
   "Displaying DAP visuals."
   :init-value nil
