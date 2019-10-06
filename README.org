@@ -72,8 +72,18 @@
   one asks for a registered debug template and starts the configuration using
   the default values for that particular configuration. The later creates a
   debug template which could be customized before running.
+  ~dap-debug-edit-template~ will prepare a template deceleration inside a
+  temporary buffer. You should execute this code using ~C-M-x~ for the changes to
+  apply. You should also copy this code into your Emacs configuration if you wish to
+  make it persistent.
 
-  dap-mode also provides a [[https://github.com/abo-abo/hydra][hydra]] with ~dap-hydra~.
+  dap-mode also provides a [[https://github.com/abo-abo/hydra][hydra]] with ~dap-hydra~. You can automatically trigger
+  the hydra when the program hits a breakpoint by using the following code
+
+  #+BEGIN_SRC emacs-lisp
+    (add-hook 'dap-stopped-hook
+              (lambda (arg) (call-interactively #'dap-hydra)))
+  #+END_SRC
 * Screenshot
 ** Java
    [[file:screenshots/MultiSession.png]]
@@ -194,6 +204,21 @@
     | ~dap-java-debug-test-method~ | Debug test method |
     | ~dap-java-run-test-class~    | Run test class    |
     | ~dap-java-debug-test-class~  | Debug test class  |
+
+You can also edit one of the existing templates and and execute it with
+~dap-debug~. dap-mode will take care of filling missing values, such as
+classpath. JVM arguments can be specified with ~:vmArgs~:
+
+#+BEGIN_SRC emacs-lisp
+  (dap-register-debug-template "My Runner"
+                               (list :type "java"
+                                     :request "launch"
+                                     :args ""
+                                     :vmArgs "-ea -Dmyapp.instance.name=myapp_1"
+                                     :projectName "myapp"
+                                     :mainClass "com.domain.AppRunner"
+                                     :env '(("DEV" . "1"))))
+#+END_SRC
 ** Python
 *** Installation
     - install latest version of ptvsd.
@@ -205,6 +230,24 @@
         (require 'dap-python)
       #+END_SRC
       This will add the python related configuration to  ~dap-debug~.
+
+*** Usage
+A template named "Python :: Run Configuration" will appear, which will execute
+the currently visited module. This will fall short whenever you need to specify
+arguments, environment variables or execute a setuptools based script. In such
+case, define a template:
+
+#+BEGIN_SRC emacs-lisp
+  (dap-register-debug-template "My App"
+    (list :type "python"
+          :args "-i"
+          :cwd nil
+          :env (("DEBUG" . "1"))
+          :target-module (expand-file-name "~/src/myapp/.env/bin/myapp")
+          :request "launch"
+          :name "My App"))
+#+END_SRC
+
 ** Ruby
     - Download and extract [[https://marketplace.visualstudio.com/items?itemName=rebornix.Ruby][VSCode Ruby Extension]]. You can do that either by:
       - Calling ~dap-ruby-setup~, the extension will be downloaded and all your path will be automatically set up.
