@@ -724,7 +724,8 @@ thread exection but the server will log message."
 (defun dap--output-buffer-format (output-body)
   "Formats a string suitable for printing to the output buffer using an OUTPUT-BODY."
   (if dap-label-output-buffer-category
-      (dap--output-buffer-format-with-category (gethash "category" output-body) (gethash "output" output-body))
+      (dap--output-buffer-format-with-category (gethash "category" output-body)
+                                               (gethash "output" output-body))
     (gethash "output" output-body)))
 
 (defun dap--insert-at-point-max (str)
@@ -734,7 +735,7 @@ thread exection but the server will log message."
 
 (defun dap--print-to-output-buffer (debug-session str)
   "Insert content from STR into the output buffer associated with DEBUG-SESSION."
-  (with-current-buffer (dap--debug-session-output-buffer debug-session)
+  (with-current-buffer (get-buffer-create (dap--debug-session-output-buffer debug-session))
     (if (and (eq (current-buffer) (window-buffer (selected-window)))
              (not (= (point) (point-max))))
         (save-excursion
@@ -743,28 +744,35 @@ thread exection but the server will log message."
 
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."
-  (let ((event-type (gethash "event" event)))
+  (-let [(&hash "body" "event" event-type) event]
     (pcase event-type
-      ("output" (let* ((event-body (gethash "body" event))
-                       (formatted-output (dap--output-buffer-format event-body)))
-                  (when (or (not dap-output-buffer-filter) (member (gethash "category" event-body) dap-output-buffer-filter))
+      ("output" (-when-let* ((formatted-output (dap--output-buffer-format body))
+                             (formatted-output (if-let ((output-filter-fn (-> debug-session
+                                                                              (dap--debug-session-launch-args)
+                                                                              (plist-get :output-filter-function))))
+                                                   (funcall output-filter-fn formatted-output)
+                                                 formatted-output)))
+                  (when (or (not dap-output-buffer-filter) (member (gethash "category" body)
+                                                                   dap-output-buffer-filter))
                     (dap--print-to-output-buffer debug-session formatted-output))))
-      ("breakpoint" (-when-let* (((breakpoint &as &hash "id") (-some->> event
-                                                                        (gethash "body")
-                                                                        (gethash "breakpoint")))
-                                 (file-name (cl-first (ht-find (lambda (_ breakpoints)
-                                                                 (-first (-lambda ((bkp &as &hash "id" bkp-id))
-                                                                           (when (eq bkp-id id)
-                                                                             (ht-clear bkp)
-                                                                             (ht-aeach (ht-set bkp key value) breakpoint)
-                                                                             t))
-                                                                         breakpoints))
-                                                               (dap--debug-session-breakpoints debug-session)))))
+      ("breakpoint" (-when-let* (((breakpoint &as &hash "id") (when body
+                                                                (gethash "breakpoint" body)))
+                                 (file-name (->> debug-session
+                                                 (dap--debug-session-breakpoints)
+                                                 (ht-find
+                                                  (lambda (_ breakpoints)
+                                                    (-first (-lambda ((bkp &as &hash "id" bkp-id))
+                                                              (when (eq bkp-id id)
+                                                                (ht-clear bkp)
+                                                                (ht-aeach (ht-set bkp key value) breakpoint)
+                                                                t))
+                                                            breakpoints)))
+                                                 (cl-first))))
                       (when (eq debug-session (dap--cur-session))
                         (-when-let (buffer (find-buffer-visiting file-name))
                           (with-current-buffer buffer
                             (run-hooks 'dap-breakpoints-changed-hook))))))
-      ("thread" (-let [(&hash "body" (&hash "threadId" id "reason")) event]
+      ("thread" (-let [(&hash "threadId" id "reason") body]
                   (puthash id reason (dap--debug-session-thread-states debug-session))
                   (run-hooks 'dap-session-changed-hook)
                   (dap--send-message
@@ -778,13 +786,13 @@ thread exection but the server will log message."
                   ;; (insert (gethash "body" (gethash "body" event)))
                   ))
       ("stopped"
-       (-let [(&hash "body" (&hash "threadId" thread-id "type" reason)) event]
+       (-let [(&hash "threadId" thread-id "type" reason) body]
          (puthash thread-id reason (dap--debug-session-thread-states debug-session))
          (dap--select-thread-id debug-session thread-id)))
       ("terminated"
        (dap--mark-session-as-terminated debug-session))
       ("usernotification"
-       (-let [(&hash "body" (&hash "notificationType" notification-type "message")) event]
+       (-let [(&hash "notificationType" notification-type "message") body]
          (warn  (format "[%s] %s" notification-type message))))
       ("initialized"
        (dap--configure-breakpoints
