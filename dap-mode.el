@@ -58,6 +58,16 @@
   :group 'dap-mode
   :type 'boolean)
 
+(defcustom dap-output-window-min-height 10
+  "The minimum height of the output window."
+  :group 'dap-mode
+  :type 'number)
+
+(defcustom dap-output-window-max-height 20
+  "The maximum height of the output window."
+  :group 'dap-mode
+  :type 'number)
+
 (defcustom dap-inhibit-io t
   "If non-nil, the messages will be inhibited."
   :group 'dap-mode
@@ -1292,7 +1302,7 @@ normally with dap-debug"
               `((side . bottom) (slot . 5) (window-width . 0.20)))))
     (set-window-dedicated-p win t)
     (select-window win)
-    (fit-window-to-buffer nil nil 10)))
+    (fit-window-to-buffer nil dap-output-window-max-height dap-output-window-min-height)))
 
 (defun dap-delete-session (debug-session)
   "Remove DEBUG-SESSION.
