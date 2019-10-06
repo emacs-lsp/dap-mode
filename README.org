@@ -72,6 +72,8 @@
   one asks for a registered debug template and starts the configuration using
   the default values for that particular configuration. The later creates a
   debug template which could be customized before running.
+
+  dap-mode also provides a [[https://github.com/abo-abo/hydra][hydra]] with ~dap-hydra~.
 * Screenshot
 ** Java
    [[file:screenshots/MultiSession.png]]
