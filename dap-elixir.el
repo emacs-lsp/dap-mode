@@ -41,7 +41,6 @@
       (dap--put-if-absent :projectDir (lsp-find-session-folder (lsp-session) (buffer-file-name)))
       (dap--put-if-absent :cwd (lsp-find-session-folder (lsp-session) (buffer-file-name)))
       (dap--put-if-absent :requireFiles (list
-                                         "lib/**"
                                          "test/**/test_helper.exs"
                                          "test/**/*_test.exs"))))
 
