@@ -205,6 +205,11 @@
     | ~dap-java-run-test-class~    | Run test class    |
     | ~dap-java-debug-test-class~  | Debug test class  |
 
+
+The functions ~dap-java-run-test-class~ and ~dap-java-run-test-method~ expect
+the variable ~dap-java-test-runner~ to point to a JUnit JAR. You can download
+one [[https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/][from Maven Central]].
+
 You can also edit one of the existing templates and and execute it with
 ~dap-debug~. dap-mode will take care of filling missing values, such as
 classpath. JVM arguments can be specified with ~:vmArgs~:
