@@ -1337,10 +1337,13 @@ If the current session it will be terminated."
   (interactive)
   (--each (dap--get-sessions)
     (when (not (eq 'terminated (dap--debug-session-state it)))
-      (dap--send-message (dap--make-request "disconnect"
-                                            (list :restart :json-false))
-                         (dap--resp-handler)
-                         it)))
+      (condition-case _err
+          (dap--send-message (dap--make-request "disconnect"
+                                                (list :restart :json-false))
+                             (dap--resp-handler)
+                             it)
+        (error))))
+
   (dap--set-sessions ())
   (dap--switch-to-session nil))
 
