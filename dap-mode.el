@@ -128,8 +128,10 @@ The hook will be called with the session file and the new set of breakpoint loca
 
 (defvar dap--debug-providers (make-hash-table :test 'equal))
 
-(defvar dap--debug-template-configurations ()
-  "Plist Template configurations for DEBUG/RUN.")
+(defcustom dap-debug-template-configurations nil
+  "Plist Template configurations for DEBUG/RUN."
+  :safe #'listp
+  :type '(plist))
 
 (defvar dap--debug-configuration ()
   "List of the previous configuration that have been executed.")
@@ -1204,11 +1206,11 @@ arguments which contain the debug port to use for opening TCP connection."
   "Register configuration template CONFIGURATION-NAME.
 
 CONFIGURATION-SETTINGS - plist containing the preset settings for the configuration."
-  (setq dap--debug-template-configurations
-        (delq (assoc configuration-name dap--debug-template-configurations)
-              dap--debug-template-configurations))
+  (setq dap-debug-template-configurations
+        (delq (assoc configuration-name dap-debug-template-configurations)
+              dap-debug-template-configurations))
   (add-to-list
-   'dap--debug-template-configurations
+   'dap-debug-template-configurations
    (cons configuration-name configuration-settings)))
 
 (defun dap--find-available-port (host starting-port)
@@ -1227,7 +1229,7 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
   "Select the configuration to launch.
 If ORIGIN is t, return the original configuration without prepopulation"
   (let ((debug-args (-> (dap--completing-read "Select configuration template: "
-                                              dap--debug-template-configurations
+                                              dap-debug-template-configurations
                                               'cl-first nil t)
                         cl-rest
                         copy-tree)))
@@ -1244,7 +1246,7 @@ If ORIGIN is t, return the original configuration without prepopulation"
 If DEBUG-ARGS is not specified the configuration is generated
 after selecting configuration template."
   (interactive (list (-> (dap--completing-read "Select configuration template: "
-                                               dap--debug-template-configurations
+                                               dap-debug-template-configurations
                                                'cl-first nil t)
                          cl-rest
                          copy-tree)))
