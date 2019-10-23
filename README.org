@@ -242,7 +242,7 @@ case, define a template:
     (list :type "python"
           :args "-i"
           :cwd nil
-          :env (("DEBUG" . "1"))
+          :env '(("DEBUG" . "1"))
           :target-module (expand-file-name "~/src/myapp/.env/bin/myapp")
           :request "launch"
           :name "My App"))
