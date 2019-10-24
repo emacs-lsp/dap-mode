@@ -63,14 +63,14 @@
 
   *Note: dap-mode works only against lsp.el interface.*
 ** Project status
-   The project is in it's early stage but although it is not extensively tested
+   The project is in its early stage but although it is not extensively tested
    it is considered stable enough to be used. The API considered unstable until
    1.0 release is out. It is tested against Java, Python, Ruby, Elixir and LLDB
    (C/C++/Objective-C/Swift).
 * Usage
   The main entry points are ~dap-debug~ and ~dap-debug-edit-template~. The first
   one asks for a registered debug template and starts the configuration using
-  the default values for that particular configuration. The later creates a
+  the default values for that particular configuration. The latter creates a
   debug template which could be customized before running.
   ~dap-debug-edit-template~ will prepare a template deceleration inside a
   temporary buffer. You should execute this code using ~C-M-x~ for the changes to
@@ -78,7 +78,7 @@
   make it persistent.
 
   dap-mode also provides a [[https://github.com/abo-abo/hydra][hydra]] with ~dap-hydra~. You can automatically trigger
-  the hydra when the program hits a breakpoint by using the following code
+  the hydra when the program hits a breakpoint by using the following code.
 
   #+BEGIN_SRC emacs-lisp
     (add-hook 'dap-stopped-hook
@@ -147,7 +147,7 @@
    | ~dap-ui-inspect-thing-at-point~ | Inspect symbol at point              |
 
 ** Sessions
-   The sessions view is showed after invoking ~dap-ui-sessions~ . It represents
+   The session view is showed after invoking ~dap-ui-sessions~ . It represents
    the list of the active sessions.
 *** Keybindings
     | Command                     | Description                                                 | Keybindings |
@@ -169,8 +169,8 @@
     | ~bui-list-unmark~                    | Unmark breakpoint under point  | u           |
     | ~bui-list-unmark-all~                | Unmark breakpoint under point  | U           |
 ** DAP debug REPL
-   DAP provides a debug shell to execute command when the program has hit
-   breakpoints. The REPL has the same features as standart emacs shell (e. g.
+   DAP provides a debug shell to execute commands when the program has hit
+   breakpoints. The REPL has the same features as regular emacs shells (e.g.
    command history, ~C-p/n~ navigation through history, etc.) in addition to
    optional ~company-mode~ autocompletion.
    [[file:screenshots/dap-ui-repl.png]]
@@ -192,7 +192,8 @@
     Latest version of [[https://github.com/emacs-lsp/lsp-java][LSP Java]] will automatically discover if ~dap-mode~ is
     present and it will download and install the required server side
     components. If you have already downloaded a ~Eclispe JDT Server~ you will
-    have to force server update via ~lsp-java-update-server~. In order to enable lsp java you will have to require ~dap-java.el~
+    have to force a server update via ~lsp-java-update-server~. In order to enable lsp java,
+    you will have to require ~dap-java.el~.
     #+BEGIN_SRC emacs-lisp
       (require 'dap-java)
     #+END_SRC
@@ -205,7 +206,7 @@
     | ~dap-java-run-test-class~    | Run test class    |
     | ~dap-java-debug-test-class~  | Debug test class  |
 
-You can also edit one of the existing templates and and execute it with
+You can also edit one of the existing templates and execute it with
 ~dap-debug~. dap-mode will take care of filling missing values, such as
 classpath. JVM arguments can be specified with ~:vmArgs~:
 
@@ -277,9 +278,9 @@ case, define a template:
    #+END_SRC
    Then when you do ~dap-debug-edit-template~ and select Elixir which will
    generate runnable debug configuration. For more details on supported settings
-   by the Elixir Debug Server refer to it's documentation.
+   by the Elixir Debug Server refer to its documentation.
 ** PHP
-   For easier of setting up vscode extension, you only need to call ~dap-php-setup~ after requiring ~dap-php~.
+   Simplify setup of vscode extension with ~dap-php-setup~ after requiring ~dap-php~.
 
    This is using [[https://github.com/felixfbecker/vscode-php-debug][felixbecker/vscode-php-debug]]
    ([[https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug][downloadable from the marketplace]])
@@ -288,8 +289,8 @@ case, define a template:
    #+BEGIN_SRC elisp
      (require 'dap-php)
    #+END_SRC
-   To begin debugging, select "PHP Run Configuration" from the ~dap-debug~ menu, issue the debug request in your browser,
-   select the running thread (~dap-switch-thread~) and then ~dap-step-in~.
+   Start debugging by selecting "PHP Run Configuration" from the ~dap-debug~ menu, issue the debug request in your 
+   browser by choosing the running thread (~dap-switch-thread~) and then ~dap-step-in~.
 ** Native Debug (GDB/LLDB)
    Using https://github.com/WebFreak001/code-debug
 *** Configuration
