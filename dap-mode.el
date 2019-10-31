@@ -1033,6 +1033,19 @@ DEBUG-SESSIONS - list of the currently active sessions."
       (setq counter (1+ counter)))
     session-name))
 
+(define-derived-mode dap-server-log-mode fundamental-mode "Debug Adapter"
+  (read-only-mode 1)
+  (setq-local window-point-insertion-type t)
+  ;; we need to move window point to the end of the buffer once because
+  ;; `compilation-start' inserts initial message before displaying the buffer.
+  (run-with-idle-timer 0 nil
+                       (lambda (buf)
+                         (with-current-buffer buf
+                           (mapc (lambda (w)
+                                   (set-window-point w (point-max)))
+                                 (get-buffer-window-list))))
+                       (current-buffer)))
+
 (defun dap-start-debugging (launch-args)
   "Start debug session with LAUNCH-ARGS.
 Special arguments:
@@ -1040,7 +1053,8 @@ Special arguments:
 :wait-for-port - boolean defines whether the debug configuration
 should be started after the :port argument is taken.
 
-:program-to-start - when set it will be started using `compile' before starting the debug process."
+:program-to-start - when set it will be started using `compilation-start'
+before starting the debug process."
   (-let* (((&plist :name :skip-debug-session :cwd :program-to-start
                    :wait-for-port :type :request :port
                    :environment-variables :hostName host) launch-args)
@@ -1049,7 +1063,9 @@ should be started after the :port argument is taken.
     (mapc (-lambda ((env . value)) (setenv env value)) environment-variables)
     (plist-put launch-args :name session-name)
 
-    (when program-to-start (compile program-to-start))
+    (when program-to-start
+      (compilation-start program-to-start 'dap-server-log-mode
+                         (lambda (_) (concat "*" session-name " server log*"))))
     (when wait-for-port (dap--wait-for-port host port))
 
     (unless skip-debug-session
