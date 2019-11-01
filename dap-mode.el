@@ -160,7 +160,7 @@ The hook will be called with the session file and the new set of breakpoint loca
   (cursor-marker nil)
   ;; The session breakpoints;
   (session-breakpoints (make-hash-table :test 'equal) :read-only t)
-  ;; one of 'pending 'started 'terminated 'failed
+  ;; one of 'pending 'running 'terminated 'failed
   (state 'pending)
   ;; hash table containing mapping file -> active breakpoints.
   (breakpoints (make-hash-table :test 'equal) :read-only t)
@@ -259,7 +259,8 @@ has succeeded."
 
 (defun dap--session-running (debug-session)
   "Check whether DEBUG-SESSION still running."
-  (and debug-session (not (eq 'terminated (dap--debug-session-state debug-session)))))
+  (and debug-session
+       (not (memq (dap--debug-session-state debug-session) '(terminated failed)))))
 
 (defun dap--cur-active-session-or-die ()
   "Get currently non-terminated  `dap--debug-session' or die."
@@ -905,8 +906,9 @@ ADAPTER-ID the id of the adapter."
   (dap--send-message (dap--make-request "configurationDone")
                      (dap--resp-handler
                       (lambda (_)
-                        (setf (dap--debug-session-state debug-session) 'running)
-                        (run-hook-with-args 'dap-session-changed-hook)))
+                        (when (eq 'pending (dap--debug-session-state debug-session))
+                          (setf (dap--debug-session-state debug-session) 'running)
+                          (run-hook-with-args 'dap-session-changed-hook))))
                      debug-session))
 
 (defun dap--set-breakpoints-request (file-name file-breakpoints)
@@ -1342,7 +1344,7 @@ If the current session it will be terminated."
                          (dap--switch-to-session nil))
                        (-when-let (buffer (dap--debug-session-output-buffer debug-session))
                          (kill-buffer buffer)))))
-    (if (eq 'terminated (dap--debug-session-state debug-session))
+    (if (not (dap--session-running debug-session))
         (funcall cleanup-fn)
       (dap--send-message (dap--make-request "disconnect"
                                             (list :restart :json-false))
@@ -1354,7 +1356,7 @@ If the current session it will be terminated."
   "Terminate/remove all sessions."
   (interactive)
   (--each (dap--get-sessions)
-    (when (not (eq 'terminated (dap--debug-session-state it)))
+    (when (dap--session-running it)
       (condition-case _err
           (dap--send-message (dap--make-request "disconnect"
                                                 (list :restart :json-false))
