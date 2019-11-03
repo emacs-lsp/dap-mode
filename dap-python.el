@@ -69,7 +69,11 @@ as the pyenv version then also return nil. This works around https://github.com/
          (debug-port (dap--find-available-port host dap-python-default-debug-port))
          (python-executable (dap-python--pyenv-executable-find dap-python-executable))
          (python-args (or (plist-get conf :args) ""))
-         (python-target-module (or (plist-get conf :target-module) buffer-file-name)))
+         (python-target-module (if-let (module (plist-get conf :target-module))
+                                   (if (f-exists? module)
+                                       module
+                                     (format "-m %s" module))
+                                 buffer-file-name)))
 
     (dap--put-if-absent conf :program-to-start
                         (format "%s -m ptvsd --wait --host %s --port %s %s %s"
@@ -88,6 +92,14 @@ as the pyenv version then also return nil. This works around https://github.com/
                                    :args ""
                                    :cwd nil
                                    :target-module nil
+                                   :request "launch"
+                                   :name "Python :: Run Configuration"))
+
+(dap-register-debug-template "Python :: pytest"
+                             (list :type "python"
+                                   :args ""
+                                   :cwd nil
+                                   :target-module "pytest"
                                    :request "launch"
                                    :name "Python :: Run Configuration"))
 
