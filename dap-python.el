@@ -69,16 +69,20 @@ as the pyenv version then also return nil. This works around https://github.com/
          (debug-port (dap--find-available-port host dap-python-default-debug-port))
          (python-executable (dap-python--pyenv-executable-find dap-python-executable))
          (python-args (or (plist-get conf :args) ""))
-         (python-target-module (if-let (module (plist-get conf :target-module))
-                                   (if (f-exists? module)
-                                       module
-                                     (format "-m %s" module))
-                                 buffer-file-name)))
+         (program (or (plist-get conf :target-module)
+                      (plist-get conf :program)
+                      (buffer-file-name)))
+         (module (plist-get conf :module)))
 
     (dap--put-if-absent conf :program-to-start
-                        (format "%s -m ptvsd --wait --host %s --port %s %s %s"
-                                python-executable host debug-port python-target-module python-args))
-    (plist-put conf :target-module python-target-module)
+                        (format "%s -m ptvsd --wait --host %s --port %s %s %s %s"
+                                python-executable
+                                host
+                                debug-port
+                                (if module (concat "-m " module) "")
+                                program
+                                python-args))
+    (plist-put conf :program program)
     (plist-put conf :debugServer debug-port)
     (plist-put conf :port debug-port)
     (plist-put conf :wait-for-port t)
@@ -91,7 +95,8 @@ as the pyenv version then also return nil. This works around https://github.com/
                              (list :type "python"
                                    :args ""
                                    :cwd nil
-                                   :target-module nil
+                                   :module nil
+                                   :program nil
                                    :request "launch"
                                    :name "Python :: Run Configuration"))
 
@@ -99,7 +104,8 @@ as the pyenv version then also return nil. This works around https://github.com/
                              (list :type "python"
                                    :args ""
                                    :cwd nil
-                                   :target-module "pytest"
+                                   :program nil
+                                   :module "pytest"
                                    :request "launch"
                                    :name "Python :: Run Configuration"))
 
