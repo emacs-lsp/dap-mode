@@ -1243,68 +1243,64 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
         (file-error (setq success t))))
     port))
 
-(defun dap--select-template (&optional origin)
-  "Select the configuration to launch.
-If ORIGIN is t, return the original configuration without prepopulation"
-  (let ((debug-args (-> (dap--completing-read "Select configuration template: "
-                                              dap-debug-template-configurations
-                                              'cl-first nil t)
-                        cl-rest
-                        copy-tree)))
-    (if origin debug-args
-      (or (-some-> (plist-get debug-args :type)
-                   (gethash dap--debug-providers)
-                   (funcall debug-args))
-          (error "There is no debug provider for language %s"
-                 (or (plist-get debug-args :type) "'Not specified'"))))))
+(defun dap--select-template ()
+  "Select a debug configuration to launch."
+  (-> (dap--completing-read "Select configuration template: "
+                            dap-debug-template-configurations
+                            'cl-first nil t)
+      cl-rest
+      copy-tree))
 
-(defun dap-debug (debug-args)
+(defun dap--populate-template (debug-args)
+  "Populate debug configuration DEBUG-ARGS."
+  (or (-some-> (plist-get debug-args :type)
+               (gethash dap--debug-providers)
+               (funcall debug-args))
+      (error "There is no debug provider for language %s"
+             (or (plist-get debug-args :type) "'Not specified'"))))
+
+(defun dap-debug (&optional debug-args)
   "Run debug configuration DEBUG-ARGS.
 
 If DEBUG-ARGS is not specified the configuration is generated
 after selecting configuration template."
-  (interactive (list (-> (dap--completing-read "Select configuration template: "
-                                               dap-debug-template-configurations
-                                               'cl-first nil t)
-                         cl-rest
-                         copy-tree)))
-  (dap-start-debugging (or (-some-> (plist-get debug-args :type)
-                                    (gethash dap--debug-providers)
-                                    (funcall debug-args))
-                           (error "There is no debug provider for language %s"
-                                  (or (plist-get debug-args :type) "'Not specified'")))))
+  (interactive)
+  (dap-start-debugging (dap--populate-template (or debug-args (dap--select-template)))))
 
-(defun dap-debug-edit-template (&optional parg debug-args)
-  "Edit registered template DEBUG-ARGS.
-When being invoked with prefix argument, poping up the prepopulated version of the template.
-Otherwise, return its original version. After registration, the new template can be used
-normally with dap-debug"
+(defun dap-debug-edit-template (&optional debug-args prepopulate)
+  "Edit registered template DEBUG-ARGS, in a buffer named \"*DAP Templates*\".
 
-  (interactive "P")
-  (let ((debug-args (dap--select-template(not parg))))
-    (progn
-      (with-current-buffer (or (get-buffer "*DAP Templates*")
-                               (with-current-buffer (get-buffer-create "*DAP Templates*")
-                                 (emacs-lisp-mode)
-                                 (current-buffer)))
-        (goto-char (point-max))
-        (insert
-         (format "\n\n(dap-register-debug-template \"%s%s\"\n"
-                 (plist-get debug-args :name)
-                 (if parg " - Copy" "")))
-        (insert "  (list ")
-        (-let ((column (current-column))
-               ((fst snd . rst) debug-args))
-          (insert (format "%s %s" fst (prin1-to-string snd)))
-          (cl-loop for (k v) on rst by (function cddr)
-                   do (if (not (equal k :program-to-start))
-                          (progn
-                            (insert "\n")
-                            (--dotimes column (insert " "))
-                            (insert (format "%s %s" k (prin1-to-string v)))))))
-        (insert "))"))
-      (pop-to-buffer "*DAP Templates*")
-      (goto-char (point-max)))))
+If DEBUG-ARGS is not specified, ask which configuration template to edit.
+If PREPOPULATE is non-nil or called interactively with a prefix argument,
+poping up the prepopulated version of the template.
+After registration, the new template can be used normally with `dap-debug'."
+  (interactive "i\nP")
+  (unless debug-args
+    (setq debug-args (dap--select-template)))
+  (when prepopulate
+    (setq debug-args (dap--populate-template debug-args)))
+  (with-current-buffer (or (get-buffer "*DAP Templates*")
+                           (with-current-buffer (get-buffer-create "*DAP Templates*")
+                             (emacs-lisp-mode)
+                             (current-buffer)))
+    (goto-char (point-max))
+    (insert
+     (format "\n\n(dap-register-debug-template \"%s%s\"\n"
+             (plist-get debug-args :name)
+             (if prepopulate " - Copy" "")))
+    (insert "  (list ")
+    (-let ((column (current-column))
+           ((fst snd . rst) debug-args))
+      (insert (format "%s %s" fst (prin1-to-string snd)))
+      (cl-loop for (k v) on rst by (function cddr)
+               do (if (not (equal k :program-to-start))
+                      (progn
+                        (insert "\n")
+                        (--dotimes column (insert " "))
+                        (insert (format "%s %s" k (prin1-to-string v)))))))
+    (insert "))"))
+  (pop-to-buffer "*DAP Templates*")
+  (goto-char (point-max)))
 
 (defun dap-debug-last ()
   "Debug last configuration."
