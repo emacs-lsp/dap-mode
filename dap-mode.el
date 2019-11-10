@@ -347,6 +347,7 @@ FILE-NAME the file name.
 WORKSPACE will be used to calculate root folder."
   (with-demoted-errors
       "Failed to persist file: %S"
+    (make-directory (file-name-directory file-name) t)
     (with-temp-file file-name
       (erase-buffer)
       (insert (prin1-to-string to-persist)))))
