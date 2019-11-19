@@ -651,9 +651,12 @@ thread exection but the server will log message."
 
 (defun dap--get-path-for-frame (stack-frame)
   "Get file path for a STACK-FRAME."
-  (-when-let* ((source (gethash "source" stack-frame))
-               (path (gethash "path" source)))
-    (if (-> path url-unhex-string url-generic-parse-url url-type)
+  (-when-let ((path (-some->> stack-frame
+                              (gethash "source")
+                              (gethash "path"))))
+    (if (-> path url-unhex-string url-generic-parse-url url-type
+            ;; In windows, the fullpath is containing a drive name
+            length (> 1))
         (lsp--uri-to-path path)
       path)))
 
