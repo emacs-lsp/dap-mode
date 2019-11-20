@@ -51,8 +51,9 @@
     - [[#node][Node]]
       - [[#installation-7][Installation]]
       - [[#usage-5][Usage]]
+  - [[#powershell][Powershell]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
-    - [[#example][Example]]
+  - [[#example][Example]]
 - [[#links][Links]]
 - [[#troubleshooting][Troubleshooting]]
 - [[#acknowledgments][Acknowledgments]]
@@ -359,6 +360,12 @@ case, define a template:
        #+END_SRC
 **** Usage
      ~dap-debug~ or ~dap-debug-edit-template~ and select the node template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://code.visualstudio.com/docs/nodejs/nodejs-debugging][Nodejs Debugging]].
+** Powershell
+   #+BEGIN_SRC elisp
+     (require 'dap-pwsh)
+   #+END_SRC
+   Start debugging by selecting "Powershell: Launch Script" from ~dap-debug~ menu.
+
 * Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating
