@@ -15,10 +15,10 @@
   - [[#debugger-commands][Debugger commands]]
   - [[#windows][Windows]]
   - [[#sessions][Sessions]]
-    - [[#keybindings][Keybindings]]
   - [[#locals][Locals]]
+  - [[#expressions][Expressions]]
   - [[#breakpoints][Breakpoints]]
-    - [[#keybindings-1][Keybindings]]
+    - [[#keybindings][Keybindings]]
   - [[#loaded-sources][Loaded sources]]
   - [[#dap-debug-repl][DAP debug REPL]]
 - [[#configuration][Configuration]]
@@ -53,23 +53,17 @@
       - [[#usage-5][Usage]]
   - [[#powershell][Powershell]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
-  - [[#example][Example]]
+    - [[#example][Example]]
 - [[#links][Links]]
-- [[#troubleshooting][Troubleshooting]]
 - [[#acknowledgments][Acknowledgments]]
-- [[#whats-next][What's next]]
 
 * Summary
   Emacs client/library for [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]] is a wire protocol for
   communication between client and Debug Server. It's similar to the [[https://github.com/Microsoft/language-server-protocol][LSP]] but
   provides integration with debug server.
-
-  *Note: dap-mode works only against lsp.el interface.*
 ** Project status
-   The project is in its early stage but although it is not extensively tested
-   it is considered stable enough to be used. The API considered unstable until
-   1.0 release is out. It is tested against Java, Python, Ruby, Elixir and LLDB
-   (C/C++/Objective-C/Swift).
+   The API considered unstable until 1.0 release is out. It is tested against
+   Java, Python, Ruby, Elixir and LLDB (C/C++/Objective-C/Swift).
 * Usage
   The main entry points are ~dap-debug~ and ~dap-debug-edit-template~. The first
   one asks for a registered debug template and starts the configuration using
@@ -111,6 +105,7 @@
   - Multiple simultaneous debug sessions
   - Evaluating statements
   - Debug/Run configurations
+  - Expressions
 ** Debugger commands
    | Command                        | Description                                                     |
    |--------------------------------+-----------------------------------------------------------------|
@@ -143,23 +138,19 @@
    |---------------------------------+--------------------------------------|
    | ~dap-ui-sessions~               | Show active/terminated sessions view |
    | ~dap-ui-locals~                 | Show locals view                     |
+   | ~dap-ui-expressions~            | Show expressions view                |
    | ~dap-ui-breakpoints~            | Show breakpoints view                |
-   | ~dap-ui-inspect~                | Inspect                              |
    | ~dap-ui-repl~                   | DAP UI REPL                          |
-   | ~dap-ui-inspect-region~         | Inspect region                       |
-   | ~dap-ui-inspect-thing-at-point~ | Inspect symbol at point              |
 
 ** Sessions
    The session view is showed after invoking ~dap-ui-sessions~ . It represents
    the list of the active sessions.
-*** Keybindings
-    | Command                     | Description                                                 | Keybindings |
-    |-----------------------------+-------------------------------------------------------------+-------------|
-    | ~dap-ui-session-select~     | Select object at point                                      | <return>    |
-    | ~dap-ui-session-remove~ WIP | Remove terminated session from the list of running sessions |             |
-    | ~tree-mode-toggle-expand~   | Toggle node expand state                                    | <tab>       |
 ** Locals
    Locals can be viewed after invoking ~dap-ui-locals~.
+** Expressions
+   Watch expressions can be viewed after invoking ~dap-ui-expressions~. You
+   could add remove watch expressions via =dap-ui-expressions-add= and
+   =dap-ui-expressions-remove=.
 ** Breakpoints
    Breakpoints can be viewed after invoking ~dap-ui-breakpoints~.
 *** Keybindings
@@ -396,12 +387,7 @@ case, define a template:
   - [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]]
   - [[https://github.com/emacs-lsp/lsp-java][LSP Java]]
   - [[https://microsoft.github.io/debug-adapter-protocol/implementors/adapters/][Debug Adapter Protocol Server Implementations]]
-* Troubleshooting
-  If you notice a bug, open an issue on Github Issues.
 * Acknowledgments
   - [[https://github.com/danielmartin][Daniel Martin]] - LLDB integration.
   - [[https://github.com/kiennq][Kien Nguyen]] - NodeJS debugger, Edge debuggers, automatic extension installation.
   - [[https://github.com/Ladicle][Aya Igarashi]] - Go debugger integration.
-
-* What's next
-  - Watches

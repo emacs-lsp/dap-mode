@@ -77,7 +77,8 @@
 ** TODO Build before runnning
 * DONE Python
   CLOSED: [2018-08-08 Wed 19:19]
-* TODO Rust language
+* DONE Rust language
+  CLOSED: [2020-01-09 Thu 09:39]
 * General
 ** DONE Error handlers
    CLOSED: [2018-06-23 Sat 21:54]
@@ -86,7 +87,8 @@
 ** TODO Initialized message
 *** TODO - prohibit operations that are not permitted.
 ** TODO Support for STD OUT dap servers
-* TODO Watches
+* DONE Watches
+  CLOSED: [2020-01-09 Thu 09:39]
 ** TODO full implementation
 * DONE Locals
   CLOSED: [2018-07-18 Wed 21:54]
@@ -95,7 +97,8 @@
 * TODO Debug console
 * DONE Set breakpoints
   CLOSED: [2018-07-29 Sun 23:20]
-* Integration with other DAP servers
+* DONE Integration with other DAP servers
+  CLOSED: [2020-01-09 Thu 09:39]
 ** TODO Python
 ** TODO Rust
 * TODO Testing

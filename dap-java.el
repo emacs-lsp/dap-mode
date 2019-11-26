@@ -77,8 +77,8 @@ If the port is taken, DAP will try the next port."
   "Get class FDQN."
   (-if-let* ((symbols (lsp--get-document-symbols))
              (package-name (-some->> symbols
-                                     (-first (-lambda ((&hash "kind")) (= kind 4)))
-                                     (gethash "name")))
+                             (-first (-lambda ((&hash "kind")) (= kind 4)))
+                             (gethash "name")))
              (class-name (->> symbols
                               (--first (= (gethash "kind" it) 5))
                               (gethash "name"))))
@@ -89,8 +89,8 @@ If the port is taken, DAP will try the next port."
   "Get method at point."
   (-let* ((symbols (lsp--get-document-symbols))
           (package-name (-some->> symbols
-                                  (-first (-lambda ((&hash "kind")) (= kind 4)))
-                                  (gethash "name"))))
+                          (-first (-lambda ((&hash "kind")) (= kind 4)))
+                          (gethash "name"))))
     (or (->> symbols
              (-keep (-lambda ((&hash "children" "kind" "name" class-name))
                       (and (= kind 5)
@@ -106,7 +106,8 @@ If the port is taken, DAP will try the next port."
 
 (defun dap-java--select-main-class ()
   "Select main class from the current workspace."
-  (let* ((main-classes (lsp-send-execute-command "vscode.java.resolveMainClass"))
+  (let* ((main-classes (with-lsp-workspace (lsp-find-workspace 'jdtls)
+                         (lsp-send-execute-command "vscode.java.resolveMainClass")))
          (main-classes-count (length main-classes))
          current-class)
     (cond
@@ -144,8 +145,10 @@ Please check whether the server is configured propertly"))
     (dap--put-if-absent conf
                         :classPaths
                         (or (cl-second
-                             (lsp-send-execute-command "vscode.java.resolveClasspath"
-                                                       (vector main-class project-name)))
+                             (with-lsp-workspace (lsp-find-workspace 'jdtls)
+                               (lsp-send-execute-command
+                                "vscode.java.resolveClasspath"
+                                (vector main-class project-name))))
                             (error "Unable to resolve classpath")))
     (dap--put-if-absent conf :name (format "%s (%s)"
                                            (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
@@ -198,7 +201,8 @@ initiate `compile' and attach to the process."
                ("attach" (dap-java--populate-attach-args conf))
                ("compile_attach" (dap-java--populate-compile-attach-args conf))
                (_ (dap-java--populate-launch-args conf))))
-  (plist-put conf :debugServer (lsp-send-execute-command "vscode.java.startDebugSession"))
+  (plist-put conf :debugServer (with-lsp-workspace (lsp-find-workspace 'jdtls)
+                                 (lsp-send-execute-command "vscode.java.startDebugSession")))
   (plist-put conf :__sessionId (number-to-string (float-time)))
   conf)
 
@@ -216,8 +220,9 @@ test."
                       (dap-java-test-method-at-point)
                     (dap-java-test-class)))
           (test-class-name (cl-first (s-split "#" to-run)))
-          (class-path (->> (vector test-class-name nil)
-                           (lsp-send-execute-command "vscode.java.resolveClasspath")
+          (class-path (->> (with-lsp-workspace (lsp-find-workspace 'jdtls)
+                             (lsp-send-execute-command "vscode.java.resolveClasspath"
+                                                       (vector test-class-name nil)))
                            cl-second
                            (s-join dap-java--classpath-separator))))
     (list :program-to-start (s-join " "
@@ -227,6 +232,7 @@ test."
                                               (if run-method? to-run test-class-name)
                                               dap-java-test-additional-args))
           :environment-variables `(("JUNIT_CLASS_PATH" . ,class-path))
+          :name to-run
           :cwd (lsp-java--get-root))))
 
 (defun dap-java-run-test-method ()
