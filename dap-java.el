@@ -47,7 +47,7 @@
 (defcustom  dap-java-compile-port 33000
   "The debug port which will be used for compile/attach configuration.
 If the port is taken, DAP will try the next port."
-  :group 'dap-python
+  :group 'dap-java
   :type 'number)
 
 (defcustom dap-java-test-runner
