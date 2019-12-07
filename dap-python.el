@@ -76,11 +76,11 @@ as the pyenv version then also return nil. This works around https://github.com/
 
     (dap--put-if-absent conf :program-to-start
                         (format "%s -m ptvsd --wait --host %s --port %s %s %s %s"
-                                python-executable
+                                (shell-quote-argument python-executable)
                                 host
                                 debug-port
-                                (if module (concat "-m " module) "")
-                                program
+                                (if module (concat "-m " (shell-quote-argument module)) "")
+                                (shell-quote-argument program)
                                 python-args))
     (plist-put conf :program program)
     (plist-put conf :debugServer debug-port)
