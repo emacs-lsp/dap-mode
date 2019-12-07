@@ -17,7 +17,7 @@ before_install:
 install:
   - cask install
 script:
-  - cask exec ecukes --timeout 60 features/Breakpoints.feature features/JUnit.feature
+  - cask exec ert-runner
 notifications:
   webhooks:
     urls:
