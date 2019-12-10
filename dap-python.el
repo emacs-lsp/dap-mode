@@ -41,6 +41,13 @@ If the port is taken, DAP will try the next port."
   :risky t
   :type 'file)
 
+(defcustom dap-python-terminal nil
+  "The terminal to use when running the debug process.
+For example you may set it to `xterm -e' which will pop xterm console when you are debugging."
+  :group 'dap-python
+  :risky t
+  :type 'string)
+
 (defun dap-python--pyenv-executable-find (command)
   "Find executable taking pyenv shims into account.
 If the executable is a system executable and not in the same path
@@ -75,7 +82,8 @@ as the pyenv version then also return nil. This works around https://github.com/
          (module (plist-get conf :module)))
 
     (dap--put-if-absent conf :program-to-start
-                        (format "%s -m ptvsd --wait --host %s --port %s %s %s %s"
+                        (format "%s%s -m ptvsd --wait --host %s --port %s %s %s %s"
+                                (or dap-python-terminal "")
                                 (shell-quote-argument python-executable)
                                 host
                                 debug-port
