@@ -1078,7 +1078,9 @@ before starting the debug process."
     (when program-to-start
       (compilation-start program-to-start 'dap-server-log-mode
                          (lambda (_) (concat "*" session-name " server log*"))))
-    (when wait-for-port (dap--wait-for-port host port))
+    (when wait-for-port (dap--wait-for-port host port
+                                            dap-default-connect-retry-count
+                                            dap-default-connect-retry-interval))
 
     (unless skip-debug-session
       (let ((debug-session (dap--create-session launch-args)))
@@ -1410,6 +1412,12 @@ If the current session it will be terminated."
          (gethash buffer-file-name)
          (dap--set-breakpoints-in-file buffer-file-name))
     (add-hook 'kill-buffer-hook 'dap--buffer-killed nil t)))
+
+(defvar dap-default-connect-retry-count 1000
+  "Retry count for dap connect.")
+
+(defvar dap-default-connect-retry-interval 0.02
+  "Retry interval for dap connect.")
 
 (defun dap-mode-mouse-set-clear-breakpoint (event)
   "Set or remove a breakpoint at the position represented by an
