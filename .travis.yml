@@ -16,8 +16,6 @@ before_install:
   - make -f emacs-travis.mk install_cask
 install:
   - cask install
-script:
-  - cask exec ert-runner
 notifications:
   webhooks:
     urls:
