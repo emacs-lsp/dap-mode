@@ -1283,8 +1283,9 @@ after selecting configuration template."
   (dap-start-debugging (or (-some-> (plist-get debug-args :type)
                                     (gethash dap--debug-providers)
                                     (funcall debug-args))
-                           (error "There is no debug provider for language %s"
-                                  (or (plist-get debug-args :type) "'Not specified'")))))
+                           (user-error "Have you loaded the `%s' specific dap package?"
+                                  (or (plist-get debug-args :type)
+                                      (user-error "%s does not specify :type" debug-args))))))
 
 (defun dap-debug-edit-template (&optional parg debug-args)
   "Edit registered template DEBUG-ARGS.
