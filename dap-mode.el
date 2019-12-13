@@ -669,7 +669,8 @@ thread exection but the server will log message."
         ;; stack trace.
         (if (and path (file-exists-p path))
             (progn
-              (switch-to-buffer (find-file-noselect path))
+              (select-window (get-mru-window (selected-frame) nil))
+              (find-file path)
               (goto-char (point-min))
               (forward-line (1- line))
               (forward-char column))
