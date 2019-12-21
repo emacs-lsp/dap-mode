@@ -137,8 +137,8 @@
     (error)))
 
 (defun dapui--cleanup-sources-hook ()
-  (remove-hook 'dap-terminated-hook 'dapui--sources-refresh)
-  (remove-hook 'dap-session-changed-hook 'dapui--sources-refresh))
+  (remove-hook 'dap-terminated-hook 'dapui-sources-refresh)
+  (remove-hook 'dap-session-changed-hook 'dapui-sources-refresh))
 
 ;;;###autoload
 (defun dapui-loaded-sources ()
@@ -151,9 +151,9 @@
     (setq-local treemacs-default-visit-action 'treemacs-RET-action)
     (treemacs-DAP-LOADED-SOURCES-extension)
 
-    (add-hook 'dap-terminated-hook 'dapui--sources-refresh)
-    (add-hook 'dap-session-changed-hook 'dapui--sources-refresh)
-    (add-hook 'dap-loaded-sources-changed-hook 'dapui--sources-refresh)
+    (add-hook 'dap-terminated-hook 'dapui-sources-refresh)
+    (add-hook 'dap-session-changed-hook 'dapui-sources-refresh)
+    (add-hook 'dap-loaded-sources-changed-hook 'dapui-sources-refresh)
     (add-hook 'kill-buffer-hook 'dapui--cleanup-sources-hook nil t)))
 
 (provide 'dapui)
