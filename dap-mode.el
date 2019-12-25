@@ -1103,7 +1103,7 @@ before starting the debug process."
         (dap--set-cur-session debug-session)
         (push (cons session-name launch-args) dap--debug-configuration)
         (run-hook-with-args 'dap-session-created-hook debug-session))
-      (unless (and program-to-start dap-auto-show-output)
+      (when (and program-to-start dap-auto-show-output)
         (save-excursion (dap-go-to-output-buffer))))))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
