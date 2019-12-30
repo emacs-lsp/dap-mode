@@ -138,6 +138,7 @@ Please check whether the server is configured propertly"))
     (dap--put-if-absent conf :cwd (lsp-java--get-root))
     (dap--put-if-absent conf :stopOnEntry :json-false)
     (dap--put-if-absent conf :host "localhost")
+    (dap--put-if-absent conf :console "internalConsole")
     (dap--put-if-absent conf :request "launch")
     (dap--put-if-absent conf :modulePaths (vector))
     (dap--put-if-absent conf
