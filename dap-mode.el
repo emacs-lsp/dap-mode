@@ -1046,7 +1046,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
       (setq counter (1+ counter)))
     session-name))
 
-(define-derived-mode dap-server-log-mode fundamental-mode "Debug Adapter"
+(define-derived-mode dap-server-log-mode compilation-mode "Debug Adapter"
   (read-only-mode 1)
   (setq-local window-point-insertion-type t)
   ;; we need to move window point to the end of the buffer once because
