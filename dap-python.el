@@ -73,7 +73,7 @@ as the pyenv version then also return nil. This works around https://github.com/
 (defun dap-python--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
   (let* ((host "localhost")
-         (debug-port (dap--find-available-port host dap-python-default-debug-port))
+         (debug-port (dap--find-available-port))
          (python-executable (dap-python--pyenv-executable-find dap-python-executable))
          (python-args (or (plist-get conf :args) ""))
          (program (or (plist-get conf :target-module)
@@ -81,15 +81,15 @@ as the pyenv version then also return nil. This works around https://github.com/
                       (buffer-file-name)))
          (module (plist-get conf :module)))
 
-    (dap--put-if-absent conf :program-to-start
-                        (format "%s%s -m ptvsd --wait --host %s --port %s %s %s %s"
-                                (or dap-python-terminal "")
-                                (shell-quote-argument python-executable)
-                                host
-                                debug-port
-                                (if module (concat "-m " (shell-quote-argument module)) "")
-                                (shell-quote-argument program)
-                                python-args))
+    (plist-put conf :program-to-start
+               (format "%s%s -m ptvsd --wait --host %s --port %s %s %s %s"
+                       (or dap-python-terminal "")
+                       (shell-quote-argument python-executable)
+                       host
+                       debug-port
+                       (if module (concat "-m " (shell-quote-argument module)) "")
+                       (shell-quote-argument program)
+                       python-args))
     (plist-put conf :program program)
     (plist-put conf :debugServer debug-port)
     (plist-put conf :port debug-port)

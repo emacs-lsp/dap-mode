@@ -204,28 +204,6 @@ The hook will be called with the session file and the new set of breakpoint loca
   "Get sessions for WORKSPACE."
   (lsp-workspace-get-metadata "debug-sessions"))
 
-(defun dap--wait-for-port (host port &optional retry-count sleep-interval)
-  "Wait for PORT to be open on HOST.
-
-RETRY-COUNT is the number of the retries.
-SLEEP-INTERVAL is the sleep interval between each retry."
-  (let ((success nil)
-        (retries 0))
-    (while (and (not success) (< retries (or retry-count 100)))
-      (condition-case err
-          (progn
-            (delete-process (open-network-stream "*connection-test*" nil host port :type 'plain))
-            (setq success t))
-        (file-error
-         (let ((inhibit-message t))
-           (message "Failed to connect to %s:%s with error message %s"
-                    host
-                    port
-                    (error-message-string err))
-           (sit-for (or sleep-interval 0.02))
-           (setq retries (1+ retries))))))
-    success))
-
 (defun dap--cur-session ()
   "Get currently active `dap--debug-session'."
   (lsp-workspace-get-metadata "default-session"))
@@ -902,9 +880,27 @@ ADAPTER-ID the id of the adapter."
      ((and (ht? result) (not (gethash "success" result))) (error (gethash "message" result)))
      (t (gethash "body" result)))))
 
+(defun dap--open-network-stream (session-name host port)
+  (let ((retries 0)
+        result)
+    (while (and (not result)
+                (< retries dap-connect-retry-count))
+      (condition-case err
+          (setq result (open-network-stream session-name nil
+                                            host port :type 'plain))
+        (file-error
+         (let ((inhibit-message t))
+           (message "Failed to connect to %s:%s with error message %s"
+                    host
+                    port
+                    (error-message-string err))
+           (sit-for dap-connect-retry-interval)
+           (setq retries (1+ retries))))))
+    (or result (error "Failed to connect to port %s" port))))
+
 (defun dap--create-session (launch-args)
   "Create debug session from LAUNCH-ARGS."
-  (-let* (((&plist :host :dap-server-path :name session-name :debugServer port ) launch-args)
+  (-let* (((&plist :host :dap-server-path :name session-name :debugServer port) launch-args)
           (proc (if dap-server-path
                     (make-process
                      :name session-name
@@ -913,7 +909,7 @@ ADAPTER-ID the id of the adapter."
                      :command dap-server-path
                      :stderr (concat "*" session-name " stderr*")
                      :noquery t)
-                  (open-network-stream session-name nil host port :type 'plain)))
+                  (dap--open-network-stream session-name host port)))
           (debug-session (make-dap--debug-session
                           :launch-args launch-args
                           :proc proc
@@ -1095,9 +1091,6 @@ before starting the debug process."
     (when program-to-start
       (compilation-start program-to-start 'dap-server-log-mode
                          (lambda (_) (concat "*" session-name " server log*"))))
-    (when wait-for-port (dap--wait-for-port host port
-                                            dap-default-connect-retry-count
-                                            dap-default-connect-retry-interval))
 
     (unless skip-debug-session
       (let ((debug-session (dap--create-session launch-args)))
@@ -1263,17 +1256,14 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
    'dap-debug-template-configurations
    (cons configuration-name configuration-settings)))
 
-(defun dap--find-available-port (host starting-port)
+(defun dap--find-available-port ()
   "Find available port on HOST starting from STARTING-PORT."
-  (let ((success nil)
-        (port starting-port))
-    (while (and (not success))
-      (condition-case _err
-          (progn
-            (delete-process (open-network-stream "*connection-test*" nil host port :type 'plain))
-            (setq port (1+ port)))
-        (file-error (setq success t))))
-    port))
+  (let ((process (make-network-process :name " *dap test-onnection*"
+                                       :family 'ipv4
+                                       :service 0
+                                       :server 't)))
+    (prog1 (process-contact process :service)
+      (delete-process process))))
 
 (defun dap--select-template (&optional origin)
   "Select the configuration to launch.
@@ -1436,10 +1426,10 @@ If the current session it will be terminated."
          (dap--set-breakpoints-in-file buffer-file-name))
     (add-hook 'kill-buffer-hook 'dap--buffer-killed nil t)))
 
-(defvar dap-default-connect-retry-count 1000
+(defvar dap-connect-retry-count 1000
   "Retry count for dap connect.")
 
-(defvar dap-default-connect-retry-interval 0.02
+(defvar dap-connect-retry-interval 0.02
   "Retry interval for dap connect.")
 
 (defun dap-mode-mouse-set-clear-breakpoint (event)
