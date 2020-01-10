@@ -528,6 +528,7 @@ DEBUG-SESSION is the debug session triggering the event."
     (setq posframe-mouse-banish nil)
     (dap-ui--update-controls))
    (t
+    (require 'posframe)
     (remove-hook 'dap-session-changed-hook 'dap-ui--update-controls)
     (remove-hook 'dap-terminated-hook 'dap-ui--update-controls )
     (remove-hook 'dap-session-changed-hook 'dap-ui--update-controls)
