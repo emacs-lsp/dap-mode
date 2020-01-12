@@ -75,6 +75,8 @@
   (-> conf
       (dap--put-if-absent :dap-server-path dap-go-debug-program)
       (dap--put-if-absent :dlvToolPath dap-go-delve-path)
+      (dap--put-if-absent :packagePathToGoModPathMap
+                          (ht<-alist `((,(f-dirname (plist-get conf :program))  . ""))))
       (dap--put-if-absent :type "go")
       (dap--put-if-absent :name "Go Debug")))
 
