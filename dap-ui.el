@@ -306,6 +306,7 @@ DEBUG-SESSION is the debug session triggering the event."
     map)
   "Keymap for DAP mode.")
 
+;;;###autoload
 (define-minor-mode dap-ui-mode
   "Displaying DAP visuals."
   :init-value nil
