@@ -134,13 +134,15 @@
 
 (defconst dap-ui--locals-buffer "*dap-ui-locals*")
 (defconst dap-ui--sessions-buffer "*dap-ui-sessions*")
-(defconst dap-ui--expressions-buffer "*dap-ui-expressions*")
 (defconst dap-ui--debug-window-buffer "*debug-window*")
+(defconst dap-ui--expressions-buffer "*dap-ui-expressions*")
+(defconst dap-ui--breakpoints-buffer "*dap-ui-breakpoints*")
 
 (defvar dap-ui-buffer-configurations
   `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.20)))
     (,dap-ui--expressions-buffer . ((side . right) (slot . 2) (window-width . 0.20)))
     (,dap-ui--sessions-buffer . ((side . right) (slot . 3) (window-width . 0.20)))
+    (,dap-ui--breakpoints-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
     (,dap-ui--debug-window-buffer . ((side . bottom) (slot . 3) (window-width . 0.20)))))
 
 (defvar-local dap-ui--locals-request-id 0
@@ -300,6 +302,7 @@ DEBUG-SESSION is the debug session triggering the event."
         ["Expressions" dap-ui-expressions]
         ["Sources" dapui-loaded-sources]
         ["Output" dap-go-to-output-buffer]
+        ["Breakpoints" dap-ui-breakpoints]
         "---"
         ["Toggle Controls" dap-ui-controls-mode]
         ["Toggle Mouse Hover" dap-tooltip-mode]))
@@ -324,8 +327,6 @@ DEBUG-SESSION is the debug session triggering the event."
     (remove-hook 'dap-continue-hook 'dap-ui--clear-marker-overlay)
     (remove-hook 'dap-stack-frame-changed-hook 'dap-ui--stack-frame-changed)
     (remove-hook 'lsp-after-open-hook 'dap-ui--after-open))))
-
-
 
 (defun dap-ui--show-buffer (buf)
   "Show BUF according to defined rules."
@@ -446,7 +447,8 @@ DEBUG-SESSION is the debug session triggering the event."
    (add-hook 'dap-breakpoints-changed-hook 'dap-ui-refresh-breakpoints-list)
    (add-hook 'kill-buffer-hook 'dap-ui--brekapoints-list-cleanup nil t)))
 
-(defun dap-ui-breakpoints ()
+;;;###autoload
+(defun dap-ui-breakpoints-list ()
   "List breakpoints."
   (interactive)
   (let ((workspaces lsp--buffer-workspaces))
@@ -529,7 +531,6 @@ DEBUG-SESSION is the debug session triggering the event."
     (setq posframe-mouse-banish nil)
     (dap-ui--update-controls))
    (t
-
     (remove-hook 'dap-session-changed-hook 'dap-ui--update-controls)
     (remove-hook 'dap-terminated-hook 'dap-ui--update-controls )
     (remove-hook 'dap-session-changed-hook 'dap-ui--update-controls)
@@ -541,9 +542,6 @@ DEBUG-SESSION is the debug session triggering the event."
 
 
 ;; sessions
-
-(defun dash-expand:&dap-session (key source)
-  `(,(intern-soft (format "dap--debug-session-%s" (eval key) )) ,source))
 
 (defmacro dap-ui-define-action (name keys &rest body)
   (declare (doc-string 3) (indent 2))
@@ -729,7 +727,8 @@ DEBUG-SESSION is the debug session triggering the event."
    (lsp-treemacs-render
     (dap-ui--sessions-tree)
     " Debug Sessions " nil
-    dap-ui--sessions-buffer))
+    dap-ui--sessions-buffer
+    '(["Delete All Sessions" dap-delete-all-sessions])))
   (dap-ui-sessions-mode)
   (add-hook 'dap-terminated-hook #'dap-ui-sessions--refresh)
   (add-hook 'dap-session-changed-hook #'dap-ui-sessions--refresh)
@@ -935,18 +934,172 @@ DEBUG-SESSION is the debug session triggering the event."
   (interactive)
   (dap-ui--show-buffer (get-buffer-create dap-ui--expressions-buffer))
   (dap-ui-expressions-refresh)
-  (with-current-buffer dap-ui--expressions-buffer
-    (add-hook 'dap-terminated-hook #'dap-ui-expressions--refresh-schedule)
-    (add-hook 'dap-session-changed-hook #'dap-ui-expressions--refresh-schedule)
-    (add-hook 'dap-continue-hook #'dap-ui-expressions--refresh-schedule)
-    (add-hook 'dap-stack-frame-changed-hook #'dap-ui-expressions--refresh-schedule)
-    (add-hook 'kill-buffer-hook #'dap-ui-expressions--cleanup-hooks nil t)))
+
+  (add-hook 'dap-terminated-hook #'dap-ui-expressions--refresh-schedule)
+  (add-hook 'dap-session-changed-hook #'dap-ui-expressions--refresh-schedule)
+  (add-hook 'dap-continue-hook #'dap-ui-expressions--refresh-schedule)
+  (add-hook 'dap-stack-frame-changed-hook #'dap-ui-expressions--refresh-schedule)
+  (add-hook 'kill-buffer-hook #'dap-ui-expressions--cleanup-hooks nil t))
 
 (make-obsolete 'dap-ui-inspect 'dap-ui-expressions-add "dap-mode 0.2")
 (make-obsolete 'dap-ui-inspect-region 'dap-ui-expressions-add "dap-mode 0.2")
 (make-obsolete 'dap-ui-inspect-thing-at-point 'dap-ui-expressions-add "dap-mode 0.2")
 
 
+
+;; Breakpoints - new
+(defvar dap-exception-breakpoints nil)
+
+(dap-ui-define-action dap-ui-breakpoints-toggle (:filter :session :default)
+  (let ((type (plist-get (dap--debug-session-launch-args session) :type)))
+    (setf (alist-get
+           filter
+           (alist-get type dap-exception-breakpoints nil nil #'string=)
+           nil nil #'string=)
+          (not (dap--breakpoint-filter-enabled
+                filter
+                type
+                default))))
+  (dap--set-exception-breakpoints session #'dap-ui-breakpoints--refresh))
+
+(dap-ui-define-action dap-ui-breakpoints-goto-breakpoint (:file-name :point)
+  (select-window (get-mru-window (selected-frame) nil))
+  (find-file file-name)
+  (goto-char point))
+
+(dap-ui-define-action dap-ui-breakpoint-delete (:file-name :breakpoint)
+  (dap-breakpoint-delete breakpoint file-name))
+
+(dap-ui-define-action dap-ui-breakpoint-condition (:file-name :breakpoint)
+  (dap-breakpoint-condition file-name breakpoint))
+
+(dap-ui-define-action dap-ui-breakpoint-hit-condition (:file-name :breakpoint)
+  (dap-breakpoint-hit-condition file-name breakpoint))
+
+(dap-ui-define-action dap-ui-breakpoint-log-message (:file-name :breakpoint)
+  (dap-breakpoint-log-message file-name breakpoint))
+
+(defun dap-ui--breakpoints-data ()
+  (-let (((debug-session &as &dap-session 'launch-args 'initialize-result 'breakpoints all-session-breakpoints)
+          (or (dap--cur-session)
+              (make-dap--debug-session)))
+         (lsp-file-truename-cache (ht)))
+    (lsp-with-cached-filetrue-name
+     (append
+      (when (dap--session-running debug-session)
+        (-some->> initialize-result
+          (gethash "body")
+          (gethash "exceptionBreakpointFilters")
+          (-map (-lambda ((&hash "label" "filter" "default"))
+                  (list :label (propertize
+                                (format "%s %s"
+                                        (if (dap--breakpoint-filter-enabled
+                                             filter
+                                             (plist-get launch-args :type)
+                                             default)
+                                            (propertize "☑" 'face 'success)
+                                          (propertize "☐" 'face 'shadow))
+                                        label)
+                                'help-echo "Exception breakpoint")
+                        :key filter
+                        :filter filter
+                        :icon 'icon
+                        :session debug-session
+                        :default default
+                        :ret-action #'dap-ui-breakpoints-toggle)))))
+      (->>
+       (dap--get-breakpoints)
+       (ht-map
+        (lambda (file-name breakpoints)
+          (let ((session-breakpoints (when all-session-breakpoints
+                                       (gethash file-name all-session-breakpoints)))
+                (workspace-root (lsp-workspace-root file-name)))
+            (with-temp-buffer
+              (insert-file-contents file-name)
+              (-map
+               (-lambda (((breakpoint &as &plist :point
+                                      :condition :hit-condition :log-message) . remote-bp))
+                 (let ((label (propertize
+                               (format
+                                "%s:%s %s%s"
+                                (f-filename file-name)
+                                (line-number-at-pos point)
+                                (if workspace-root
+                                    (concat
+                                     (propertize
+                                      (format "%s " (f-filename workspace-root))
+                                      'face 'lsp-lens-face)
+                                     "• ")
+                                  "")
+                                (propertize (f-dirname (f-relative file-name workspace-root))
+                                            'face 'lsp-lens-face))
+                               'help-echo (if (or condition hit-condition log-message)
+                                              (->> (list (when condition (concat "Condition: " condition))
+                                                         (when hit-condition (concat "Hit condition: " hit-condition))
+                                                         (when log-message (concat "Log message: " log-message)))
+                                                   (-filter #'identity)
+                                                   (s-join "\n"))
+                                            "Breakpoint"))))
+                   (list :key label
+                         :icon 'breakpoint
+                         :icon-literal (propertize
+                                        "⬤ "
+                                        'face (if (and remote-bp (gethash "verified" remote-bp))
+                                                  'success
+                                                'shadow))
+                         :label label
+                         :actions '(["Condition" dap-ui-breakpoint-condition]
+                                    ["Hit Condition" dap-ui-breakpoint-hit-condition]
+                                    ["Log Message" dap-ui-breakpoint-log-message]
+                                    "--"
+                                    ["Remove" dap-ui-breakpoint-delete])
+                         :file-name file-name
+                         :point point
+                         :ret-action #'dap-ui-breakpoints-goto-breakpoint
+                         :breakpoint breakpoint)))
+               (-zip-fill nil breakpoints session-breakpoints))))))
+       (-flatten-n 1))))))
+
+(defvar dap-ui-breakpoints-mode-map
+  (-doto (make-sparse-keymap)
+    (define-key (kbd "D") #'dap-ui-breakpoint-delete)
+    (define-key (kbd "C C") #'dap-ui-breakpoint-condition)
+    (define-key (kbd "C H") #'dap-ui-breakpoint-hit-condition)
+    (define-key (kbd "C L") #'dap-ui-breakpoint-log-message)))
+
+(define-minor-mode dap-ui-breakpoints-mode
+  "UI Session list minor mode."
+  :init-value nil
+  :group dap-ui
+  :keymap dap-ui-breakpoints-mode-map)
+
+(defun dap-ui-breakpoints--cleanup-hooks ()
+  (remove-hook 'dap-terminated-hook #'dap-ui-breakpoints--refresh)
+  (remove-hook 'dap-session-changed-hook #'dap-ui-breakpoints--refresh)
+  (remove-hook 'dap-continue-hook #'dap-ui-breakpoints--refresh)
+  (remove-hook 'dap-stack-frame-changed-hook #'dap-ui-breakpoints--refresh)
+  (remove-hook 'dap-breakpoints-changed-hook #'dap-ui-breakpoints--refresh))
+
+(defun dap-ui-breakpoints--refresh (&rest _args)
+  (save-excursion
+    (with-current-buffer (get-buffer-create dap-ui--breakpoints-buffer)
+      (lsp-treemacs-render
+       (dap-ui--breakpoints-data)
+       " Breakpoints "
+       nil
+       dap-ui--breakpoints-buffer
+       '(["Refresh" dap-ui-breakpoints])))))
+
+(defun dap-ui-breakpoints ()
+  (interactive)
+  (dap-ui--show-buffer (dap-ui-breakpoints--refresh))
+  (dap-ui-breakpoints-mode t)
+  (add-hook 'dap-terminated-hook 'dap-ui-breakpoints--refresh)
+  (add-hook 'dap-session-changed-hook #'dap-ui-breakpoints--refresh)
+  (add-hook 'dap-continue-hook #'dap-ui-breakpoints--refresh)
+  (add-hook 'dap-stack-frame-changed-hook #'dap-ui-breakpoints--refresh)
+  (add-hook 'dap-breakpoints-changed-hook #'dap-ui-breakpoints--refresh)
+  (add-hook 'kill-buffer-hook 'dap-ui-breakpoints--cleanup-hooks nil t))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

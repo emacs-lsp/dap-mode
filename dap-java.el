@@ -135,27 +135,26 @@ Please check whether the server is configured propertly"))
       (plist-put conf :projectName project-name)))
 
   (-let [(&plist :mainClass main-class :projectName project-name) conf]
-    (dap--put-if-absent conf :args "")
-    (dap--put-if-absent conf :cwd (lsp-java--get-root))
-    (dap--put-if-absent conf :stopOnEntry :json-false)
-    (dap--put-if-absent conf :host "localhost")
-    (dap--put-if-absent conf :console "internalConsole")
-    (dap--put-if-absent conf :request "launch")
-    (dap--put-if-absent conf :modulePaths (vector))
-    (dap--put-if-absent conf
-                        :classPaths
-                        (or (cl-second
-                             (with-lsp-workspace (lsp-find-workspace 'jdtls)
-                               (lsp-send-execute-command
-                                "vscode.java.resolveClasspath"
-                                (vector main-class project-name))))
-                            (error "Unable to resolve classpath")))
-    (dap--put-if-absent conf :name (format "%s (%s)"
-                                           (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
-                                               (match-string 1 main-class)
-                                             main-class)
-                                           project-name))
-    conf))
+    (-> conf
+        (dap--put-if-absent :args "")
+        (dap--put-if-absent :cwd (lsp-java--get-root))
+        (dap--put-if-absent :stopOnEntry :json-false)
+        (dap--put-if-absent :host "localhost")
+        (dap--put-if-absent :console "internalConsole")
+        (dap--put-if-absent :request "launch")
+        (dap--put-if-absent :modulePaths (vector))
+        (dap--put-if-absent :classPaths
+                            (or (cl-second
+                                 (with-lsp-workspace (lsp-find-workspace 'jdtls)
+                                   (lsp-send-execute-command
+                                    "vscode.java.resolveClasspath"
+                                    (vector main-class project-name))))
+                                (error "Unable to resolve classpath")))
+        (dap--put-if-absent :name (format "%s (%s)"
+                                          (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
+                                              (match-string 1 main-class)
+                                            main-class)
+                                          project-name)))))
 
 (defun dap-java--populate-attach-args (conf)
   "Populate attach arguments.
@@ -286,7 +285,7 @@ attaching to the test."
                     port)
             nil))))
 
-(dap-register-debug-provider "java" 'dap-java--populate-default-args)
+(dap-register-debug-provider "java" #'dap-java--populate-default-args)
 (dap-register-debug-template "Java Run Configuration"
                              (list :type "java"
                                    :request "launch"
@@ -297,7 +296,6 @@ attaching to the test."
                                    :request "launch"
                                    :modulePaths (vector)
                                    :classPaths nil
-                                   :name "Run Configuration"
                                    :projectName nil
                                    :mainClass nil))
 (dap-register-debug-template "Java Run Configuration (compile/attach)"
