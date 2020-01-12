@@ -72,11 +72,12 @@
                                                                    nil t))))
                 )))
 
-  (-> conf
-      (dap--put-if-absent :dap-server-path dap-go-debug-program)
-      (dap--put-if-absent :dlvToolPath dap-go-delve-path)
-      (dap--put-if-absent :type "go")
-      (dap--put-if-absent :name "Go Debug")))
+  (--> conf
+       (dap--put-if-absent it :dap-server-path dap-go-debug-program)
+       (dap--put-if-absent it :dlvToolPath dap-go-delve-path)
+       (dap--put-if-absent it :packagePathToGoModPathMap (ht<-alist `((,(f-dirname (plist-get it :program))  . ""))))
+       (dap--put-if-absent it :type "go")
+       (dap--put-if-absent it :name "Go Debug")))
 
 (defun dap-go--populate-auto-args (conf)
   "Populate auto arguments."
