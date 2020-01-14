@@ -175,7 +175,7 @@ Populate the arguments like normal 'Launch' request but then
 initiate `compile' and attach to the process."
   (dap-java--populate-launch-args conf)
   (-let* (((&plist :mainClass :projectName :classPaths classpaths) conf)
-          (port   (dap--find-available-port "localhost" dap-java-compile-port))
+          (port   (dap--find-available-port))
           (program-to-start (format "%s -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=%s,quiet=y -cp %s %s"
                                     dap-java-java-command
                                     port
@@ -248,7 +248,7 @@ If there is no method under cursor it will fallback to test class."
 If there is no method under cursor it will fallback to test class.
 PORT is the port that is going to be used for starting and
 attaching to the test."
-  (interactive (list (dap--find-available-port "localhost" dap-java-compile-port)))
+  (interactive (list (dap--find-available-port)))
   (-> (list :type "java"
             :request "attach"
             :hostName "localhost"
@@ -273,7 +273,7 @@ attaching to the test."
 
 PORT is the port that is going to be used for starting and
 attaching to the test."
-  (interactive (list (dap--find-available-port "localhost" dap-java-compile-port)))
+  (interactive (list (dap--find-available-port)))
   (dap-debug
    (append (list :type "java"
                  :request "attach"
