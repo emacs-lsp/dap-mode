@@ -1140,6 +1140,8 @@ before starting the debug process."
     (when program-to-start
       (compilation-start program-to-start 'dap-server-log-mode
                          (lambda (_) (concat "*" session-name " server log*"))))
+    (when wait-for-port
+      (dap--wait-for-port host port dap-connect-retry-count dap-connect-retry-interval))
 
     (unless skip-debug-session
       (let ((debug-session (dap--create-session launch-args)))
@@ -1312,6 +1314,28 @@ CONFIGURATION-SETTINGS - plist containing the preset settings for the configurat
                                        :server 't)))
     (prog1 (process-contact process :service)
       (delete-process process))))
+
+(defun dap--wait-for-port (host port &optional retry-count sleep-interval)
+  "Wait for PORT to be open on HOST.
+
+RETRY-COUNT is the number of the retries.
+SLEEP-INTERVAL is the sleep interval between each retry."
+  (let ((success nil)
+        (retries 0))
+    (while (and (not success) (< retries (or retry-count 100)))
+      (condition-case err
+          (progn
+            (delete-process (open-network-stream "*connection-test*" nil host port :type 'plain))
+            (setq success t))
+        (file-error
+         (let ((inhibit-message t))
+           (message "Failed to connect to %s:%s with error message %s"
+                    host
+                    port
+                    (error-message-string err))
+           (sit-for (or sleep-interval 0.02))
+           (setq retries (1+ retries))))))
+    success))
 
 (defun dap--select-template (&optional origin)
   "Select the configuration to launch.

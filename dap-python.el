@@ -93,7 +93,6 @@ as the pyenv version then also return nil. This works around https://github.com/
     (plist-put conf :program program)
     (plist-put conf :debugServer debug-port)
     (plist-put conf :port debug-port)
-    (plist-put conf :wait-for-port t)
     (plist-put conf :hostName host)
     (plist-put conf :host host)
     conf))
