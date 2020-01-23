@@ -306,6 +306,10 @@ case, define a template:
     - install gopls
     - Install the delve command by following instructions on [[https://github.com/go-delve/delve/tree/master/Documentation/installation][delve - installation]].
     - install lsp-mode
+    - Put in your emacs configuration.
+      #+BEGIN_SRC elisp
+        (require 'dap-go)
+      #+END_SRC
     - set up hydra hook as instructed above
 **** Usage
     assume you have your code at ~/src/cool/cmd/app/app.go
