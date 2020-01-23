@@ -53,8 +53,9 @@
   "Populate CONF with the default arguments."
   (setq conf (pcase (plist-get conf :mode)
                ("auto" (dap-go--populate-auto-args conf))
-               ("debug" (dap--put-if-absent conf :program (lsp-find-session-folder (lsp-session) (buffer-file-name))))
-               ("exec" (dap--put-if-absent conf :program (read-file-name "Select executable to debug.")))
+               ("debug" (dap--put-if-absent conf :modpath (lsp-find-session-folder (lsp-session) (buffer-file-name)))
+                        (dap--put-if-absent conf :program (f-dirname (buffer-file-name))))
+               ("exec" (dap--put-if-absent conf :program (read-file-name "enter full path to executable without tilde:")))
                ("remote"
                 (dap--put-if-absent conf :program (lsp-find-session-folder (lsp-session) (buffer-file-name)))
                 (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "2345")))
@@ -74,9 +75,10 @@
 
   (-> conf
       (dap--put-if-absent :dap-server-path dap-go-debug-program)
+      (dap--put-if-absent :packagepath (f-dirname (buffer-file-name)))
       (dap--put-if-absent :dlvToolPath dap-go-delve-path)
       (dap--put-if-absent :packagePathToGoModPathMap
-                          (ht<-alist `((,(f-dirname (plist-get conf :program))  . ""))))
+                          (ht<-alist `((,(plist-get conf :packagepath)  . ,(plist-get conf :modpath)))))
       (dap--put-if-absent :type "go")
       (dap--put-if-absent :name "Go Debug")))
 
@@ -106,6 +108,16 @@
                                    :mode "debug"
                                    :program nil
                                    :buildFlags nil
+                                   :args nil
+                                   :env nil
+                                   :envFile nil))
+(dap-register-debug-template "Go Launch Unoptimized Debug Package Configuration"
+                             (list :type "go"
+                                   :request "launch"
+                                   :name "Launch Unoptimized Debug Package"
+                                   :mode "debug"
+                                   :program nil
+                                   :buildFlags "-gcflags '-N -l'"
                                    :args nil
                                    :env nil
                                    :envFile nil))
