@@ -409,14 +409,14 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
                    :point (point))
              file-breakpoints)))))
 
-(defun dap--get-breakpoint-at-point (file-breakpoints)
+(defun dap--get-breakpoint-at-point (&optional file-breakpoints)
   "Get breakpoint on the current point.
 FILE-BREAKPOINTS is the list of breakpoints in the current file."
   (let ((current-line (line-number-at-pos (point))))
     (-first
      (-lambda (bp)
        (= current-line (line-number-at-pos (dap-breakpoint-get-point bp))))
-     file-breakpoints)))
+     (or file-breakpoints (gethash buffer-file-name (dap--get-breakpoints))))))
 
 (defun dap-breakpoint-delete (breakpoint file-name)
   "Delete breakpoint on the current line."
