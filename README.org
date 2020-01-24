@@ -300,12 +300,28 @@ case, define a template:
 ** Go
 *** Installation
     - For easier of setting up vscode extension, you only need call ~dap-go-setup~ after requiring ~dap-go~.
-      - Or manually download and extract [[https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go][VSCode Go Extension]].
+      - Or manually download and extract [[https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go][VSCode Go Extension]].. it is actually zip file.
+      - check that you now have .emacs.d/.extension/vscode/ms-vscode.go/extension/out/src/debugAdapter/goDebug.js
+    - install latest stable nodejs
+    - install gopls
     - Install the delve command by following instructions on [[https://github.com/go-delve/delve/tree/master/Documentation/installation][delve - installation]].
+    - install lsp-mode
     - Put in your emacs configuration.
       #+BEGIN_SRC elisp
         (require 'dap-go)
       #+END_SRC
+    - set up hydra hook as instructed above
+**** Usage
+    assume you have your code at ~/src/cool/cmd/app/app.go
+    - open your main package file e.g ~/src/cool/cmd/app/app.go
+    - add folder to lsp session where your go.mod is or would be
+      - M-x lsp-workspace-folders-add ~/src/cool
+    - set break point
+    - M-x dap-debug
+    - select e.g "Go Launch Unoptimized Debug Package Configuration"
+**** Trouble shooting
+    - put (setq dap-print-io t) and check messages buffer
+    - e.g linter can return note at debug session response resulting debug session to fail
 ** Javascript
 *** Firefox
 **** Installation
