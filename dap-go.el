@@ -53,29 +53,20 @@
   "Populate CONF with the default arguments."
   (setq conf (pcase (plist-get conf :mode)
                ("auto" (dap-go--populate-auto-args conf))
-               ("debug" (dap--put-if-absent conf :modpath (lsp-find-session-folder (lsp-session) (buffer-file-name)))
-                        (dap--put-if-absent conf :program (f-dirname (buffer-file-name))))
+               ("debug" (dap--put-if-absent conf :program (f-dirname (buffer-file-name))))
                ("exec" (dap--put-if-absent conf :program (read-file-name "enter full path to executable without tilde:")))
-               ("remote"
-                (dap--put-if-absent conf :program (lsp-find-session-folder (lsp-session) (buffer-file-name)))
-                (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "2345")))
-                (dap--put-if-absent conf :program-to-start
-                                    (concat dap-go-delve-path
-                                            " attach --headless --api-version=2 "
-                                            (format "--listen=:%d " (plist-get conf :port))
-                                            (number-to-string
-                                             (dap--completing-read "Select process: "
-                                                                   (list-system-processes)
-                                                                   (lambda (pid)
-                                                                     (-let (((&alist 'user 'comm)
-                                                                             (process-attributes pid)))
-                                                                       (format "%6d %-30s %s" pid comm user)))
-                                                                   nil t))))
-                )))
+               ("remote" (dap--put-if-absent conf :program (f-dirname (buffer-file-name)))
+		         (dap--put-if-absent conf :host (read-string "enter host:" "127.0.0.1"))
+		         (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "2345"))))
+               ("attach"
+                (dap--put-if-absent conf :program (f-dirname (buffer-file-name)))
+                (dap--put-if-absent conf :processId (string-to-number (read-string "Enter pid: " "2345"))))
+	))
 
   (-> conf
       (dap--put-if-absent :dap-server-path dap-go-debug-program)
       (dap--put-if-absent :packagepath (f-dirname (buffer-file-name)))
+      (dap--put-if-absent :modpath (lsp-find-session-folder (lsp-session) (buffer-file-name)))
       (dap--put-if-absent :dlvToolPath dap-go-delve-path)
       (dap--put-if-absent :packagePathToGoModPathMap
                           (ht<-alist `((,(plist-get conf :packagepath)  . ,(plist-get conf :modpath)))))
@@ -133,7 +124,16 @@
 (dap-register-debug-template "Go Attach Executable Configuration"
                              (list :type "go"
                                    :request "launch"
-                                   :name "Attach Executable"
+                                   :name "Attach to Executable"
+                                   :mode "attach"
+                                   :program nil
+                                   :args nil
+                                   :env nil
+                                   :envFile nil))
+(dap-register-debug-template "Go Connect Remote dlv Configuration"
+                             (list :type "go"
+                                   :request "launch"
+                                   :name "Connect to Remote dlv"
                                    :mode "remote"
                                    :program nil
                                    :args nil
