@@ -60,9 +60,7 @@
 		         (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "2345"))))
                ("attach"
                 (dap--put-if-absent conf :program (f-dirname (buffer-file-name)))
-                (dap--put-if-absent conf :processId (string-to-number (read-string "Enter pid: " "2345")))
-		)
-	       
+                (dap--put-if-absent conf :processId (string-to-number (read-string "Enter pid: " "2345"))))
 	))
 
   (-> conf
