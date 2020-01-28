@@ -1,13 +1,22 @@
-language: emacs-lisp
 sudo: required
+language: emacs-lisp
 dist: trusty
+services:
+  - docker
+cache:
+  - directories:
+      - "$HOME/emacs/"
 matrix:
   fast_finish: true
+  allow_failures:
+    - env: EMACS_VERSION=snapshot
 env:
-  # - EMACS_VERSION=25.1
-  # - EMACS_VERSION=25.2
+  - EMACS_VERSION=25.1
+  - EMACS_VERSION=25.2
+  - EMACS_VERSION=25.3
+  - EMACS_VERSION=26.1
   - EMACS_VERSION=26.2
-   # - EMACS_VERSION=snapshot
+  - EMACS_VERSION=snapshot
 before_install:
   - export PATH="$HOME/bin:$PATH"
   - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
@@ -25,6 +34,15 @@ before_install:
     gpg --homedir "$EMACS_GNUPGHOME" --import package-keyring.gpg
 install:
   - cask install
+script:
+  - cask build
+  - cask clean-elc
+  # - cask exec ert-runner -t '!no-win'
+  # - |
+  #   if (( ${EMACS_VERSION:0:2} < 26 )); then
+  #       cask exec ecukes
+  #   fi
+  # - docker run -v $TRAVIS_BUILD_DIR:/src/ asciidoctor/docker-asciidoctor make -C /src/ docs
 notifications:
   webhooks:
     urls:
@@ -32,8 +50,3 @@ notifications:
     on_success: change
     on_failure: always
     on_start: never
-cache:
-  directories:
-  - $HOME/.m2
-  - "$HOME/emacs/"
-  - "$HOME/.emacs.d/"
