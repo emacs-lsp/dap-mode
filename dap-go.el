@@ -56,13 +56,13 @@
                ("debug" (dap--put-if-absent conf :program (f-dirname (buffer-file-name))))
                ("exec" (dap--put-if-absent conf :program (read-file-name "enter full path to executable without tilde:")))
                ("remote" (dap--put-if-absent conf :program (f-dirname (buffer-file-name)))
-		         (dap--put-if-absent conf :host (read-string "enter host:" "127.0.0.1"))
-		         (dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "2345"))))
-               ("attach"
-                (dap--put-if-absent conf :program (f-dirname (buffer-file-name)))
+		(dap--put-if-absent conf :host (read-string "enter host:" "127.0.0.1"))
+		(dap--put-if-absent conf :port (string-to-number (read-string "Enter port: " "2345"))))
+               ("local"
+                (dap--put-if-absent conf :cwd (f-dirname (buffer-file-name)))
                 (dap--put-if-absent conf :processId (string-to-number (read-string "Enter pid: " "2345"))))
-	))
-
+	       ))
+  
   (-> conf
       (dap--put-if-absent :dap-server-path dap-go-debug-program)
       (dap--put-if-absent :packagepath (f-dirname (buffer-file-name)))
@@ -123,9 +123,9 @@
                                    :envFile nil))
 (dap-register-debug-template "Go Attach Executable Configuration"
                              (list :type "go"
-                                   :request "launch"
+                                   :request "attach"
                                    :name "Attach to Executable"
-                                   :mode "attach"
+                                   :mode "local"
                                    :program nil
                                    :args nil
                                    :env nil
