@@ -32,6 +32,7 @@
 (require 'dash)
 (require 'dap-overlays)
 (require 'cl-lib)
+(require 'ansi-color)
 
 (defcustom dap-breakpoints-file (expand-file-name (locate-user-emacs-file ".dap-breakpoints"))
   "Where to persist breakpoints"
@@ -566,11 +567,14 @@ thread exection but the server will log message."
   "Call continue for the currently active session and thread."
   (interactive (list (dap--cur-active-session-or-die)
                      (dap--debug-session-thread-id (dap--cur-active-session-or-die))))
-  (dap--send-message (dap--make-request "continue"
-                                        (list :threadId thread-id))
-                     (dap--resp-handler)
-                     debug-session)
-  (dap--resume-application debug-session))
+  (if thread-id
+      (progn
+        (dap--send-message (dap--make-request "continue"
+                                              (list :threadId thread-id))
+                           (dap--resp-handler)
+                           debug-session)
+        (dap--resume-application debug-session))
+    (lsp--error "There is no stopped thread?")))
 
 (defun dap-disconnect (session)
   "Disconnect from the currently active session."
@@ -585,32 +589,41 @@ thread exection but the server will log message."
   "Debug next."
   (interactive)
   (let ((debug-session (dap--cur-active-session-or-die)))
-    (dap--send-message (dap--make-request
-                        "next"
-                        (list :threadId (dap--debug-session-thread-id debug-session)))
-                       (dap--resp-handler)
-                       debug-session)
-    (dap--resume-application debug-session)))
+    (if-let (thread-id (dap--debug-session-thread-id (dap--cur-session)))
+        (progn
+          (dap--send-message (dap--make-request
+                              "next"
+                              (list :threadId thread-id))
+                             (dap--resp-handler)
+                             debug-session)
+          (dap--resume-application debug-session))
+      (lsp--error "There is no stopped thread?"))))
 
 (defun dap-step-in ()
   "Debug step in."
   (interactive)
-  (dap--send-message (dap--make-request
-                      "stepIn"
-                      (list :threadId (dap--debug-session-thread-id (dap--cur-session))))
-                     (dap--resp-handler)
-                     (dap--cur-active-session-or-die))
-  (dap--resume-application (dap--cur-active-session-or-die)))
+  (if-let (thread-id (dap--debug-session-thread-id (dap--cur-session)))
+      (progn
+        (dap--send-message (dap--make-request
+                            "stepIn"
+                            (list :threadId thread-id))
+                           (dap--resp-handler)
+                           (dap--cur-active-session-or-die))
+        (dap--resume-application (dap--cur-active-session-or-die)))
+    (lsp--error "There is no stopped thread?")))
 
 (defun dap-step-out ()
   "Debug step in."
   (interactive)
-  (dap--send-message (dap--make-request
-                      "stepOut"
-                      (list :threadId (dap--debug-session-thread-id (dap--cur-session))))
-                     (dap--resp-handler)
-                     (dap--cur-active-session-or-die))
-  (dap--resume-application (dap--cur-active-session-or-die)))
+  (if (thread-id (dap--debug-session-thread-id (dap--cur-session)))
+      (progn
+        (dap--send-message (dap--make-request
+                            "stepOut"
+                            (list :threadId thread-id))
+                           (dap--resp-handler)
+                           (dap--cur-active-session-or-die))
+        (dap--resume-application (dap--cur-active-session-or-die)))
+    (lsp--error "There is no stopped thread?")))
 
 (defun dap-restart-frame (debug-session frame-id)
   "Restarts current frame."
@@ -680,7 +693,7 @@ thread exection but the server will log message."
       ;; select stackframe only when session matches the active session and when
       ;; thread-id is the same as the active one
       (when (and (eq debug-session (dap--cur-session))
-                 (= thread-id (dap--debug-session-thread-id (dap--cur-session))))
+                 (eq thread-id (dap--debug-session-thread-id (dap--cur-session))))
         (dap--go-to-stack-frame debug-session (cl-first stack-frames)))))
    debug-session))
 
@@ -727,16 +740,19 @@ thread exection but the server will log message."
 (defun dap--insert-at-point-max (str)
   "Inserts STR at point-max of the buffer."
   (goto-char (point-max))
-  (insert str))
+  (insert (ansi-color-apply str)))
 
 (defun dap--print-to-output-buffer (debug-session str)
   "Insert content from STR into the output buffer associated with DEBUG-SESSION."
   (with-current-buffer (get-buffer-create (dap--debug-session-output-buffer debug-session))
+    (font-lock-mode t)
+    (setq-local buffer-read-only nil)
     (if (and (eq (current-buffer) (window-buffer (selected-window)))
              (not (= (point) (point-max))))
         (save-excursion
           (dap--insert-at-point-max str))
-      (dap--insert-at-point-max str))))
+      (dap--insert-at-point-max str))
+    (setq-local buffer-read-only t)))
 
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."

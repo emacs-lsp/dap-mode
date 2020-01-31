@@ -468,7 +468,7 @@ DEBUG-SESSION is the debug session triggering the event."
               'display `(image :type png
                                :file ,(f-join dap-ui--control-images-root-dir image)
                                :ascent center
-                               :background ,(face-attribute 'mode-line :background nil t))
+                               :background ,(face-attribute 'fringe :background nil t))
               'local-map (--doto (make-sparse-keymap)
                            (define-key it [mouse-1] command))
               'help-echo hover-text))

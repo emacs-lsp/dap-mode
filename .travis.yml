@@ -1,21 +1,46 @@
-language: emacs-lisp
 sudo: required
+language: emacs-lisp
 dist: trusty
+services:
+  - docker
+cache:
+  - directories:
+      - "$HOME/emacs/"
 matrix:
   fast_finish: true
+  allow_failures:
+    - env: EMACS_VERSION=snapshot
 env:
-  # - EMACS_VERSION=25.1
-  # - EMACS_VERSION=25.2
   - EMACS_VERSION=25.3
-   # - EMACS_VERSION=snapshot
+  - EMACS_VERSION=26.1
+  - EMACS_VERSION=26.2
+  - EMACS_VERSION=snapshot
 before_install:
-  - rm -rf ~/.emacs.d/eclipse.jdt.ls/
   - export PATH="$HOME/bin:$PATH"
   - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
-  - make -f emacs-travis.mk install_emacs
+  - make -f emacs-travis.mk install_gnutls install_emacs
   - make -f emacs-travis.mk install_cask
+  - docker pull asciidoctor/docker-asciidoctor
+  - |
+    case $EMACS_VERSION in
+    25.*) EMACS_GNUPGHOME=.cask/$EMACS_VERSION/elpa/gnupg ;;
+    *)    EMACS_GNUPGHOME=$HOME/.emacs.d/elpa/gnupg ;;
+    esac
+    mkdir -p "$EMACS_GNUPGHOME"
+    chmod 700 "$EMACS_GNUPGHOME"
+    wget 'https://git.savannah.gnu.org/cgit/emacs.git/plain/etc/package-keyring.gpg'
+    gpg --homedir "$EMACS_GNUPGHOME" --import package-keyring.gpg
 install:
   - cask install
+script:
+  - cask build
+  - cask clean-elc
+  # - cask exec ert-runner -t '!no-win'
+  # - |
+  #   if (( ${EMACS_VERSION:0:2} < 26 )); then
+  #       cask exec ecukes
+  #   fi
+  # - docker run -v $TRAVIS_BUILD_DIR:/src/ asciidoctor/docker-asciidoctor make -C /src/ docs
 notifications:
   webhooks:
     urls:
@@ -23,8 +48,3 @@ notifications:
     on_success: change
     on_failure: always
     on_start: never
-cache:
-  directories:
-  - $HOME/.m2
-  - "$HOME/emacs/"
-  - "$HOME/.emacs.d/"
