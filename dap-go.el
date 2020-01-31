@@ -62,14 +62,15 @@
                 (dap--put-if-absent conf :cwd (f-dirname (buffer-file-name)))
                 (dap--put-if-absent conf :processId (string-to-number (read-string "Enter pid: " "2345"))))
 	       ))
+
+
+  (if (plist-get conf :args) (plist-put conf :args (split-string (plist-get conf :args))) ())
   
   (-> conf
       (dap--put-if-absent :dap-server-path dap-go-debug-program)
-      (dap--put-if-absent :packagepath (f-dirname (buffer-file-name)))
-      (dap--put-if-absent :modpath (lsp-find-session-folder (lsp-session) (buffer-file-name)))
       (dap--put-if-absent :dlvToolPath dap-go-delve-path)
       (dap--put-if-absent :packagePathToGoModPathMap
-                          (ht<-alist `((,(plist-get conf :packagepath)  . ,(plist-get conf :modpath)))))
+                          (ht<-alist `((,(f-dirname (buffer-file-name))  . ,(lsp-find-session-folder (lsp-session) (buffer-file-name))))))
       (dap--put-if-absent :type "go")
       (dap--put-if-absent :name "Go Debug")))
 

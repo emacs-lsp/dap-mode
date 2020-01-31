@@ -314,11 +314,13 @@ case, define a template:
 **** Usage
     assume you have your code at ~/src/cool/cmd/app/app.go
     - open your main package file e.g ~/src/cool/cmd/app/app.go
+    - or open a test file e.g app_test.go
     - add folder to lsp session where your go.mod is or would be
       - M-x lsp-workspace-folders-add ~/src/cool
     - set break point
     - M-x dap-debug
-    - select e.g "Go Launch Unoptimized Debug Package Configuration"
+    - if you are debugging test files use "Go Launch File Configuration"
+    - else select e.g "Go Launch Unoptimized Debug Package Configuration"
 **** Trouble shooting
     - put (setq dap-print-io t) and check messages buffer
     - e.g linter can return note at debug session response resulting debug session to fail
