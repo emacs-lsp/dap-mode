@@ -32,6 +32,7 @@
 (require 'dash)
 (require 'dap-overlays)
 (require 'cl-lib)
+(require 'ansi-color)
 
 (defcustom dap-breakpoints-file (expand-file-name (locate-user-emacs-file ".dap-breakpoints"))
   "Where to persist breakpoints"
@@ -739,16 +740,19 @@ thread exection but the server will log message."
 (defun dap--insert-at-point-max (str)
   "Inserts STR at point-max of the buffer."
   (goto-char (point-max))
-  (insert str))
+  (insert (ansi-color-apply str)))
 
 (defun dap--print-to-output-buffer (debug-session str)
   "Insert content from STR into the output buffer associated with DEBUG-SESSION."
   (with-current-buffer (get-buffer-create (dap--debug-session-output-buffer debug-session))
+    (font-lock-mode t)
+    (setq-local buffer-read-only nil)
     (if (and (eq (current-buffer) (window-buffer (selected-window)))
              (not (= (point) (point-max))))
         (save-excursion
           (dap--insert-at-point-max str))
-      (dap--insert-at-point-max str))))
+      (dap--insert-at-point-max str))
+    (setq-local buffer-read-only t)))
 
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."
