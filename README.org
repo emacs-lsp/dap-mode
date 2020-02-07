@@ -172,7 +172,7 @@
    [[file:screenshots/dap-ui-repl.png]]
 * Configuration
 ** DAP mode configuration
-   Enable both ~dap-mode~ and ~dap-ui-mode~.
+   Enable both ~dap-mode~ and ~dap-ui-mode~ (requires posframe to be installed manually, available only for emacs version >= 26).
    #+BEGIN_SRC emacs-lisp
      (dap-mode 1)
      (dap-ui-mode 1)
