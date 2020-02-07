@@ -853,7 +853,7 @@ DEBUG-SESSION is the debug session triggering the event."
                       nil
                       t)))
   (unless (-contains? dap-ui-expressions expression)
-    (user-error "\"%s\" is not present."))
+    (user-error "\"%s\" is not present." expression))
   (setq dap-ui-expressions (remove expression dap-ui-expressions))
   (dap-ui-expressions-refresh))
 
