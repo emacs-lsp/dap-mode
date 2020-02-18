@@ -44,12 +44,15 @@
 
 (defun dap-node--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
-  (-> conf
-      (dap--put-if-absent :dap-server-path dap-node-debug-program)
-      (dap--put-if-absent :type "node")
-      (dap--put-if-absent :cwd default-directory)
-      (dap--put-if-absent :program (read-file-name "Select the file to run:" nil (buffer-file-name) t))
-      (dap--put-if-absent :name "Node Debug")))
+  (let ((conf (-> conf
+                  (dap--put-if-absent :dap-server-path dap-node-debug-program)
+                  (dap--put-if-absent :type "node")
+                  (dap--put-if-absent :cwd default-directory)
+                  (dap--put-if-absent :name "Node Debug"))))
+    (if (plist-get conf :args)
+        conf
+      (dap--put-if-absent
+       conf :program (read-file-name "Select the file to run:" nil (buffer-file-name) t)))))
 
 (dap-register-debug-provider "node" #'dap-node--populate-start-file-args)
 
