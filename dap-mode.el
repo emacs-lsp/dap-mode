@@ -615,7 +615,7 @@ thread exection but the server will log message."
 (defun dap-step-out ()
   "Debug step in."
   (interactive)
-  (if (thread-id (dap--debug-session-thread-id (dap--cur-session)))
+  (if-let (thread-id (dap--debug-session-thread-id (dap--cur-session)))
       (progn
         (dap--send-message (dap--make-request
                             "stepOut"
