@@ -521,6 +521,9 @@ DEBUG-SESSION is the debug session triggering the event."
   :init-value nil
   :global t
   :require 'dap-ui
+  (unless (and (fboundp 'posframe-show)
+               (fboundp 'posframe-hide))
+    (error "Displaying DAP controls requires that the posframe Emacs package is installed"))
   (cond
    (dap-ui-controls-mode
     (add-hook 'dap-session-changed-hook 'dap-ui--update-controls)
@@ -537,8 +540,7 @@ DEBUG-SESSION is the debug session triggering the event."
     (remove-hook 'dap-continue-hook 'dap-ui--update-controls)
     (remove-hook 'dap-stack-frame-changed-hook 'dap-ui--update-controls)
     (setq posframe-mouse-banish t)
-    (when (fboundp 'posframe-hide)
-      (posframe-hide dap-ui--control-buffer)))))
+    (posframe-hide dap-ui--control-buffer))))
 
 
 ;; sessions
