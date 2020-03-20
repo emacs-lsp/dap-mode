@@ -794,6 +794,13 @@ thread exection but the server will log message."
                      (run-hooks 'dap-session-changed-hook))
                    debug-session)))
       ("exited" (dap--mark-session-as-terminated debug-session))
+      ("continued"
+       (-let [(&hash "threadId" thread-id) body]
+         (remhash thread-id (dap--debug-session-thread-states debug-session))
+         (if (and (equal thread-id (dap--debug-session-thread-id debug-session))
+                  (equal debug-session (dap--cur-session)))
+             (dap--resume-application debug-session)
+           (run-hooks 'dap-session-changed-hook))))
       ("stopped"
        (-let [(&hash "threadId" thread-id "type" "reason") body]
          (puthash thread-id type (dap--debug-session-thread-states debug-session))
