@@ -575,7 +575,7 @@ thread exection but the server will log message."
                            (dap--resp-handler)
                            debug-session)
         (dap--resume-application debug-session))
-    (lsp--error "There is no stopped thread?")))
+    (lsp--error "Currently active thread is not stopped. Use `dap-switch-thread' or select stopped thread from sessions view.")))
 
 (defun dap-disconnect (session)
   "Disconnect from the currently active session."
@@ -601,7 +601,7 @@ thread exection but the server will log message."
                              (dap--resp-handler)
                              debug-session)
           (dap--resume-application debug-session))
-      (lsp--error "There is no stopped thread?"))))
+      (lsp--error "Currently active thread is not stopped. Use `dap-switch-thread' or select stopped thread from sessions view."))))
 
 (defun dap-step-in ()
   "Debug step in."
@@ -614,7 +614,7 @@ thread exection but the server will log message."
                            (dap--resp-handler)
                            (dap--cur-active-session-or-die))
         (dap--resume-application (dap--cur-active-session-or-die)))
-    (lsp--error "There is no stopped thread?")))
+    (lsp--error "Currently active thread is not stopped. Use `dap-switch-thread' or select stopped thread from sessions view.")))
 
 (defun dap-step-out ()
   "Debug step in."
@@ -627,7 +627,7 @@ thread exection but the server will log message."
                            (dap--resp-handler)
                            (dap--cur-active-session-or-die))
         (dap--resume-application (dap--cur-active-session-or-die)))
-    (lsp--error "There is no stopped thread?")))
+    (lsp--error "Currently active thread is not stopped. Use `dap-switch-thread' or select stopped thread from sessions view.")))
 
 (defun dap-restart-frame (debug-session frame-id)
   "Restarts current frame."
@@ -647,7 +647,7 @@ thread exection but the server will log message."
       (progn
         (when (dap--session-running debug-session)
           (message "Disconnecting from %s" (dap--debug-session-name debug-session))
-          (dap-disconnect))
+          (dap-disconnect debug-session))
         (dap-debug (dap--debug-session-launch-args debug-session)))
     (user-error "There is session to restart")))
 
