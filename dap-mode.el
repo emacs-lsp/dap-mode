@@ -178,7 +178,8 @@ The hook will be called with the session file and the new set of breakpoint loca
   ;; The result of initialize request. It holds the server capabilities.
   (initialize-result nil)
   (error-message nil)
-  (loaded-sources nil))
+  (loaded-sources nil)
+  (program-proc))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -581,7 +582,10 @@ thread exection but the server will log message."
   (interactive (list (dap--cur-active-session-or-die)))
   (dap--send-message (dap--make-request "disconnect"
                                         (list :restart :json-false))
-                     (dap--resp-handler)
+                     (lambda (result)
+                       (when-let (proc (dap--debug-session-program-proc session))
+                         (lsp--info "Killing process %s" proc)
+                         (kill-process proc)))
                      session)
   (dap--resume-application session))
 
@@ -1156,18 +1160,23 @@ before starting the debug process."
                    :wait-for-port :type :request :port
                    :environment-variables :hostName host) launch-args)
           (session-name (dap--calculate-unique-name name (dap--get-sessions)))
-          (default-directory (or cwd default-directory)))
+          (default-directory (or cwd default-directory))
+          program-process)
     (mapc (-lambda ((env . value)) (setenv env value)) environment-variables)
     (plist-put launch-args :name session-name)
 
     (when program-to-start
-      (compilation-start program-to-start 'dap-server-log-mode
-                         (lambda (_) (concat "*" session-name " server log*"))))
+
+      (setf program-process
+            (get-buffer-process
+             (compilation-start program-to-start 'dap-server-log-mode
+                                (lambda (_) (concat "*" session-name " server log*"))))))
     (when wait-for-port
       (dap--wait-for-port host port dap-connect-retry-count dap-connect-retry-interval))
 
     (unless skip-debug-session
       (let ((debug-session (dap--create-session launch-args)))
+        (setf (dap--debug-session-program-proc debug-session) program-process)
         (dap--send-message
          (dap--initialize-message type)
          (dap--session-init-resp-handler
