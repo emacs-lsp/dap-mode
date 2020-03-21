@@ -38,19 +38,21 @@
     - [[#configuration-1][Configuration]]
   - [[#go-1][Go]]
     - [[#installation-3][Installation]]
+      - [[#usage-2][Usage]]
+      - [[#trouble-shooting][Trouble shooting]]
   - [[#javascript-1][Javascript]]
     - [[#firefox][Firefox]]
       - [[#installation-4][Installation]]
-      - [[#usage-2][Usage]]
+      - [[#usage-3][Usage]]
     - [[#chrome][Chrome]]
       - [[#installation-5][Installation]]
-      - [[#usage-3][Usage]]
+      - [[#usage-4][Usage]]
     - [[#microsoft-edge][Microsoft Edge]]
       - [[#installation-6][Installation]]
-      - [[#usage-4][Usage]]
+      - [[#usage-5][Usage]]
     - [[#node][Node]]
       - [[#installation-7][Installation]]
-      - [[#usage-5][Usage]]
+      - [[#usage-6][Usage]]
   - [[#powershell][Powershell]]
 - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
     - [[#example][Example]]
@@ -181,6 +183,9 @@
      ;; use tooltips for mouse hover
      ;; if it is not enabled `dap-mode' will use the minibuffer.
      (tooltip-mode 1)
+     ;; displays floating panel with debug buttons
+     ;; requies emacs 26+
+     (dap-ui-controls-mode 1)
    #+END_SRC
    After enabling DAP mode on emacs side follow the language specific settings.
 ** Java
