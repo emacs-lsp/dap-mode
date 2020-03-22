@@ -13,7 +13,7 @@
 (require 'compile)
 (require 'dash)
 (require 'dap-mode)
-(require 'lsp)
+(require 'lsp-mode)
 
 (defcustom dap-ui-repl-prompt ">> "
   "Prompt string for DAP REPL."
