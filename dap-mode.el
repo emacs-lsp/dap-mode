@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(require 'lsp)
+(require 'lsp-mode)
 (require 'json)
 (require 'f)
 (require 'dash)
