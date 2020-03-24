@@ -113,7 +113,7 @@
    |--------------------------------+-----------------------------------------------------------------|
    | ~dap-breakpoint-toggle~        | Toggle breakpoint at line                                       |
    | ~dap-breakpoint-delete~        | Delete breakpoint at line                                       |
-   | ~dap-breakpoint-add~           | Add java breakpoint at line                                     |
+   | ~dap-breakpoint-add~           | Add breakpoint at line                                          |
    | ~dap-breakpoint-condition~     | Set/unset breakpoint condition                                  |
    | ~dap-breakpoint-hit-condition~ | Set/unset breakpoint hit condition                              |
    | ~dap-breakpoint-log-message~   | Set/unset breakpoint log message                                |
