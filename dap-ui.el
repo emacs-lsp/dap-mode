@@ -473,8 +473,8 @@ DEBUG-SESSION is the debug session triggering the event."
                            (define-key it [mouse-1] command))
               'help-echo hover-text))
 
-(declare-function posframe-show "posframe")
-(declare-function posframe-hide "posframe")
+(declare-function posframe-show "ext:posframe")
+(declare-function posframe-hide "ext:posframe")
 
 (defun dap-ui--update-controls (&rest _)
   (let* ((session (dap--cur-session))
