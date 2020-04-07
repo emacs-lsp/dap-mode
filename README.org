@@ -253,7 +253,7 @@ case, define a template:
 ** Ruby
     - Download and extract [[https://marketplace.visualstudio.com/items?itemName=rebornix.Ruby][VSCode Ruby Extension]]. You can do that either by:
       - Calling ~dap-ruby-setup~, the extension will be downloaded and all your path will be automatically set up.
-      - Or download the extension manually. Make sure that ~dap-ruby-debug-program~ is: ~("node" path-to-main-js)~ where ~node~ is either "node" if nodejs is on the path or path to nodejs and ~path-to-main-js~ is full path ~./out/debugger/main.js~ which is part of the downloaded VScode package.
+      - Or download the extension manually. Make sure that ~dap-ruby-debug-program~ is: ~("node" path-to-main-js)~ where ~node~ is either "node" if nodejs is on the path or path to nodejs and ~path-to-main-js~ is full path ~./dist/debugger/main.js~ which is part of the downloaded VScode package.
     - Follow the instructions on installing ~rdebug-ide~ from [[https://github.com/rubyide/vscode-ruby/wiki/1.-Debugger-Installation][Ruby Debug Installation]]
     - Put in your emacs configuration.
       #+BEGIN_SRC elisp

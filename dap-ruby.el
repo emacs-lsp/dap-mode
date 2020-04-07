@@ -36,7 +36,7 @@
   :type 'string)
 
 (defcustom dap-ruby-debug-program `("node"
-                                    ,(f-join dap-ruby-debug-path "extension/out/debugger/main.js"))
+                                    ,(f-join dap-ruby-debug-path "extension/dist/debugger/main.js"))
   "The path to the ruby debugger."
   :group 'dap-ruby
   :type '(repeat string))
