@@ -106,12 +106,13 @@ With prefix, FORCED to redownload the extension." extension-name)))
          (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
                   ,dapfile ,extension-name ,dapfile)))))
 
-(defmacro dap-utils-github-extension-setup-function (dapfile owner repo version &optional path)
+(defmacro dap-utils-github-extension-setup-function (dapfile owner repo version &optional path callback)
   "Helper to create DAPFILE setup function for debug extension from github.
 OWNER is the github owner.
 REPO is the github repository.
 VERSION is the github extension version.
-PATH is the download destination dir."
+PATH is the download destination dir.
+CALLBACK is the fn to be called after the download."
   (let* ((extension-name (concat owner "." repo))
          (dest (or path
                    (f-join dap-utils-extension-path "github" extension-name)))
@@ -126,7 +127,8 @@ With prefix, FORCED to redownload the extension." extension-name)))
            (rename-file (concat ,dest "/" (concat ,repo "-" ,version))
                         (concat ,dest "/extension"))
            (message "%s: Downloading done!" ,dapfile)
-           (run-hooks 'dap-utils-extension-downloaded-hook)))
+           (when ,callback
+             (funcall ,callback))))
        (unless (file-exists-p ,dest)
          (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
                   ,dapfile ,extension-name ,dapfile)))))

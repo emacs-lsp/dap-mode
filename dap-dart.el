@@ -58,7 +58,7 @@
   "Return the project root path."
   (file-truename (locate-dominating-file default-directory "pubspec.yaml")))
 
-(defun dap-dart--setup-extension (&rest _rest)
+(defun dap-dart--setup-extension ()
   "Setup dart debugger extension to run `dap-dart-debugger-program`."
   (message "DAP Dart :: Setting up...")
   (lsp-async-start-process
@@ -72,13 +72,13 @@
    "npm" "install" "--prefix" (f-join dap-dart-debugger-path "extension")
    "--no-package-lock" "--silent" "--no-save"))
 
-(add-hook 'dap-utils-extension-downloaded-hook #'dap-dart--setup-extension nil t)
-
-(dap-utils-github-extension-setup-function "dap-dart"
-                                           "Dart-Code"
-                                           "Dart-Code"
-                                           dap-dart-extension-version
-                                           dap-dart-debugger-path)
+(dap-utils-github-extension-setup-function
+ "dap-dart"
+ "Dart-Code"
+ "Dart-Code"
+ dap-dart-extension-version
+ dap-dart-debugger-path
+ #'dap-dart--setup-extension)
 
 (defun dap-dart--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
