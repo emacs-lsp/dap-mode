@@ -263,7 +263,7 @@ case, define a template:
 ** Dart
 Latest version of [[https://github.com/emacs-lsp/lsp-dart][LSP Dart]] already has support for ~dap-mode~.
 
-You only need to run ~dap-dart-setup~ to setup ~dap-dart~ automatically and then you are good to
+You only need to run ~dap-dart-setup~ to setup automatically and then you are good to
 debug dart.
 ** LLDB
 *** Installation
