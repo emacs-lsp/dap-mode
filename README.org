@@ -30,6 +30,7 @@
     - [[#installation-1][Installation]]
     - [[#usage-1][Usage]]
   - [[#ruby][Ruby]]
+  - [[#dart][Dart]]
   - [[#lldb][LLDB]]
     - [[#installation-2][Installation]]
   - [[#elixir][Elixir]]
@@ -259,6 +260,11 @@ case, define a template:
       #+BEGIN_SRC elisp
         (require 'dap-ruby)
       #+END_SRC
+** Dart
+Latest version of [[https://github.com/emacs-lsp/lsp-dart][LSP Dart]] already has support for ~dap-mode~.
+
+You only need to run ~dap-dart-setup~ to setup ~dap-dart~ automatically and then you are good to
+debug dart.
 ** LLDB
 *** Installation
     LLDB is a debugger that supports, among others, C, C++, Objective-C and Swift.

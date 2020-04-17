@@ -20,7 +20,7 @@
 
 ;; URL: https://github.com/emacs-lsp/dap-mode
 ;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0"))
-;; Version: 0.2
+;; Version: 0.3
 
 ;;; Commentary:
 

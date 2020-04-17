@@ -39,7 +39,7 @@
   :group 'dap-mode
   :type 'file)
 
-(defcustom dap-print-io t
+(defcustom dap-print-io nil
   "If non-nil, print all messages to and from the DAP to messages."
   :group 'dap-mode
   :type 'boolean)
