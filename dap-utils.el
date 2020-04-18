@@ -56,21 +56,40 @@
   :group 'dap-utils
   :type 'string)
 
+(defcustom dap-utils-github-extension-url
+  "https://github.com/%s/%s/archive/v%s.zip"
+  "Github extension template url."
+  :group 'dap-utils
+  :type 'string)
+
 (defcustom dap-utils-extension-path (expand-file-name ".extension" user-emacs-directory)
   "Directory to store vscode extension."
   :group 'dap-utils
   :type 'directory)
 
 (defun dap-utils-get-vscode-extension (publisher name &optional version path)
-  "Get vscode extension named NAME with VERSION."
+  "Get vscode extension from PUBLISHER named NAME.
+VERSION is the version of the extenssion, otherwise the latest.
+PATH is the download destination dir."
   (let* ((version (or version "latest"))
          (url (format dap-utils-vscode-ext-url publisher name version))
          (dest (or path
                    (f-join dap-utils-extension-path "vscode" (concat publisher "." name)))))
     (dap-utils--get-extension url dest)))
 
+(defun dap-utils-get-github-extension (owner repo version &optional path)
+  "Get extension from github named OWNER/REPO with VERSION.
+PATH is the download destination path."
+  (let* ((url (format dap-utils-github-extension-url owner repo version))
+         (dest (or path
+                   (f-join dap-utils-extension-path "github" (concat owner "." repo)))))
+    (dap-utils--get-extension url dest)))
+
 (defmacro dap-utils-vscode-setup-function (dapfile publisher name &optional path)
-  "Helper to create setup function for vscode debug extension."
+  "Helper to create DAPFILE setup function for vscode debug extension.
+PUBLISHER is the vscode extension publisher.
+NAME is the vscode extension name.
+PATH is the download destination dir."
   (let* ((extension-name (concat publisher "." name))
          (dest (or path
                    (f-join dap-utils-extension-path "vscode" extension-name)))
@@ -83,6 +102,33 @@ With prefix, FORCED to redownload the extension." extension-name)))
          (unless (and (not forced) (file-exists-p ,dest))
            (dap-utils-get-vscode-extension ,publisher ,name nil ,dest)
            (message "%s: Downloading done!" ,dapfile)))
+       (unless (file-exists-p ,dest)
+         (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
+                  ,dapfile ,extension-name ,dapfile)))))
+
+(defmacro dap-utils-github-extension-setup-function (dapfile owner repo version &optional path callback)
+  "Helper to create DAPFILE setup function for debug extension from github.
+OWNER is the github owner.
+REPO is the github repository.
+VERSION is the github extension version.
+PATH is the download destination dir.
+CALLBACK is the fn to be called after the download."
+  (let* ((extension-name (concat owner "." repo))
+         (dest (or path
+                   (f-join dap-utils-extension-path "github" extension-name)))
+         (help-string (format "Downloading %s to path specified.
+With prefix, FORCED to redownload the extension." extension-name)))
+    `(progn
+       (defun ,(intern (format "%s-setup" dapfile)) (&optional forced)
+         ,help-string
+         (interactive "P")
+         (unless (and (not forced) (file-exists-p ,dest))
+           (dap-utils-get-github-extension ,owner ,repo ,version ,dest)
+           (rename-file (concat ,dest "/" (concat ,repo "-" ,version))
+                        (concat ,dest "/extension"))
+           (message "%s: Downloading done!" ,dapfile)
+           (when ,callback
+             (funcall ,callback))))
        (unless (file-exists-p ,dest)
          (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
                   ,dapfile ,extension-name ,dapfile)))))
