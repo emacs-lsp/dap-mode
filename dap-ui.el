@@ -630,8 +630,8 @@ DEBUG-SESSION is the debug session triggering the event."
                callback
                (-map
                 (-lambda ((thread &as &hash "name" "id"))
-                  (let* ((status (s-capitalize (or (gethash id thread-states) "running")))
-                         (stopped? (string= status "Stopped")))
+                  (let* ((status (s-capitalize (gethash id thread-states "running")))
+                         (stopped? (not (string= (s-downcase status) "running"))))
                     (list
                      :label (concat (propertize name
                                                 'face (if (and (eq session (dap--cur-session))

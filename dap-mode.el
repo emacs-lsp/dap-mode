@@ -807,7 +807,8 @@ thread exection but the server will log message."
            (run-hooks 'dap-session-changed-hook))))
       ("stopped"
        (-let [(&hash "threadId" thread-id "type" "reason") body]
-         (puthash thread-id type (dap--debug-session-thread-states debug-session))
+         (puthash thread-id (or type reason)
+                  (dap--debug-session-thread-states debug-session))
          (dap--select-thread-id debug-session thread-id)
          (when (string= "exception" reason)
            (dap--send-message
