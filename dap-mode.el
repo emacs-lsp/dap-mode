@@ -1110,11 +1110,15 @@ RESULT to use for the callback."
   (-if-let (thread-id (dap--debug-session-thread-id (dap--cur-session)))
       (-if-let (stack-frames (gethash thread-id
                                       (dap--debug-session-thread-stack-frames (dap--cur-session))))
-          (let ((new-stack-frame (dap--completing-read "Select active frame: "
-                                                       stack-frames
-                                                       (lambda (it) (gethash "name" it))
-                                                       nil
-                                                       t)))
+          (let* ((index 0)
+                 (new-stack-frame (dap--completing-read "Select active frame: "
+                                                        stack-frames
+                                                        (-lambda ((frame &as &hash "name"))
+                                                          (if-let (frame-path (dap--get-path-for-frame frame))
+                                                              (format "%s: %s (in %s)" (incf index) name frame-path)
+                                                            (format "%s: %s" (incf index) name)))
+                                                        nil
+                                                        t)))
             (dap--go-to-stack-frame (dap--cur-session) new-stack-frame))
         (->> (dap--cur-session)
              dap--debug-session-name
