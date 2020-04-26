@@ -63,6 +63,12 @@ If the port is taken, DAP will try the next port."
                  (const always)
                  (const never)))
 
+(defcustom dap-java-hot-reload 'always
+  "How to perfor hot reload."
+  :group 'dap-java
+  :type '(choice (const always)
+                 (const never)))
+
 (defcustom dap-java-test-additional-args ()
   "Additional arguments for JUnit standalone runner."
   :group 'dap-java
@@ -284,6 +290,14 @@ attaching to the test."
                     dap-java-java-command
                     port)
             nil))))
+
+(cl-defmethod dap-handle-event ((event (eql hotcodereplace)) session _params)
+  (when (eq dap-java-hot-reload 'always)
+    (setq my/session session)
+    (-let [(&hash "changedClasses" classes) (dap-request session "redefineClasses")]
+      (if classes
+          (lsp--info "Reloaded the following classes: %s." classes)
+        (lsp--warn "There are no classes to redefine.")))))
 
 (dap-register-debug-provider "java" #'dap-java--populate-default-args)
 (dap-register-debug-template "Java Run Configuration"

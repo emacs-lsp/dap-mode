@@ -758,6 +758,15 @@ thread exection but the server will log message."
       (dap--insert-at-point-max str))
     (setq-local buffer-read-only t)))
 
+(cl-defgeneric dap-handle-event (event-type session params)
+  "Extension point for handling custom events.
+EVENT-TYPE is the event to handle.
+SESSION is the session that has triggered the event.
+PARAMS are the event params.")
+
+(cl-defmethod dap-handle-event (event-type _session _params)
+  (message "No message handler for %s" event-type))
+
 (defun dap--on-event (debug-session event)
   "Dispatch EVENT for DEBUG-SESSION."
   (-let [(&hash "body" "event" event-type) event]
@@ -832,7 +841,8 @@ thread exection but the server will log message."
        (-let [(&hash "body" (&hash "source")) event]
          (cl-pushnew source (dap--debug-session-loaded-sources debug-session))
          (run-hook-with-args 'dap-loaded-sources-changed-hook debug-session)))
-      (_ (message "No message handler for %s" event-type)))))
+      (_ (dap-handle-event (intern event-type) debug-session body)))))
+
 
 (defun dap--create-filter-function (debug-session)
   "Create filter function for DEBUG-SESSION."
