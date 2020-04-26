@@ -293,7 +293,6 @@ attaching to the test."
 
 (cl-defmethod dap-handle-event ((event (eql hotcodereplace)) session _params)
   (when (eq dap-java-hot-reload 'always)
-    (setq my/session session)
     (-let [(&hash "changedClasses" classes) (dap-request session "redefineClasses")]
       (if classes
           (lsp--info "Reloaded the following classes: %s." classes)
