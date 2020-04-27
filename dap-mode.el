@@ -179,7 +179,9 @@ The hook will be called with the session file and the new set of breakpoint loca
   (initialize-result nil)
   (error-message nil)
   (loaded-sources nil)
-  (program-proc))
+  (program-proc)
+  ;; Optional metadata to set and get it.
+  (metadata (make-hash-table :test 'eql)))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
