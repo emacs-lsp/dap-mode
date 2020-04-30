@@ -1411,12 +1411,15 @@ after selecting configuration template."
                                                'cl-first nil t)
                          cl-rest
                          copy-tree)))
-  (dap-start-debugging (or (-some-> (plist-get debug-args :type)
-                             (gethash dap--debug-providers)
-                             (funcall debug-args))
-                           (user-error "Have you loaded the `%s' specific dap package?"
-                                       (or (plist-get debug-args :type)
-                                           (user-error "%s does not specify :type" debug-args))))))
+  (let ((launch-args (or (-some-> (plist-get debug-args :type)
+                           (gethash dap--debug-providers)
+                           (funcall debug-args))
+                         (user-error "Have you loaded the `%s' specific dap package?"
+                                     (or (plist-get debug-args :type)
+                                         (user-error "%s does not specify :type" debug-args))))))
+    (if (functionp launch-args)
+        (funcall launch-args #'dap-start-debugging)
+      (dap-start-debugging launch-args))))
 
 (defun dap-debug-edit-template (&optional parg debug-args)
   "Edit registered template DEBUG-ARGS.
