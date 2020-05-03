@@ -1,74 +1,67 @@
 [[https://melpa.org/#/dap-mode][file:https://melpa.org/packages/dap-mode-badge.svg]]
 [[http://spacemacs.org][file:https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg]]
-[[https://travis-ci.org/yyoncho/dap-mode][https://travis-ci.org/yyoncho/dap-mode.svg?branch=master]]
-* Table of Contents                                       :TOC_4_gh:noexport:
-- [[#summary][Summary]]
-  - [[#project-status][Project status]]
-- [[#usage][Usage]]
-- [[#screenshot][Screenshot]]
-  - [[#java][Java]]
-  - [[#swift][Swift]]
-  - [[#rust][RUST]]
-  - [[#go][Go]]
-  - [[#javascript][Javascript]]
-- [[#features][Features]]
-  - [[#debugger-commands][Debugger commands]]
-  - [[#windows][Windows]]
-  - [[#sessions][Sessions]]
-  - [[#locals][Locals]]
-  - [[#expressions][Expressions]]
-  - [[#breakpoints][Breakpoints]]
-    - [[#keybindings][Keybindings]]
-  - [[#loaded-sources][Loaded sources]]
-  - [[#dap-debug-repl][DAP debug REPL]]
-- [[#configuration][Configuration]]
-  - [[#dap-mode-configuration][DAP mode configuration]]
-  - [[#java-1][Java]]
-    - [[#installation][Installation]]
-    - [[#commands][Commands]]
-  - [[#python][Python]]
-    - [[#installation-1][Installation]]
-    - [[#usage-1][Usage]]
-  - [[#ruby][Ruby]]
-  - [[#dart][Dart]]
-    - [[#flutter][Flutter]]
-  - [[#lldb][LLDB]]
-    - [[#installation-2][Installation]]
-  - [[#elixir][Elixir]]
-  - [[#php][PHP]]
-  - [[#native-debug-gdblldb][Native Debug (GDB/LLDB)]]
-    - [[#configuration-1][Configuration]]
-  - [[#go-1][Go]]
-    - [[#installation-3][Installation]]
-      - [[#usage-2][Usage]]
-      - [[#trouble-shooting][Trouble shooting]]
-  - [[#javascript-1][Javascript]]
-    - [[#firefox][Firefox]]
-      - [[#installation-4][Installation]]
-      - [[#usage-3][Usage]]
-    - [[#chrome][Chrome]]
-      - [[#installation-5][Installation]]
-      - [[#usage-4][Usage]]
-    - [[#microsoft-edge][Microsoft Edge]]
-      - [[#installation-6][Installation]]
-      - [[#usage-5][Usage]]
-    - [[#node][Node]]
-      - [[#installation-7][Installation]]
-      - [[#usage-6][Usage]]
-  - [[#powershell][Powershell]]
-- [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
-    - [[#example][Example]]
-- [[#links][Links]]
-- [[#acknowledgments][Acknowledgments]]
+[[https://travis-ci.org/emacs-lsp/dap-mode][file:https://travis-ci.org/emacs-lsp/dap-mode.svg]]
 
-* Summary
+* dap-mode
+** Table of Contents :TOC_4_gh:noexport:
+- [[#dap-mode][dap-mode]]
+  - [[#summary][Summary]]
+    - [[#project-status][Project status]]
+  - [[#usage][Usage]]
+  - [[#screenshot][Screenshot]]
+    - [[#java][Java]]
+    - [[#swift][Swift]]
+    - [[#rust][RUST]]
+    - [[#go][Go]]
+    - [[#javascript][Javascript]]
+  - [[#features][Features]]
+    - [[#debugger-commands][Debugger commands]]
+    - [[#windows][Windows]]
+    - [[#sessions][Sessions]]
+    - [[#locals][Locals]]
+    - [[#expressions][Expressions]]
+    - [[#breakpoints][Breakpoints]]
+      - [[#keybindings][Keybindings]]
+    - [[#loaded-sources][Loaded sources]]
+    - [[#dap-debug-repl][DAP debug REPL]]
+  - [[#configuration][Configuration]]
+    - [[#dap-mode-configuration][DAP mode configuration]]
+    - [[#java-1][Java]]
+      - [[#installation][Installation]]
+      - [[#commands][Commands]]
+    - [[#python][Python]]
+      - [[#installation-1][Installation]]
+      - [[#usage-1][Usage]]
+    - [[#ruby][Ruby]]
+    - [[#dart][Dart]]
+      - [[#flutter][Flutter]]
+    - [[#lldb][LLDB]]
+      - [[#installation-2][Installation]]
+    - [[#elixir][Elixir]]
+    - [[#php][PHP]]
+    - [[#native-debug-gdblldb][Native Debug (GDB/LLDB)]]
+      - [[#configuration-1][Configuration]]
+    - [[#go-1][Go]]
+      - [[#installation-3][Installation]]
+    - [[#javascript-1][Javascript]]
+      - [[#firefox][Firefox]]
+      - [[#chrome][Chrome]]
+      - [[#microsoft-edge][Microsoft Edge]]
+      - [[#node][Node]]
+    - [[#powershell][Powershell]]
+  - [[#extending-dap-with-new-debug-servers][Extending DAP with new Debug servers]]
+      - [[#example][Example]]
+  - [[#links][Links]]
+  - [[#acknowledgments][Acknowledgments]]
+
+** Summary
   Emacs client/library for [[https://microsoft.github.io/debug-adapter-protocol/][Debug Adapter Protocol]] is a wire protocol for
   communication between client and Debug Server. It's similar to the [[https://github.com/Microsoft/language-server-protocol][LSP]] but
   provides integration with debug server.
-** Project status
+*** Project status
    The API considered unstable until 1.0 release is out. It is tested against
    Java, Python, Ruby, Elixir and LLDB (C/C++/Objective-C/Swift).
-* Usage
+** Usage
   The main entry points are ~dap-debug~ and ~dap-debug-edit-template~. The first
   one asks for a registered debug template and starts the configuration using
   the default values for that particular configuration. The latter creates a
@@ -81,24 +74,24 @@
   dap-mode also provides a [[https://github.com/abo-abo/hydra][hydra]] with ~dap-hydra~. You can automatically trigger
   the hydra when the program hits a breakpoint by using the following code.
 
-  #+BEGIN_SRC emacs-lisp
+  #+BEGIN_SRC elisp
     (add-hook 'dap-stopped-hook
               (lambda (arg) (call-interactively #'dap-hydra)))
   #+END_SRC
-* Screenshot
-** Java
+** Screenshot
+*** Java
    [[file:screenshots/MultiSession.png]]
-** Swift
+*** Swift
    [[file:screenshots/Swift.png]]
-** RUST
+*** RUST
    #+caption: RUST via Native Debug
    [[file:screenshots/rust.png]]
-** Go
+*** Go
    [[file:screenshots/go.png]]
-** Javascript
+*** Javascript
    #+caption: Javascript via Firefox debugger
    [[file:screenshots/javascript.png]]
-* Features
+** Features
   - Launch/Attach
   - Breakpoints
   - Exceptions
@@ -110,7 +103,7 @@
   - Evaluating statements
   - Debug/Run configurations
   - Expressions
-** Debugger commands
+*** Debugger commands
    | Command                        | Description                                                     |
    |--------------------------------+-----------------------------------------------------------------|
    | ~dap-breakpoint-toggle~        | Toggle breakpoint at line                                       |
@@ -137,7 +130,7 @@
    | ~dap-debug-last~               | Debug previous configuration                                    |
    | ~dap-debug-recent~             | Select configuration to run from the previously started command |
    | ~dap-go-to-output-buffer~      | Go output buffer                                                |
-** Windows
+*** Windows
    | Command                         | Description                          |
    |---------------------------------+--------------------------------------|
    | ~dap-ui-sessions~               | Show active/terminated sessions view |
@@ -146,18 +139,18 @@
    | ~dap-ui-breakpoints~            | Show breakpoints view                |
    | ~dap-ui-repl~                   | DAP UI REPL                          |
 
-** Sessions
+*** Sessions
    The session view is showed after invoking ~dap-ui-sessions~ . It represents
    the list of the active sessions.
-** Locals
+*** Locals
    Locals can be viewed after invoking ~dap-ui-locals~.
-** Expressions
+*** Expressions
    Watch expressions can be viewed after invoking ~dap-ui-expressions~. You
    could add remove watch expressions via =dap-ui-expressions-add= and
    =dap-ui-expressions-remove=.
-** Breakpoints
+*** Breakpoints
    Breakpoints can be viewed after invoking ~dap-ui-breakpoints~.
-*** Keybindings
+**** Keybindings
     | Command                              | Description                    | Keybindings |
     |--------------------------------------+--------------------------------+-------------|
     | ~dap-ui-breakpoints-goto~            | Go to breakpoint under cursor  | <return>    |
@@ -166,18 +159,18 @@
     | ~bui-list-mark~                      | Mark breakpoint under point    | m           |
     | ~bui-list-unmark~                    | Unmark breakpoint under point  | u           |
     | ~bui-list-unmark-all~                | Unmark breakpoint under point  | U           |
-** Loaded sources
+*** Loaded sources
    Loaded sources can be viewed by invoking ~dap-tm-loaded-sources~.
-** DAP debug REPL
+*** DAP debug REPL
    DAP provides a debug shell to execute commands when the program has hit
    breakpoints. The REPL has the same features as regular emacs shells (e.g.
    command history, ~C-p/n~ navigation through history, etc.) in addition to
    optional ~company-mode~ autocompletion.
    [[file:screenshots/dap-ui-repl.png]]
-* Configuration
-** DAP mode configuration
+** Configuration
+*** DAP mode configuration
    Enable both ~dap-mode~ and ~dap-ui-mode~ (requires posframe to be installed manually, available only for emacs version >= 26).
-   #+BEGIN_SRC emacs-lisp
+   #+BEGIN_SRC elisp
      (dap-mode 1)
      (dap-ui-mode 1)
      ;; enables mouse hover support
@@ -190,17 +183,17 @@
      (dap-ui-controls-mode 1)
    #+END_SRC
    After enabling DAP mode on emacs side follow the language specific settings.
-** Java
-*** Installation
+*** Java
+**** Installation
     Latest version of [[https://github.com/emacs-lsp/lsp-java][LSP Java]] will automatically discover if ~dap-mode~ is
     present and it will download and install the required server side
     components. If you have already downloaded a ~Eclispe JDT Server~ you will
     have to force a server update via ~lsp-java-update-server~. In order to enable lsp java,
     you will have to require ~dap-java.el~.
-    #+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC elisp
       (require 'dap-java)
     #+END_SRC
-*** Commands
+**** Commands
     | Command                      | Description       |
     |------------------------------+-------------------|
     | ~dap-java-debug~             | Debug java        |
@@ -213,7 +206,7 @@ You can also edit one of the existing templates and execute it with
 ~dap-debug~. dap-mode will take care of filling missing values, such as
 classpath. JVM arguments can be specified with ~:vmArgs~:
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC elisp
   (dap-register-debug-template "My Runner"
                                (list :type "java"
                                      :request "launch"
@@ -223,8 +216,8 @@ classpath. JVM arguments can be specified with ~:vmArgs~:
                                      :mainClass "com.domain.AppRunner"
                                      :env '(("DEV" . "1"))))
 #+END_SRC
-** Python
-*** Installation
+*** Python
+**** Installation
     - install latest version of ptvsd.
       #+BEGIN_SRC bash
         pip install "ptvsd>=4.2"
@@ -235,13 +228,13 @@ classpath. JVM arguments can be specified with ~:vmArgs~:
       #+END_SRC
       This will add the python related configuration to  ~dap-debug~.
 
-*** Usage
+**** Usage
 A template named "Python :: Run Configuration" will appear, which will execute
 the currently visited module. This will fall short whenever you need to specify
 arguments, environment variables or execute a setuptools based script. In such
 case, define a template:
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC elisp
   (dap-register-debug-template "My App"
     (list :type "python"
           :args "-i"
@@ -252,7 +245,7 @@ case, define a template:
           :name "My App"))
 #+END_SRC
 
-** Ruby
+*** Ruby
     - Download and extract [[https://marketplace.visualstudio.com/items?itemName=rebornix.Ruby][VSCode Ruby Extension]]. You can do that either by:
       - Calling ~dap-ruby-setup~, the extension will be downloaded and all your path will be automatically set up.
       - Or download the extension manually. Make sure that ~dap-ruby-debug-program~ is: ~("node" path-to-main-js)~ where ~node~ is either "node" if nodejs is on the path or path to nodejs and ~path-to-main-js~ is full path ~./dist/debugger/main.js~ which is part of the downloaded VScode package.
@@ -261,17 +254,17 @@ case, define a template:
       #+BEGIN_SRC elisp
         (require 'dap-ruby)
       #+END_SRC
-** Dart
+*** Dart
 [[https://github.com/emacs-lsp/lsp-dart][LSP Dart]] has support for [[https://github.com/emacs-lsp/lsp-dart#debug][debug] using ~dap-mode~.
 
 You only need to run ~dap-dart-setup~ to setup automatically and then you are good to
 debug dart.
 
-*** Flutter
+**** Flutter
 [[https://github.com/emacs-lsp/lsp-dart][LSP Dart]] also supports [[https://github.com/emacs-lsp/lsp-dart#flutter][Flutter debug]] with options to debug a device or emulator.
 
-** LLDB
-*** Installation
+*** LLDB
+**** Installation
     LLDB is a debugger that supports, among others, C, C++, Objective-C and Swift.
 
     - Clone and follow the instructions to compile lldb-vscode from https://github.com/llvm-mirror/lldb/tree/master/tools/lldb-vscode
@@ -282,7 +275,7 @@ debug dart.
 
     *Note*: For proper Swift support, you need to compile LLDB from https://github.com/apple/swift-lldb and put the compiled LLDB library/framework in the "extensions" folder.
 
-** Elixir
+*** Elixir
    Make sure that you have properly configured ~Elixir~ and that you have [[https://github.com/elixir-lsp/elixir-ls][Elixir LS]]
    binaries on the path and put in your emacs configuration.
    #+BEGIN_SRC elisp
@@ -291,7 +284,7 @@ debug dart.
    Then when you do ~dap-debug-edit-template~ and select Elixir which will
    generate runnable debug configuration. For more details on supported settings
    by the Elixir Debug Server refer to its documentation.
-** PHP
+*** PHP
    Simplify setup of vscode extension with ~dap-php-setup~ after requiring ~dap-php~.
 
    This is using [[https://github.com/felixfbecker/vscode-php-debug][felixbecker/vscode-php-debug]]
@@ -303,9 +296,9 @@ debug dart.
    #+END_SRC
    Start debugging by selecting "PHP Run Configuration" from the ~dap-debug~ menu, issue the debug request in your
    browser by choosing the running thread (~dap-switch-thread~) and then ~dap-step-in~.
-** Native Debug (GDB/LLDB)
+*** Native Debug (GDB/LLDB)
    Using https://github.com/WebFreak001/code-debug
-*** Configuration
+**** Configuration
     For easier of setting up vscode extension, you only need call ~dap-gdb-lldb-setup~ after requiring ~dap-gdb-lldb~.
 
     Or download and extract [[https://marketplace.visualstudio.com/items?itemName=webfreak.debug][VSCode extension]] (make sure that ~dap-gdb-lldb-path~ is pointing to the extract location).
@@ -313,8 +306,8 @@ debug dart.
       (require 'dap-gdb-lldb)
     #+END_SRC
     Then do ~dap-debug~ or ~dap-debug-edit-template~ and selet GBD or LLDB configuration.
-** Go
-*** Installation
+*** Go
+**** Installation
     - For easier of setting up vscode extension, you only need call ~dap-go-setup~ after requiring ~dap-go~.
       - Or manually download and extract [[https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go][VSCode Go Extension]].. it is actually zip file.
       - check that you now have .emacs.d/.extension/vscode/ms-vscode.go/extension/out/src/debugAdapter/goDebug.js
@@ -327,7 +320,7 @@ debug dart.
         (require 'dap-go)
       #+END_SRC
     - set up hydra hook as instructed above
-**** Usage
+***** Usage
     assume you have your code at ~/src/cool/cmd/app/app.go
     - open your main package file e.g ~/src/cool/cmd/app/app.go
     - or open a test file e.g app_test.go
@@ -337,12 +330,12 @@ debug dart.
     - M-x dap-debug
     - if you are debugging test files use "Go Launch File Configuration"
     - else select e.g "Go Launch Unoptimized Debug Package Configuration"
-**** Trouble shooting
+***** Trouble shooting
     - put (setq dap-print-io t) and check messages buffer
     - e.g linter can return note at debug session response resulting debug session to fail
-** Javascript
-*** Firefox
-**** Installation
+*** Javascript
+**** Firefox
+***** Installation
      - For easier of setting up vscode extension, you only need call ~dap-firefox-setup~ after requiring ~dap-firefox~.
        - Or manually download and extract [[https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-firefox-debug][VSCode Firefox Debug Extension]].
      - Make sure that ~dap-firefox-debug-program~ is pointing to the proper file.
@@ -350,10 +343,10 @@ debug dart.
        #+BEGIN_SRC elisp
          (require 'dap-firefox)
        #+END_SRC
-**** Usage
+***** Usage
      ~dap-debug~ or ~dap-debug-edit-template~ and select the firefox template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://github.com/hbenl/vscode-firefox-debug][Firefox Debug Adapter]].
-*** Chrome
-**** Installation
+**** Chrome
+***** Installation
      - For easier of setting up vscode extension, you only need call ~dap-chrome-setup~ after requiring ~dap-chrome~.
        - Or manually download and extract [[https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome][VSCode Chrome Debug Extension]].
      - Make sure that ~dap-chrome-debug-program~ is pointing to the proper file.
@@ -361,10 +354,10 @@ debug dart.
        #+BEGIN_SRC elisp
          (require 'dap-chrome)
        #+END_SRC
-**** Usage
+***** Usage
      ~dap-debug~ or ~dap-debug-edit-template~ and select the chrome template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://github.com/Microsoft/vscode-chrome-debug][Chrome Debug Adapter]].
-*** Microsoft Edge
-**** Installation
+**** Microsoft Edge
+***** Installation
      - For easier of setting up vscode extension, you only need call ~dap-edge-setup~ after requiring ~dap-edge~.
        - Or manually download and extract [[https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-edge][VSCode Edge Debug Extension]].
      - Make sure that ~dap-edge-debug-program~ is pointing to the proper file.
@@ -372,10 +365,10 @@ debug dart.
        #+BEGIN_SRC elisp
          (require 'dap-edge)
        #+END_SRC
-**** Usage
+***** Usage
      ~dap-debug~ or ~dap-debug-edit-template~ and select the edge template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://github.com/microsoft/vscode-edge-debug2][Edge Debug Adapter]].
-*** Node
-**** Installation
+**** Node
+***** Installation
      - For easier of setting up vscode extension, you only need call ~dap-node-setup~ after requiring ~dap-node~.
        - Or manually download and extract [[https://marketplace.visualstudio.com/items?itemName=ms-vscode.node-debug2][VSCode Node Debug Extension]].
      - Make sure that ~dap-node-debug-program~ is pointing to the proper file.
@@ -383,15 +376,15 @@ debug dart.
        #+BEGIN_SRC elisp
          (require 'dap-node)
        #+END_SRC
-**** Usage
+***** Usage
      ~dap-debug~ or ~dap-debug-edit-template~ and select the node template. For additional documentation on the supported template parameters or about different configuration templates refer to [[https://code.visualstudio.com/docs/nodejs/nodejs-debugging][Nodejs Debugging]].
-** Powershell
+*** Powershell
    #+BEGIN_SRC elisp
      (require 'dap-pwsh)
    #+END_SRC
    Start debugging by selecting "Powershell: Launch Script" from ~dap-debug~ menu.
 
-* Extending DAP with new Debug servers
+** Extending DAP with new Debug servers
   There are two methods that are used for registering remote extensions:
   - ~dap-register-debug-provider~ - register a method to call for populating
     startup parameters. It should either populate ~:debugPort~ and ~:host~ in
@@ -401,9 +394,9 @@ debug dart.
     available when ~dap-debug~ is called. The debug template must specify
     ~:type~ key which will be used to determine the provider to be called to
     populate missing fields.
-*** Example
+**** Example
     For full example you may check ~dap-java.el~.
-    #+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC elisp
       (dap-register-debug-provider
        "programming-language-name"
        (lambda (conf)
@@ -417,11 +410,11 @@ debug dart.
                                          :args ""
                                          :name "Run Configuration"))
     #+END_SRC
-* Links
+** Links
   - [[https://code.visualstudio.com/docs/extensionAPI/api-debugging][Debug Adapter Protocol]]
   - [[https://github.com/emacs-lsp/lsp-java][LSP Java]]
   - [[https://microsoft.github.io/debug-adapter-protocol/implementors/adapters/][Debug Adapter Protocol Server Implementations]]
-* Acknowledgments
+** Acknowledgments
   - [[https://github.com/danielmartin][Daniel Martin]] - LLDB integration.
   - [[https://github.com/kiennq][Kien Nguyen]] - NodeJS debugger, Edge debuggers, automatic extension installation.
   - [[https://github.com/Ladicle][Aya Igarashi]] - Go debugger integration.
