@@ -5,8 +5,8 @@ extra_css:
 
 theme:
   name: material
-  logo: images/logo.png
-  favicon: images/logo.png
+  logo: screenshots/logo.png
+  favicon: screenshots/logo.png
   icon:
     repo: fontawesome/brands/github
 
