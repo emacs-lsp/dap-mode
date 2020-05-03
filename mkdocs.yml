@@ -1,0 +1,34 @@
+site_name: DAP Mode
+
+extra_css:
+  - stylesheets/extra.css
+
+theme:
+  name: material
+  logo: images/logo.png
+  favicon: images/logo.png
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/emacs-lsp/dap-mode
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/yonchovski
+    - icon: fontawesome/brands/gitter
+      link: https://gitter.im/emacs-lsp/lsp-mode
+
+repo_name: emacs-lsp/dap-mode
+repo_url: https://github.com/emacs-lsp/dap-mode
+
+markdown_extensions:
+  - pymdownx.superfences
+  - codehilite
+  - toc:
+      permalink: '#'
+
+plugins:
+  - search
+  - awesome-pages
+  - git-revision-date-localized
