@@ -255,7 +255,7 @@ case, define a template:
         (require 'dap-ruby)
       #+END_SRC
 *** Dart
-[[https://github.com/emacs-lsp/lsp-dart][LSP Dart]] has support for [[https://github.com/emacs-lsp/lsp-dart#debug][debug] using ~dap-mode~.
+[[https://github.com/emacs-lsp/lsp-dart][LSP Dart]] has support for [[https://github.com/emacs-lsp/lsp-dart#debug][debug]] using ~dap-mode~.
 
 You only need to run ~dap-dart-setup~ to setup automatically and then you are good to
 debug dart.
