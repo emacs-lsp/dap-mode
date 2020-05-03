@@ -1,0 +1,1656 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="shortcut icon" href="images/logo.png">
+      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.1.4">
+    
+    
+      
+        <title>DAP Mode</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.c4007cdc.min.css">
+      
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="stylesheets/extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dap-mode" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="." title="DAP Mode" class="md-header-nav__button md-logo" aria-label="DAP Mode">
+      
+  <img src="images/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            DAP Mode
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/emacs-lsp/dap-mode/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    emacs-lsp/dap-mode
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="DAP Mode" class="md-nav__button md-logo" aria-label="DAP Mode">
+      
+  <img src="images/logo.png" alt="logo">
+
+    </a>
+    DAP Mode
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/emacs-lsp/dap-mode/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    emacs-lsp/dap-mode
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Home
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="." title="Home" class="md-nav__link md-nav__link--active">
+      Home
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    Summary
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#project-status" class="md-nav__link">
+    Project status
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screenshot" class="md-nav__link">
+    Screenshot
+  </a>
+  
+    <nav class="md-nav" aria-label="Screenshot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java" class="md-nav__link">
+    Java
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swift" class="md-nav__link">
+    Swift
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rust" class="md-nav__link">
+    RUST
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#go" class="md-nav__link">
+    Go
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#javascript" class="md-nav__link">
+    Javascript
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    Features
+  </a>
+  
+    <nav class="md-nav" aria-label="Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debugger-commands" class="md-nav__link">
+    Debugger commands
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows" class="md-nav__link">
+    Windows
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sessions" class="md-nav__link">
+    Sessions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locals" class="md-nav__link">
+    Locals
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expressions" class="md-nav__link">
+    Expressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breakpoints" class="md-nav__link">
+    Breakpoints
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loaded-sources" class="md-nav__link">
+    Loaded sources
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dap-debug-repl" class="md-nav__link">
+    DAP debug REPL
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dap-mode-configuration" class="md-nav__link">
+    DAP mode configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#java_1" class="md-nav__link">
+    Java
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    Python
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ruby" class="md-nav__link">
+    Ruby
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dart" class="md-nav__link">
+    Dart
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lldb" class="md-nav__link">
+    LLDB
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elixir" class="md-nav__link">
+    Elixir
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#php" class="md-nav__link">
+    PHP
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#native-debug-gdblldb" class="md-nav__link">
+    Native Debug (GDB/LLDB)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#go_1" class="md-nav__link">
+    Go
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#javascript_1" class="md-nav__link">
+    Javascript
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#powershell" class="md-nav__link">
+    Powershell
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extending-dap-with-new-debug-servers" class="md-nav__link">
+    Extending DAP with new Debug servers
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#links" class="md-nav__link">
+    Links
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgments" class="md-nav__link">
+    Acknowledgments
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="CHANGELOG/" title="Changelog" class="md-nav__link">
+      Changelog
+    </a>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    Summary
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#project-status" class="md-nav__link">
+    Project status
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screenshot" class="md-nav__link">
+    Screenshot
+  </a>
+  
+    <nav class="md-nav" aria-label="Screenshot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java" class="md-nav__link">
+    Java
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swift" class="md-nav__link">
+    Swift
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rust" class="md-nav__link">
+    RUST
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#go" class="md-nav__link">
+    Go
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#javascript" class="md-nav__link">
+    Javascript
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    Features
+  </a>
+  
+    <nav class="md-nav" aria-label="Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debugger-commands" class="md-nav__link">
+    Debugger commands
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows" class="md-nav__link">
+    Windows
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sessions" class="md-nav__link">
+    Sessions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locals" class="md-nav__link">
+    Locals
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expressions" class="md-nav__link">
+    Expressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breakpoints" class="md-nav__link">
+    Breakpoints
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loaded-sources" class="md-nav__link">
+    Loaded sources
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dap-debug-repl" class="md-nav__link">
+    DAP debug REPL
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dap-mode-configuration" class="md-nav__link">
+    DAP mode configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#java_1" class="md-nav__link">
+    Java
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    Python
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ruby" class="md-nav__link">
+    Ruby
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dart" class="md-nav__link">
+    Dart
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lldb" class="md-nav__link">
+    LLDB
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elixir" class="md-nav__link">
+    Elixir
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#php" class="md-nav__link">
+    PHP
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#native-debug-gdblldb" class="md-nav__link">
+    Native Debug (GDB/LLDB)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#go_1" class="md-nav__link">
+    Go
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#javascript_1" class="md-nav__link">
+    Javascript
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#powershell" class="md-nav__link">
+    Powershell
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extending-dap-with-new-debug-servers" class="md-nav__link">
+    Extending DAP with new Debug servers
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#links" class="md-nav__link">
+    Links
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgments" class="md-nav__link">
+    Acknowledgments
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/emacs-lsp/dap-mode/edit/master/docs/README.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <p><a href="https://melpa.org/#/dap-mode"><img alt="" src="https://melpa.org/packages/dap-mode-badge.svg" /></a>
+<a href="http://spacemacs.org"><img alt="" src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" /></a>
+<a href="https://travis-ci.org/emacs-lsp/dap-mode"><img alt="" src="https://travis-ci.org/emacs-lsp/dap-mode.svg" /></a></p>
+<h1 id="dap-mode">dap-mode<a class="headerlink" href="#dap-mode" title="Permanent link">#</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">#</a></h2>
+<p>Emacs client/library for <a href="https://microsoft.github.io/debug-adapter-protocol/">Debug Adapter
+Protocol</a> is a wire
+protocol for communication between client and Debug Server. It's similar
+to the <a href="https://github.com/Microsoft/language-server-protocol">LSP</a> but
+provides integration with debug server.</p>
+<h3 id="project-status">Project status<a class="headerlink" href="#project-status" title="Permanent link">#</a></h3>
+<p>The API considered unstable until 1.0 release is out. It is tested
+against Java, Python, Ruby, Elixir and LLDB (C/C++/Objective-C/Swift).</p>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
+<p>The main entry points are <code>dap-debug</code> and <code>dap-debug-edit-template</code>. The
+first one asks for a registered debug template and starts the
+configuration using the default values for that particular
+configuration. The latter creates a debug template which could be
+customized before running. <code>dap-debug-edit-template</code> will prepare a
+template deceleration inside a temporary buffer. You should execute this
+code using <code>C-M-x</code> for the changes to apply. You should also copy this
+code into your Emacs configuration if you wish to make it persistent.</p>
+<p>dap-mode also provides a <a href="https://github.com/abo-abo/hydra">hydra</a> with
+<code>dap-hydra</code>. You can automatically trigger the hydra when the program
+hits a breakpoint by using the following code.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;dap-stopped-hook</span>
+          <span class="p">(</span><span class="nb">lambda</span> <span class="p">(</span><span class="nv">arg</span><span class="p">)</span> <span class="p">(</span><span class="nf">call-interactively</span> <span class="nf">#&#39;</span><span class="nv">dap-hydra</span><span class="p">)))</span>
+</code></pre></div>
+
+<h2 id="screenshot">Screenshot<a class="headerlink" href="#screenshot" title="Permanent link">#</a></h2>
+<h3 id="java">Java<a class="headerlink" href="#java" title="Permanent link">#</a></h3>
+<p><img alt="" src="screenshots/MultiSession.png" /></p>
+<h3 id="swift">Swift<a class="headerlink" href="#swift" title="Permanent link">#</a></h3>
+<p><img alt="" src="screenshots/Swift.png" /></p>
+<h3 id="rust">RUST<a class="headerlink" href="#rust" title="Permanent link">#</a></h3>
+<p><img alt="RUST via Native Debug" src="screenshots/rust.png" /></p>
+<h3 id="go">Go<a class="headerlink" href="#go" title="Permanent link">#</a></h3>
+<p><img alt="" src="screenshots/go.png" /></p>
+<h3 id="javascript">Javascript<a class="headerlink" href="#javascript" title="Permanent link">#</a></h3>
+<p><img alt="Javascript via Firefox debugger" src="screenshots/javascript.png" /></p>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">#</a></h2>
+<ul>
+<li>Launch/Attach</li>
+<li>Breakpoints</li>
+<li>Exceptions</li>
+<li>Pause &amp; Continue</li>
+<li>Step In/Out/Over</li>
+<li>Callstacks</li>
+<li>Threads</li>
+<li>Multiple simultaneous debug sessions</li>
+<li>Evaluating statements</li>
+<li>Debug/Run configurations</li>
+<li>Expressions</li>
+</ul>
+<h3 id="debugger-commands">Debugger commands<a class="headerlink" href="#debugger-commands" title="Permanent link">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dap-breakpoint-toggle</code></td>
+<td>Toggle breakpoint at line</td>
+</tr>
+<tr>
+<td><code>dap-breakpoint-delete</code></td>
+<td>Delete breakpoint at line</td>
+</tr>
+<tr>
+<td><code>dap-breakpoint-add</code></td>
+<td>Add breakpoint at line</td>
+</tr>
+<tr>
+<td><code>dap-breakpoint-condition</code></td>
+<td>Set/unset breakpoint condition</td>
+</tr>
+<tr>
+<td><code>dap-breakpoint-hit-condition</code></td>
+<td>Set/unset breakpoint hit condition</td>
+</tr>
+<tr>
+<td><code>dap-breakpoint-log-message</code></td>
+<td>Set/unset breakpoint log message</td>
+</tr>
+<tr>
+<td><code>dap-eval</code></td>
+<td>Eval string</td>
+</tr>
+<tr>
+<td><code>dap-eval-region</code></td>
+<td>Eval region string</td>
+</tr>
+<tr>
+<td><code>dap-eval-thing-at-point</code></td>
+<td>Eval symbol at point</td>
+</tr>
+<tr>
+<td><code>dap-step-in</code></td>
+<td>Debug step in</td>
+</tr>
+<tr>
+<td><code>dap-next</code></td>
+<td>Debug next</td>
+</tr>
+<tr>
+<td><code>dap-step-out</code></td>
+<td>Debug step out</td>
+</tr>
+<tr>
+<td><code>dap-stop-thread</code></td>
+<td>Stop thread</td>
+</tr>
+<tr>
+<td><code>dap-restart-frame</code></td>
+<td>Restart frame</td>
+</tr>
+<tr>
+<td><code>dap-continue</code></td>
+<td>Debug continue</td>
+</tr>
+<tr>
+<td><code>dap-disconnect</code></td>
+<td>Cancel current debug session</td>
+</tr>
+<tr>
+<td><code>dap-switch-stack-frame</code></td>
+<td>Switch active stack frame</td>
+</tr>
+<tr>
+<td><code>dap-switch-thread</code></td>
+<td>Switch active thread</td>
+</tr>
+<tr>
+<td><code>dap-switch-session</code></td>
+<td>Switch active session</td>
+</tr>
+<tr>
+<td><code>dap-debug-edit-template</code></td>
+<td>Generate run command</td>
+</tr>
+<tr>
+<td><code>dap-debug</code></td>
+<td>Create and run new configuration using the available templates</td>
+</tr>
+<tr>
+<td><code>dap-debug-last</code></td>
+<td>Debug previous configuration</td>
+</tr>
+<tr>
+<td><code>dap-debug-recent</code></td>
+<td>Select configuration to run from the previously started command</td>
+</tr>
+<tr>
+<td><code>dap-go-to-output-buffer</code></td>
+<td>Go output buffer</td>
+</tr>
+</tbody>
+</table>
+<h3 id="windows">Windows<a class="headerlink" href="#windows" title="Permanent link">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dap-ui-sessions</code></td>
+<td>Show active/terminated sessions view</td>
+</tr>
+<tr>
+<td><code>dap-ui-locals</code></td>
+<td>Show locals view</td>
+</tr>
+<tr>
+<td><code>dap-ui-expressions</code></td>
+<td>Show expressions view</td>
+</tr>
+<tr>
+<td><code>dap-ui-breakpoints</code></td>
+<td>Show breakpoints view</td>
+</tr>
+<tr>
+<td><code>dap-ui-repl</code></td>
+<td>DAP UI REPL</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sessions">Sessions<a class="headerlink" href="#sessions" title="Permanent link">#</a></h3>
+<p>The session view is showed after invoking <code>dap-ui-sessions</code> . It
+represents the list of the active sessions.</p>
+<h3 id="locals">Locals<a class="headerlink" href="#locals" title="Permanent link">#</a></h3>
+<p>Locals can be viewed after invoking <code>dap-ui-locals</code>.</p>
+<h3 id="expressions">Expressions<a class="headerlink" href="#expressions" title="Permanent link">#</a></h3>
+<p>Watch expressions can be viewed after invoking <code>dap-ui-expressions</code>. You
+could add remove watch expressions via <code>dap-ui-expressions-add</code> and
+<code>dap-ui-expressions-remove</code>.</p>
+<h3 id="breakpoints">Breakpoints<a class="headerlink" href="#breakpoints" title="Permanent link">#</a></h3>
+<p>Breakpoints can be viewed after invoking <code>dap-ui-breakpoints</code>.</p>
+<ol>
+<li>
+<p>Keybindings</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+<th>Keybindings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dap-ui-breakpoints-goto</code></td>
+<td>Go to breakpoint under cursor</td>
+<td>\&lt;return></td>
+</tr>
+<tr>
+<td><code>dap-ui-breakpoints-delete</code></td>
+<td>Delete breakpoint under cursor</td>
+<td>d</td>
+</tr>
+<tr>
+<td><code>dap-ui-breakpoints-delete-selected</code></td>
+<td>Delete selected breakpoints</td>
+<td>D</td>
+</tr>
+<tr>
+<td><code>bui-list-mark</code></td>
+<td>Mark breakpoint under point</td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>bui-list-unmark</code></td>
+<td>Unmark breakpoint under point</td>
+<td>u</td>
+</tr>
+<tr>
+<td><code>bui-list-unmark-all</code></td>
+<td>Unmark breakpoint under point</td>
+<td>U</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ol>
+<h3 id="loaded-sources">Loaded sources<a class="headerlink" href="#loaded-sources" title="Permanent link">#</a></h3>
+<p>Loaded sources can be viewed by invoking <code>dap-tm-loaded-sources</code>.</p>
+<h3 id="dap-debug-repl">DAP debug REPL<a class="headerlink" href="#dap-debug-repl" title="Permanent link">#</a></h3>
+<p>DAP provides a debug shell to execute commands when the program has hit
+breakpoints. The REPL has the same features as regular emacs shells
+(e.g. command history, <code>C-p/n</code> navigation through history, etc.) in
+addition to optional <code>company-mode</code> autocompletion.
+<img alt="" src="screenshots/dap-ui-repl.png" /></p>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
+<h3 id="dap-mode-configuration">DAP mode configuration<a class="headerlink" href="#dap-mode-configuration" title="Permanent link">#</a></h3>
+<p>Enable both <code>dap-mode</code> and <code>dap-ui-mode</code> (requires posframe to be
+installed manually, available only for emacs version >= 26).</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-mode</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">dap-ui-mode</span> <span class="mi">1</span><span class="p">)</span>
+<span class="c1">;; enables mouse hover support</span>
+<span class="p">(</span><span class="nv">dap-tooltip-mode</span> <span class="mi">1</span><span class="p">)</span>
+<span class="c1">;; use tooltips for mouse hover</span>
+<span class="c1">;; if it is not enabled `dap-mode&#39; will use the minibuffer.</span>
+<span class="p">(</span><span class="nv">tooltip-mode</span> <span class="mi">1</span><span class="p">)</span>
+<span class="c1">;; displays floating panel with debug buttons</span>
+<span class="c1">;; requies emacs 26+</span>
+<span class="p">(</span><span class="nv">dap-ui-controls-mode</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+
+<p>After enabling DAP mode on emacs side follow the language specific
+settings.</p>
+<h3 id="java_1">Java<a class="headerlink" href="#java_1" title="Permanent link">#</a></h3>
+<ol>
+<li>
+<p>Installation</p>
+<p>Latest version of <a href="https://github.com/emacs-lsp/lsp-java">LSP Java</a>
+will automatically discover if <code>dap-mode</code> is present and it will
+download and install the required server side components. If you
+have already downloaded a <code>Eclispe JDT Server</code> you will have to
+force a server update via <code>lsp-java-update-server</code>. In order to
+enable lsp java, you will have to require <code>dap-java.el</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-java</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+<li>
+<p>Commands</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dap-java-debug</code></td>
+<td>Debug java</td>
+</tr>
+<tr>
+<td><code>dap-java-run-test-method</code></td>
+<td>Run test method</td>
+</tr>
+<tr>
+<td><code>dap-java-debug-test-method</code></td>
+<td>Debug test method</td>
+</tr>
+<tr>
+<td><code>dap-java-run-test-class</code></td>
+<td>Run test class</td>
+</tr>
+<tr>
+<td><code>dap-java-debug-test-class</code></td>
+<td>Debug test class</td>
+</tr>
+</tbody>
+</table>
+<p>You can also edit one of the existing templates and execute it with
+<code>dap-debug</code>. dap-mode will take care of filling missing values, such
+as classpath. JVM arguments can be specified with <code>:vmArgs</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-register-debug-template</span> <span class="s">&quot;My Runner&quot;</span>
+                             <span class="p">(</span><span class="nf">list</span> <span class="nb">:type</span> <span class="s">&quot;java&quot;</span>
+                                   <span class="nb">:request</span> <span class="s">&quot;launch&quot;</span>
+                                   <span class="nb">:args</span> <span class="s">&quot;&quot;</span>
+                                   <span class="nb">:vmArgs</span> <span class="s">&quot;-ea -Dmyapp.instance.name=myapp_1&quot;</span>
+                                   <span class="nb">:projectName</span> <span class="s">&quot;myapp&quot;</span>
+                                   <span class="nb">:mainClass</span> <span class="s">&quot;com.domain.AppRunner&quot;</span>
+                                   <span class="nb">:env</span> <span class="o">&#39;</span><span class="p">((</span><span class="s">&quot;DEV&quot;</span> <span class="o">.</span> <span class="s">&quot;1&quot;</span><span class="p">))))</span>
+</code></pre></div>
+
+</li>
+</ol>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>install latest version of ptvsd.</p>
+<div class="highlight"><pre><span></span><code>pip install <span class="s2">&quot;ptvsd&gt;=4.2&quot;</span>
+</code></pre></div>
+
+<ul>
+<li>
+<p>Then add the following line in your config:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-python</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+<p>This will add the python related configuration to <code>dap-debug</code>.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Usage</p>
+<p>A template named "Python :: Run Configuration" will appear, which
+will execute the currently visited module. This will fall short
+whenever you need to specify arguments, environment variables or
+execute a setuptools based script. In such case, define a template:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-register-debug-template</span> <span class="s">&quot;My App&quot;</span>
+  <span class="p">(</span><span class="nf">list</span> <span class="nb">:type</span> <span class="s">&quot;python&quot;</span>
+        <span class="nb">:args</span> <span class="s">&quot;-i&quot;</span>
+        <span class="nb">:cwd</span> <span class="no">nil</span>
+        <span class="nb">:env</span> <span class="o">&#39;</span><span class="p">((</span><span class="s">&quot;DEBUG&quot;</span> <span class="o">.</span> <span class="s">&quot;1&quot;</span><span class="p">))</span>
+        <span class="nb">:target-module</span> <span class="p">(</span><span class="nf">expand-file-name</span> <span class="s">&quot;~/src/myapp/.env/bin/myapp&quot;</span><span class="p">)</span>
+        <span class="nb">:request</span> <span class="s">&quot;launch&quot;</span>
+        <span class="nb">:name</span> <span class="s">&quot;My App&quot;</span><span class="p">))</span>
+</code></pre></div>
+
+</li>
+</ol>
+<h3 id="ruby">Ruby<a class="headerlink" href="#ruby" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>Download and extract <a href="https://marketplace.visualstudio.com/items?itemName=rebornix.Ruby">VSCode Ruby
+    Extension</a>.
+    You can do that either by:</p>
+<ul>
+<li>Calling <code>dap-ruby-setup</code>, the extension will be downloaded and
+    all your path will be automatically set up.</li>
+<li>Or download the extension manually. Make sure that
+    <code>dap-ruby-debug-program</code> is: <code>("node" path-to-main-js)</code> where
+    <code>node</code> is either "node" if nodejs is on the path or path to
+    nodejs and <code>path-to-main-js</code> is full path
+    <code>./dist/debugger/main.js</code> which is part of the downloaded VScode
+    package.</li>
+</ul>
+</li>
+<li>
+<p>Follow the instructions on installing <code>rdebug-ide</code> from <a href="https://github.com/rubyide/vscode-ruby/wiki/1.-Debugger-Installation">Ruby Debug
+    Installation</a></p>
+</li>
+<li>
+<p>Put in your emacs configuration.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-ruby</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+<h3 id="dart">Dart<a class="headerlink" href="#dart" title="Permanent link">#</a></h3>
+<p><a href="https://github.com/emacs-lsp/lsp-dart">LSP Dart</a> has support for
+<a href="https://github.com/emacs-lsp/lsp-dart#debug">debug</a> using <code>dap-mode</code>.</p>
+<p>You only need to run <code>dap-dart-setup</code> to setup automatically and then
+you are good to debug dart.</p>
+<ol>
+<li>
+<p>Flutter</p>
+<p><a href="https://github.com/emacs-lsp/lsp-dart">LSP Dart</a> also supports
+<a href="https://github.com/emacs-lsp/lsp-dart#flutter">Flutter debug</a> with
+options to debug a device or emulator.</p>
+</li>
+</ol>
+<h3 id="lldb">LLDB<a class="headerlink" href="#lldb" title="Permanent link">#</a></h3>
+<ol>
+<li>
+<p>Installation</p>
+<p>LLDB is a debugger that supports, among others, C, C++, Objective-C
+and Swift.</p>
+<ul>
+<li>
+<p>Clone and follow the instructions to compile lldb-vscode from
+    <a href="https://github.com/llvm-mirror/lldb/tree/master/tools/lldb-vscode">https://github.com/llvm-mirror/lldb/tree/master/tools/lldb-vscode</a></p>
+</li>
+<li>
+<p>Put in your emacs configuration.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-lldb</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+<p><strong>Note</strong>: For proper Swift support, you need to compile LLDB from
+<a href="https://github.com/apple/swift-lldb">https://github.com/apple/swift-lldb</a> and put the compiled LLDB
+library/framework in the "extensions" folder.</p>
+</li>
+</ol>
+<h3 id="elixir">Elixir<a class="headerlink" href="#elixir" title="Permanent link">#</a></h3>
+<p>Make sure that you have properly configured <code>Elixir</code> and that you have
+<a href="https://github.com/elixir-lsp/elixir-ls">Elixir LS</a> binaries on the
+path and put in your emacs configuration.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-elixir</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Then when you do <code>dap-debug-edit-template</code> and select Elixir which will
+generate runnable debug configuration. For more details on supported
+settings by the Elixir Debug Server refer to its documentation.</p>
+<h3 id="php">PHP<a class="headerlink" href="#php" title="Permanent link">#</a></h3>
+<p>Simplify setup of vscode extension with <code>dap-php-setup</code> after requiring
+<code>dap-php</code>.</p>
+<p>This is using
+<a href="https://github.com/felixfbecker/vscode-php-debug">felixbecker/vscode-php-debug</a>
+(<a href="https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug">downloadable from the
+marketplace</a>)
+as dap-server between emacs and the xdebug-extension on the http-server
+side. Make sure it is trans/compiled to javascript properly. Only tested
+under linux with node.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-php</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Start debugging by selecting "PHP Run Configuration" from the
+<code>dap-debug</code> menu, issue the debug request in your browser by choosing
+the running thread (<code>dap-switch-thread</code>) and then <code>dap-step-in</code>.</p>
+<h3 id="native-debug-gdblldb">Native Debug (GDB/LLDB)<a class="headerlink" href="#native-debug-gdblldb" title="Permanent link">#</a></h3>
+<p>Using <a href="https://github.com/WebFreak001/code-debug">https://github.com/WebFreak001/code-debug</a></p>
+<ol>
+<li>
+<p>Configuration</p>
+<p>For easier of setting up vscode extension, you only need call
+<code>dap-gdb-lldb-setup</code> after requiring <code>dap-gdb-lldb</code>.</p>
+<p>Or download and extract <a href="https://marketplace.visualstudio.com/items?itemName=webfreak.debug">VSCode
+extension</a>
+(make sure that <code>dap-gdb-lldb-path</code> is pointing to the extract
+location).</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-gdb-lldb</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Then do <code>dap-debug</code> or <code>dap-debug-edit-template</code> and selet GBD or
+LLDB configuration.</p>
+</li>
+</ol>
+<h3 id="go_1">Go<a class="headerlink" href="#go_1" title="Permanent link">#</a></h3>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>For easier of setting up vscode extension, you only need call
+    <code>dap-go-setup</code> after requiring <code>dap-go</code>.</p>
+<ul>
+<li>Or manually download and extract <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go">VSCode Go
+    Extension</a>..
+    it is actually zip file.</li>
+<li>check that you now have
+    .emacs.d/.extension/vscode/ms-vscode.go/extension/out/src/debugAdapter/goDebug.js</li>
+</ul>
+</li>
+<li>
+<p>install latest stable nodejs</p>
+</li>
+<li>
+<p>install gopls</p>
+</li>
+<li>
+<p>Install the delve command by following instructions on <a href="https://github.com/go-delve/delve/tree/master/Documentation/installation">delve -
+    installation</a>.</p>
+</li>
+<li>
+<p>install lsp-mode</p>
+</li>
+<li>
+<p>Put in your emacs configuration.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-go</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+<li>
+<p>set up hydra hook as instructed above</p>
+</li>
+</ul>
+<!-- end list -->
+
+<ol>
+<li>
+<p>Usage</p>
+<p>assume you have your code at \~/src/cool/cmd/app/app.go</p>
+<ul>
+<li>open your main package file e.g \~/src/cool/cmd/app/app.go</li>
+<li>or open a test file e.g app<sub>test</sub>.go</li>
+<li>add folder to lsp session where your go.mod is or would be<ul>
+<li>M-x lsp-workspace-folders-add \~/src/cool</li>
+</ul>
+</li>
+<li>set break point</li>
+<li>M-x dap-debug</li>
+<li>if you are debugging test files use "Go Launch File
+    Configuration"</li>
+<li>else select e.g "Go Launch Unoptimized Debug Package
+    Configuration"</li>
+</ul>
+</li>
+<li>
+<p>Trouble shooting</p>
+<ul>
+<li>put (setq dap-print-io t) and check messages buffer</li>
+<li>e.g linter can return note at debug session response
+    resulting debug session to fail</li>
+</ul>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="javascript_1">Javascript<a class="headerlink" href="#javascript_1" title="Permanent link">#</a></h3>
+<ol>
+<li>
+<p>Firefox</p>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>For easier of setting up vscode extension, you only need
+    call <code>dap-firefox-setup</code> after requiring <code>dap-firefox</code>.</p>
+<ul>
+<li>Or manually download and extract <a href="https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-firefox-debug">VSCode Firefox Debug
+    Extension</a>.</li>
+</ul>
+</li>
+<li>
+<p>Make sure that <code>dap-firefox-debug-program</code> is pointing to
+    the proper file.</p>
+</li>
+<li>
+<p>Put in your configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-firefox</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+</li>
+<li>
+<p>Usage</p>
+<p><code>dap-debug</code> or <code>dap-debug-edit-template</code> and select the firefox
+template. For additional documentation on the supported template
+parameters or about different configuration templates refer to
+<a href="https://github.com/hbenl/vscode-firefox-debug">Firefox Debug
+Adapter</a>.</p>
+</li>
+</ol>
+</li>
+<li>
+<p>Chrome</p>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>For easier of setting up vscode extension, you only need
+    call <code>dap-chrome-setup</code> after requiring <code>dap-chrome</code>.</p>
+<ul>
+<li>Or manually download and extract <a href="https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome">VSCode Chrome Debug
+    Extension</a>.</li>
+</ul>
+</li>
+<li>
+<p>Make sure that <code>dap-chrome-debug-program</code> is pointing to the
+    proper file.</p>
+</li>
+<li>
+<p>Put in your configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-chrome</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+</li>
+<li>
+<p>Usage</p>
+<p><code>dap-debug</code> or <code>dap-debug-edit-template</code> and select the chrome
+template. For additional documentation on the supported template
+parameters or about different configuration templates refer to
+<a href="https://github.com/Microsoft/vscode-chrome-debug">Chrome Debug
+Adapter</a>.</p>
+</li>
+</ol>
+</li>
+<li>
+<p>Microsoft Edge</p>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>For easier of setting up vscode extension, you only need
+    call <code>dap-edge-setup</code> after requiring <code>dap-edge</code>.</p>
+<ul>
+<li>Or manually download and extract <a href="https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-edge">VSCode Edge Debug
+    Extension</a>.</li>
+</ul>
+</li>
+<li>
+<p>Make sure that <code>dap-edge-debug-program</code> is pointing to the
+    proper file.</p>
+</li>
+<li>
+<p>Put in your configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-edge</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+</li>
+<li>
+<p>Usage</p>
+<p><code>dap-debug</code> or <code>dap-debug-edit-template</code> and select the edge
+template. For additional documentation on the supported template
+parameters or about different configuration templates refer to
+<a href="https://github.com/microsoft/vscode-edge-debug2">Edge Debug
+Adapter</a>.</p>
+</li>
+</ol>
+</li>
+<li>
+<p>Node</p>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>For easier of setting up vscode extension, you only need
+    call <code>dap-node-setup</code> after requiring <code>dap-node</code>.</p>
+<ul>
+<li>Or manually download and extract <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.node-debug2">VSCode Node Debug
+    Extension</a>.</li>
+</ul>
+</li>
+<li>
+<p>Make sure that <code>dap-node-debug-program</code> is pointing to the
+    proper file.</p>
+</li>
+<li>
+<p>Put in your configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-node</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+</li>
+<li>
+<p>Usage</p>
+<p><code>dap-debug</code> or <code>dap-debug-edit-template</code> and select the node
+template. For additional documentation on the supported template
+parameters or about different configuration templates refer to
+<a href="https://code.visualstudio.com/docs/nodejs/nodejs-debugging">Nodejs
+Debugging</a>.</p>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="powershell">Powershell<a class="headerlink" href="#powershell" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-pwsh</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Start debugging by selecting "Powershell: Launch Script" from
+<code>dap-debug</code> menu.</p>
+<h2 id="extending-dap-with-new-debug-servers">Extending DAP with new Debug servers<a class="headerlink" href="#extending-dap-with-new-debug-servers" title="Permanent link">#</a></h2>
+<p>There are two methods that are used for registering remote extensions:</p>
+<ul>
+<li><code>dap-register-debug-provider</code> - register a method to call for
+    populating startup parameters. It should either populate
+    <code>:debugPort</code> and <code>:host</code> in case of TCP Debug Adapter Server or
+    <code>:dap-server-path</code> when STD out must be used for Debug Adapter
+    Server communication.</li>
+<li><code>dap-register-debug-template</code> register a debug template which will
+    be available when <code>dap-debug</code> is called. The debug template must
+    specify <code>:type</code> key which will be used to determine the provider to
+    be called to populate missing fields.</li>
+</ul>
+<p>Example</p>
+<p>For full example you may check <code>dap-java.el</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-register-debug-provider</span>
+ <span class="s">&quot;programming-language-name&quot;</span>
+ <span class="p">(</span><span class="nb">lambda</span> <span class="p">(</span><span class="nv">conf</span><span class="p">)</span>
+   <span class="p">(</span><span class="nf">plist-put</span> <span class="nv">conf</span> <span class="nb">:debugPort</span> <span class="mi">1234</span><span class="p">)</span>
+   <span class="p">(</span><span class="nf">plist-put</span> <span class="nv">conf</span> <span class="nb">:host</span> <span class="s">&quot;localhost&quot;</span><span class="p">)</span>
+   <span class="nv">conf</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">dap-register-debug-template</span> <span class="s">&quot;Example Configuration&quot;</span>
+                             <span class="p">(</span><span class="nf">list</span> <span class="nb">:type</span> <span class="s">&quot;java&quot;</span>
+                                   <span class="nb">:request</span> <span class="s">&quot;launch&quot;</span>
+                                   <span class="nb">:args</span> <span class="s">&quot;&quot;</span>
+                                   <span class="nb">:name</span> <span class="s">&quot;Run Configuration&quot;</span><span class="p">))</span>
+</code></pre></div>
+
+<h2 id="links">Links<a class="headerlink" href="#links" title="Permanent link">#</a></h2>
+<ul>
+<li><a href="https://code.visualstudio.com/docs/extensionAPI/api-debugging">Debug Adapter
+    Protocol</a></li>
+<li><a href="https://github.com/emacs-lsp/lsp-java">LSP Java</a></li>
+<li><a href="https://microsoft.github.io/debug-adapter-protocol/implementors/adapters/">Debug Adapter Protocol Server
+    Implementations</a></li>
+</ul>
+<h2 id="acknowledgments">Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permanent link">#</a></h2>
+<ul>
+<li><a href="https://github.com/danielmartin">Daniel Martin</a> - LLDB integration.</li>
+<li><a href="https://github.com/kiennq">Kien Nguyen</a> - NodeJS debugger, Edge
+    debuggers, automatic extension installation.</li>
+<li><a href="https://github.com/Ladicle">Aya Igarashi</a> - Go debugger
+    integration.</li>
+</ul>
+                
+                  
+                    
+
+<hr>
+<div class="md-source-date">
+  <small>
+    
+      Last update: May 3, 2020
+    
+  </small>
+</div>
+                  
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+        
+          <a href="CHANGELOG/" title="Changelog" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Changelog
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+  <div class="md-footer-social">
+    
+      
+      
+      <a href="https://github.com/emacs-lsp/dap-mode" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+      </a>
+    
+      
+      
+      <a href="https://twitter.com/yonchovski" target="_blank" rel="noopener" title="twitter.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+      </a>
+    
+      
+      
+      <a href="https://gitter.im/emacs-lsp/lsp-mode" target="_blank" rel="noopener" title="gitter.im" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M66.4 322.5H16V0h50.4v322.5zM166.9 76.1h-50.4V512h50.4V76.1zm100.6 0h-50.4V512h50.4V76.1zM368 76h-50.4v247H368V76z"/></svg>
+      </a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="assets/javascripts/vendor.83fe6e3c.min.js"></script>
+      <script src="assets/javascripts/bundle.7e1cb91c.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: ".",
+          features: [],
+          search: Object.assign({
+            worker: "assets/javascripts/worker/search.37585f48.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
