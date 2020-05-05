@@ -39,6 +39,9 @@
                                  "%%%s%%"
                                "$%s"))
 
+;; Set to non-nil to use TestNG instead of the default JUnit
+(defvar dap-java-use-testng nil)
+
 (defcustom dap-java-java-command "java"
   "Path of the java executable."
   :group 'dap-java
@@ -55,6 +58,13 @@ If the port is taken, DAP will try the next port."
   "DAP Java test runner."
   :group 'dap-java-java
   :type 'file)
+
+
+(defcustom dap-java-testng-report-dir "build/test-output"
+  "The directory where TestNG reports will be generated."
+  :group 'dap-java-java
+  :type 'string)
+
 
 (defcustom dap-java-build 'ask
   "Perform build before running project behaviour."
@@ -229,13 +239,21 @@ test."
                              (lsp-send-execute-command "vscode.java.resolveClasspath"
                                                        (vector test-class-name nil)))
                            cl-second
-                           (s-join dap-java--classpath-separator))))
-    (list :program-to-start (s-join " "
-                                    (cl-list* runner "-jar" dap-java-test-runner
-                                              "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
-                                              (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
-                                              (if run-method? to-run test-class-name)
-                                              dap-java-test-additional-args))
+                           (s-join dap-java--classpath-separator)))
+          (prog-list (if dap-java-use-testng
+                         (cl-list* runner
+                                    "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
+                                    "org.testng.TestNG"
+                                    "-d" testng-report-directory
+                                    (if (and (s-contains? "#" to-run) run-method?) "-methods" "-testclass")
+                                    (if run-method? (s-replace "#" "." to-run) test-class-name)
+                                    dap-java-test-additional-args)
+                       (cl-list* runner "-jar" dap-java-test-runner
+                                 "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
+                                 (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
+                                 (if run-method? to-run test-class-name)
+                                 dap-java-test-additional-args))))
+    (list :program-to-start (s-join " " prog-list)
           :environment-variables `(("JUNIT_CLASS_PATH" . ,class-path))
           :name to-run
           :cwd (lsp-java--get-root))))
