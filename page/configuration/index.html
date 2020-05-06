@@ -9,7 +9,7 @@
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
       
-        <link rel="canonical" href="https://emacs-lsp.github.io/dap-mode/page/how-to/">
+        <link rel="canonical" href="https://emacs-lsp.github.io/dap-mode/page/configuration/">
       
       
       <link rel="shortcut icon" href="../../screenshots/logo.png">
@@ -17,7 +17,7 @@
     
     
       
-        <title>How to - DAP Mode</title>
+        <title>Configuration - DAP Mode</title>
       
     
     
@@ -57,7 +57,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#how-to" class="md-skip">
+        <a href="#configuration" class="md-skip">
           Skip to content
         </a>
       
@@ -84,7 +84,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              How to
+              Configuration
             
           </span>
         </div>
@@ -272,18 +272,6 @@
       
       
 
-
-  <li class="md-nav__item">
-    <a href="../configuration/" title="Configuration" class="md-nav__link">
-      Configuration
-    </a>
-  </li>
-
-    
-      
-      
-      
-
   
 
 
@@ -295,14 +283,14 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="__toc">
-        How to
+        Configuration
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
         </span>
       </label>
     
-    <a href="./" title="How to" class="md-nav__link md-nav__link--active">
-      How to
+    <a href="./" title="Configuration" class="md-nav__link md-nav__link--active">
+      Configuration
     </a>
     
       
@@ -321,15 +309,85 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#display-debug-windows-on-session-startup" class="md-nav__link">
-    Display debug windows on session startup
+  <a href="#dap-mode-configuration" class="md-nav__link">
+    DAP mode configuration
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#activate-minor-modes-when-stepping-through-code" class="md-nav__link">
-    Activate minor modes when stepping through code
+  <a href="#java" class="md-nav__link">
+    Java
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ruby" class="md-nav__link">
+    Ruby
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dart" class="md-nav__link">
+    Dart
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lldb" class="md-nav__link">
+    LLDB
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#elixir" class="md-nav__link">
+    Elixir
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#php" class="md-nav__link">
+    PHP
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#native-debug-gdblldb" class="md-nav__link">
+    Native Debug (GDB/LLDB)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#go" class="md-nav__link">
+    Go
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#javascript" class="md-nav__link">
+    Javascript
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#powershell" class="md-nav__link">
+    Powershell
   </a>
   
 </li>
@@ -338,6 +396,18 @@
   
 </nav>
     
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../how-to/" title="How to" class="md-nav__link">
+      How to
+    </a>
   </li>
 
     
@@ -505,15 +575,85 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#display-debug-windows-on-session-startup" class="md-nav__link">
-    Display debug windows on session startup
+  <a href="#dap-mode-configuration" class="md-nav__link">
+    DAP mode configuration
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#activate-minor-modes-when-stepping-through-code" class="md-nav__link">
-    Activate minor modes when stepping through code
+  <a href="#java" class="md-nav__link">
+    Java
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ruby" class="md-nav__link">
+    Ruby
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dart" class="md-nav__link">
+    Dart
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lldb" class="md-nav__link">
+    LLDB
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#elixir" class="md-nav__link">
+    Elixir
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#php" class="md-nav__link">
+    PHP
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#native-debug-gdblldb" class="md-nav__link">
+    Native Debug (GDB/LLDB)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#go" class="md-nav__link">
+    Go
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#javascript" class="md-nav__link">
+    Javascript
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#powershell" class="md-nav__link">
+    Powershell
   </a>
   
 </li>
@@ -530,7 +670,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/emacs-lsp/dap-mode/edit/master/docs/page/how-to.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/emacs-lsp/dap-mode/edit/master/docs/page/configuration.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
@@ -538,68 +678,457 @@
                   
                 
                 
-                <h1 id="how-to">How to<a class="headerlink" href="#how-to" title="Permanent link">#</a></h1>
-<h2 id="display-debug-windows-on-session-startup">Display debug windows on session startup<a class="headerlink" href="#display-debug-windows-on-session-startup" title="Permanent link">#</a></h2>
-<p>Here it is a code that can be used to automatically display/hide debug windows.</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">defun</span> <span class="nv">my/window-visible</span> <span class="p">(</span><span class="nv">b-name</span><span class="p">)</span>
-  <span class="s">&quot;Return whether B-NAME is visible.&quot;</span>
-  <span class="p">(</span><span class="nv">-&gt;</span> <span class="p">(</span><span class="nv">-compose</span> <span class="ss">&#39;buffer-name</span> <span class="ss">&#39;window-buffer</span><span class="p">)</span>
-      <span class="p">(</span><span class="nv">-map</span> <span class="p">(</span><span class="nf">window-list</span><span class="p">))</span>
-      <span class="p">(</span><span class="nv">-contains?</span> <span class="nv">b-name</span><span class="p">)))</span>
-
-<span class="p">(</span><span class="nb">defun</span> <span class="nv">my/show-debug-windows</span> <span class="p">(</span><span class="nv">session</span><span class="p">)</span>
-  <span class="s">&quot;Show debug windows.&quot;</span>
-  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">lsp--cur-workspace</span> <span class="p">(</span><span class="nv">dap--debug-session-workspace</span> <span class="nv">session</span><span class="p">)))</span>
-    <span class="p">(</span><span class="k">save-excursion</span>
-      <span class="c1">;; display locals</span>
-      <span class="p">(</span><span class="nb">unless</span> <span class="p">(</span><span class="nv">my/window-visible</span> <span class="nv">dap-ui--locals-buffer</span><span class="p">)</span>
-        <span class="p">(</span><span class="nv">dap-ui-locals</span><span class="p">))</span>
-      <span class="c1">;; display sessions</span>
-      <span class="p">(</span><span class="nb">unless</span> <span class="p">(</span><span class="nv">my/window-visible</span> <span class="nv">dap-ui--sessions-buffer</span><span class="p">)</span>
-        <span class="p">(</span><span class="nv">dap-ui-sessions</span><span class="p">)))))</span>
-
-<span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;dap-stopped-hook</span> <span class="ss">&#39;my/show-debug-windows</span><span class="p">)</span>
-
-<span class="p">(</span><span class="nb">defun</span> <span class="nv">my/hide-debug-windows</span> <span class="p">(</span><span class="nv">session</span><span class="p">)</span>
-  <span class="s">&quot;Hide debug windows when all debug sessions are dead.&quot;</span>
-  <span class="p">(</span><span class="nb">unless</span> <span class="p">(</span><span class="nv">-filter</span> <span class="ss">&#39;dap--session-running</span> <span class="p">(</span><span class="nv">dap--get-sessions</span><span class="p">))</span>
-    <span class="p">(</span><span class="k">and</span> <span class="p">(</span><span class="nf">get-buffer</span> <span class="nv">dap-ui--sessions-buffer</span><span class="p">)</span>
-         <span class="p">(</span><span class="nf">kill-buffer</span> <span class="nv">dap-ui--sessions-buffer</span><span class="p">))</span>
-    <span class="p">(</span><span class="k">and</span> <span class="p">(</span><span class="nf">get-buffer</span> <span class="nv">dap-ui--locals-buffer</span><span class="p">)</span>
-         <span class="p">(</span><span class="nf">kill-buffer</span> <span class="nv">dap-ui--locals-buffer</span><span class="p">))))</span>
-
-<span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;dap-terminated-hook</span> <span class="ss">&#39;my/hide-debug-windows</span><span class="p">)</span>
+                <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h1>
+<h2 id="dap-mode-configuration">DAP mode configuration<a class="headerlink" href="#dap-mode-configuration" title="Permanent link">#</a></h2>
+<p>Enable both <code>dap-mode</code> and <code>dap-ui-mode</code> (requires posframe to be
+installed manually, available only for emacs version >= 26).</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-mode</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">dap-ui-mode</span> <span class="mi">1</span><span class="p">)</span>
+<span class="c1">;; enables mouse hover support</span>
+<span class="p">(</span><span class="nv">dap-tooltip-mode</span> <span class="mi">1</span><span class="p">)</span>
+<span class="c1">;; use tooltips for mouse hover</span>
+<span class="c1">;; if it is not enabled `dap-mode&#39; will use the minibuffer.</span>
+<span class="p">(</span><span class="nv">tooltip-mode</span> <span class="mi">1</span><span class="p">)</span>
+<span class="c1">;; displays floating panel with debug buttons</span>
+<span class="c1">;; requies emacs 26+</span>
+<span class="p">(</span><span class="nv">dap-ui-controls-mode</span> <span class="mi">1</span><span class="p">)</span>
 </code></pre></div>
 
-<h2 id="activate-minor-modes-when-stepping-through-code">Activate minor modes when stepping through code<a class="headerlink" href="#activate-minor-modes-when-stepping-through-code" title="Permanent link">#</a></h2>
-<p>You may want to activate minor modes, e.g. <code>read-only-mode</code>, when the debugger is active in a buffer. If so, you could use a trick like this:</p>
-<div class="highlight"><pre><span></span><code><span class="c1">;; -*- lexical-binding: t -*-</span>
-<span class="p">(</span><span class="nb">define-minor-mode</span> <span class="nv">+dap-running-session-mode</span>
-  <span class="s">&quot;A mode for adding keybindings to running sessions&quot;</span>
-  <span class="no">nil</span>
-  <span class="no">nil</span>
-  <span class="p">(</span><span class="nf">make-sparse-keymap</span><span class="p">)</span>
-  <span class="p">(</span><span class="nv">evil-normalize-keymaps</span><span class="p">)</span> <span class="c1">;; if you use evil, this is necessary to update the keymaps</span>
-  <span class="c1">;; The following code adds to the dap-terminated-hook</span>
-  <span class="c1">;; so that this minor mode will be deactivated when the debugger finishes</span>
-  <span class="p">(</span><span class="nb">when</span> <span class="nv">+dap-running-session-mode</span>
-    <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">session-at-creation</span> <span class="p">(</span><span class="nv">dap--cur-active-session-or-die</span><span class="p">)))</span>
-      <span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;dap-terminated-hook</span>
-                <span class="p">(</span><span class="nb">lambda</span> <span class="p">(</span><span class="nv">session</span><span class="p">)</span>
-                  <span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nf">eq</span> <span class="nv">session</span> <span class="nv">session-at-creation</span><span class="p">)</span>
-                    <span class="p">(</span><span class="nv">+dap-running-session-mode</span> <span class="mi">-1</span><span class="p">)))))))</span>
-
-<span class="c1">;; Activate this minor mode when dap is initialized</span>
-<span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;dap-session-created-hook</span> <span class="ss">&#39;+dap-running-session-mode</span><span class="p">)</span>
-
-<span class="c1">;; Activate this minor mode when hitting a breakpoint in another file</span>
-<span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;dap-stopped-hook</span> <span class="ss">&#39;+dap-running-session-mode</span><span class="p">)</span>
-
-<span class="c1">;; Activate this minor mode when stepping into code in another file</span>
-<span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;dap-stack-frame-changed-hook</span> <span class="p">(</span><span class="nb">lambda</span> <span class="p">(</span><span class="nv">session</span><span class="p">)</span>
-                                          <span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nv">dap--session-running</span> <span class="nv">session</span><span class="p">)</span>
-                                            <span class="p">(</span><span class="nv">+dap-running-session-mode</span> <span class="mi">1</span><span class="p">))))</span>
+<p>After enabling DAP mode on emacs side follow the language specific
+settings.</p>
+<h2 id="java">Java<a class="headerlink" href="#java" title="Permanent link">#</a></h2>
+<ol>
+<li>
+<p>Installation</p>
+<p>Latest version of <a href="https://github.com/emacs-lsp/lsp-java">LSP Java</a>
+will automatically discover if <code>dap-mode</code> is present and it will
+download and install the required server side components. If you
+have already downloaded a <code>Eclispe JDT Server</code> you will have to
+force a server update via <code>lsp-java-update-server</code>. In order to
+enable lsp java, you will have to require <code>dap-java.el</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-java</span><span class="p">)</span>
 </code></pre></div>
+
+</li>
+<li>
+<p>Commands</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dap-java-debug</code></td>
+<td>Debug java</td>
+</tr>
+<tr>
+<td><code>dap-java-run-test-method</code></td>
+<td>Run test method</td>
+</tr>
+<tr>
+<td><code>dap-java-debug-test-method</code></td>
+<td>Debug test method</td>
+</tr>
+<tr>
+<td><code>dap-java-run-test-class</code></td>
+<td>Run test class</td>
+</tr>
+<tr>
+<td><code>dap-java-debug-test-class</code></td>
+<td>Debug test class</td>
+</tr>
+</tbody>
+</table>
+<p>You can also edit one of the existing templates and execute it with
+<code>dap-debug</code>. dap-mode will take care of filling missing values, such
+as classpath. JVM arguments can be specified with <code>:vmArgs</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-register-debug-template</span> <span class="s">&quot;My Runner&quot;</span>
+                             <span class="p">(</span><span class="nf">list</span> <span class="nb">:type</span> <span class="s">&quot;java&quot;</span>
+                                   <span class="nb">:request</span> <span class="s">&quot;launch&quot;</span>
+                                   <span class="nb">:args</span> <span class="s">&quot;&quot;</span>
+                                   <span class="nb">:vmArgs</span> <span class="s">&quot;-ea -Dmyapp.instance.name=myapp_1&quot;</span>
+                                   <span class="nb">:projectName</span> <span class="s">&quot;myapp&quot;</span>
+                                   <span class="nb">:mainClass</span> <span class="s">&quot;com.domain.AppRunner&quot;</span>
+                                   <span class="nb">:env</span> <span class="o">&#39;</span><span class="p">((</span><span class="s">&quot;DEV&quot;</span> <span class="o">.</span> <span class="s">&quot;1&quot;</span><span class="p">))))</span>
+</code></pre></div>
+
+</li>
+</ol>
+<h2 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h2>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>install latest version of ptvsd.</p>
+<div class="highlight"><pre><span></span><code>pip install <span class="s2">&quot;ptvsd&gt;=4.2&quot;</span>
+</code></pre></div>
+
+<ul>
+<li>
+<p>Then add the following line in your config:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-python</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+<p>This will add the python related configuration to <code>dap-debug</code>.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Usage</p>
+<p>A template named "Python :: Run Configuration" will appear, which
+will execute the currently visited module. This will fall short
+whenever you need to specify arguments, environment variables or
+execute a setuptools based script. In such case, define a template:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-register-debug-template</span> <span class="s">&quot;My App&quot;</span>
+  <span class="p">(</span><span class="nf">list</span> <span class="nb">:type</span> <span class="s">&quot;python&quot;</span>
+        <span class="nb">:args</span> <span class="s">&quot;-i&quot;</span>
+        <span class="nb">:cwd</span> <span class="no">nil</span>
+        <span class="nb">:env</span> <span class="o">&#39;</span><span class="p">((</span><span class="s">&quot;DEBUG&quot;</span> <span class="o">.</span> <span class="s">&quot;1&quot;</span><span class="p">))</span>
+        <span class="nb">:target-module</span> <span class="p">(</span><span class="nf">expand-file-name</span> <span class="s">&quot;~/src/myapp/.env/bin/myapp&quot;</span><span class="p">)</span>
+        <span class="nb">:request</span> <span class="s">&quot;launch&quot;</span>
+        <span class="nb">:name</span> <span class="s">&quot;My App&quot;</span><span class="p">))</span>
+</code></pre></div>
+
+</li>
+</ol>
+<h2 id="ruby">Ruby<a class="headerlink" href="#ruby" title="Permanent link">#</a></h2>
+<ul>
+<li>
+<p>Download and extract <a href="https://marketplace.visualstudio.com/items?itemName=rebornix.Ruby">VSCode Ruby
+    Extension</a>.
+    You can do that either by:</p>
+<ul>
+<li>Calling <code>dap-ruby-setup</code>, the extension will be downloaded and
+    all your path will be automatically set up.</li>
+<li>Or download the extension manually. Make sure that
+    <code>dap-ruby-debug-program</code> is: <code>("node" path-to-main-js)</code> where
+    <code>node</code> is either "node" if nodejs is on the path or path to
+    nodejs and <code>path-to-main-js</code> is full path
+    <code>./dist/debugger/main.js</code> which is part of the downloaded VScode
+    package.</li>
+</ul>
+</li>
+<li>
+<p>Follow the instructions on installing <code>rdebug-ide</code> from <a href="https://github.com/rubyide/vscode-ruby/wiki/1.-Debugger-Installation">Ruby Debug
+    Installation</a></p>
+</li>
+<li>
+<p>Put in your emacs configuration.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-ruby</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+<h2 id="dart">Dart<a class="headerlink" href="#dart" title="Permanent link">#</a></h2>
+<p><a href="https://github.com/emacs-lsp/lsp-dart">LSP Dart</a> has support for
+<a href="https://github.com/emacs-lsp/lsp-dart#debug">debug</a> using <code>dap-mode</code>.</p>
+<p>You only need to run <code>dap-dart-setup</code> to setup automatically and then
+you are good to debug dart.</p>
+<ol>
+<li>
+<p>Flutter</p>
+<p><a href="https://github.com/emacs-lsp/lsp-dart">LSP Dart</a> also supports
+<a href="https://github.com/emacs-lsp/lsp-dart#flutter">Flutter debug</a> with
+options to debug a device or emulator.</p>
+</li>
+</ol>
+<h2 id="lldb">LLDB<a class="headerlink" href="#lldb" title="Permanent link">#</a></h2>
+<ol>
+<li>
+<p>Installation</p>
+<p>LLDB is a debugger that supports, among others, C, C++, Objective-C
+and Swift.</p>
+<ul>
+<li>
+<p>Clone and follow the instructions to compile lldb-vscode from
+    <a href="https://github.com/llvm-mirror/lldb/tree/master/tools/lldb-vscode">https://github.com/llvm-mirror/lldb/tree/master/tools/lldb-vscode</a></p>
+</li>
+<li>
+<p>Put in your emacs configuration.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-lldb</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+<p><strong>Note</strong>: For proper Swift support, you need to compile LLDB from
+<a href="https://github.com/apple/swift-lldb">https://github.com/apple/swift-lldb</a> and put the compiled LLDB
+library/framework in the "extensions" folder.</p>
+</li>
+</ol>
+<h2 id="elixir">Elixir<a class="headerlink" href="#elixir" title="Permanent link">#</a></h2>
+<p>Make sure that you have properly configured <code>Elixir</code> and that you have
+<a href="https://github.com/elixir-lsp/elixir-ls">Elixir LS</a> binaries on the
+path and put in your emacs configuration.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-elixir</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Then when you do <code>dap-debug-edit-template</code> and select Elixir which will
+generate runnable debug configuration. For more details on supported
+settings by the Elixir Debug Server refer to its documentation.</p>
+<h2 id="php">PHP<a class="headerlink" href="#php" title="Permanent link">#</a></h2>
+<p>Simplify setup of vscode extension with <code>dap-php-setup</code> after requiring
+<code>dap-php</code>.</p>
+<p>This is using
+<a href="https://github.com/felixfbecker/vscode-php-debug">felixbecker/vscode-php-debug</a>
+(<a href="https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug">downloadable from the
+marketplace</a>)
+as dap-server between emacs and the xdebug-extension on the http-server
+side. Make sure it is trans/compiled to javascript properly. Only tested
+under linux with node.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-php</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Start debugging by selecting "PHP Run Configuration" from the
+<code>dap-debug</code> menu, issue the debug request in your browser by choosing
+the running thread (<code>dap-switch-thread</code>) and then <code>dap-step-in</code>.</p>
+<h2 id="native-debug-gdblldb">Native Debug (GDB/LLDB)<a class="headerlink" href="#native-debug-gdblldb" title="Permanent link">#</a></h2>
+<p>Using <a href="https://github.com/WebFreak001/code-debug">https://github.com/WebFreak001/code-debug</a></p>
+<ol>
+<li>
+<p>Configuration</p>
+<p>For easier of setting up vscode extension, you only need call
+<code>dap-gdb-lldb-setup</code> after requiring <code>dap-gdb-lldb</code>.</p>
+<p>Or download and extract <a href="https://marketplace.visualstudio.com/items?itemName=webfreak.debug">VSCode
+extension</a>
+(make sure that <code>dap-gdb-lldb-path</code> is pointing to the extract
+location).</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-gdb-lldb</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Then do <code>dap-debug</code> or <code>dap-debug-edit-template</code> and selet GBD or
+LLDB configuration.</p>
+</li>
+</ol>
+<h2 id="go">Go<a class="headerlink" href="#go" title="Permanent link">#</a></h2>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>For easier of setting up vscode extension, you only need call
+    <code>dap-go-setup</code> after requiring <code>dap-go</code>.</p>
+<ul>
+<li>Or manually download and extract <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go">VSCode Go
+    Extension</a>..
+    it is actually zip file.</li>
+<li>check that you now have
+    .emacs.d/.extension/vscode/ms-vscode.go/extension/out/src/debugAdapter/goDebug.js</li>
+</ul>
+</li>
+<li>
+<p>install latest stable nodejs</p>
+</li>
+<li>
+<p>install gopls</p>
+</li>
+<li>
+<p>Install the delve command by following instructions on <a href="https://github.com/go-delve/delve/tree/master/Documentation/installation">delve -
+    installation</a>.</p>
+</li>
+<li>
+<p>install lsp-mode</p>
+</li>
+<li>
+<p>Put in your emacs configuration.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-go</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+<li>
+<p>set up hydra hook as instructed above</p>
+</li>
+</ul>
+<!-- end list -->
+
+<ol>
+<li>
+<p>Usage</p>
+<p>assume you have your code at \~/src/cool/cmd/app/app.go</p>
+<ul>
+<li>open your main package file e.g \~/src/cool/cmd/app/app.go</li>
+<li>or open a test file e.g app<sub>test</sub>.go</li>
+<li>add folder to lsp session where your go.mod is or would be<ul>
+<li>M-x lsp-workspace-folders-add \~/src/cool</li>
+</ul>
+</li>
+<li>set break point</li>
+<li>M-x dap-debug</li>
+<li>if you are debugging test files use "Go Launch File
+    Configuration"</li>
+<li>else select e.g "Go Launch Unoptimized Debug Package
+    Configuration"</li>
+</ul>
+</li>
+<li>
+<p>Trouble shooting</p>
+<ul>
+<li>put (setq dap-print-io t) and check messages buffer</li>
+<li>e.g linter can return note at debug session response
+    resulting debug session to fail</li>
+</ul>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="javascript">Javascript<a class="headerlink" href="#javascript" title="Permanent link">#</a></h2>
+<ol>
+<li>
+<p>Firefox</p>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>For easier of setting up vscode extension, you only need
+    call <code>dap-firefox-setup</code> after requiring <code>dap-firefox</code>.</p>
+<ul>
+<li>Or manually download and extract <a href="https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-firefox-debug">VSCode Firefox Debug
+    Extension</a>.</li>
+</ul>
+</li>
+<li>
+<p>Make sure that <code>dap-firefox-debug-program</code> is pointing to
+    the proper file.</p>
+</li>
+<li>
+<p>Put in your configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-firefox</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+</li>
+<li>
+<p>Usage</p>
+<p><code>dap-debug</code> or <code>dap-debug-edit-template</code> and select the firefox
+template. For additional documentation on the supported template
+parameters or about different configuration templates refer to
+<a href="https://github.com/hbenl/vscode-firefox-debug">Firefox Debug
+Adapter</a>.</p>
+</li>
+</ol>
+</li>
+<li>
+<p>Chrome</p>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>For easier of setting up vscode extension, you only need
+    call <code>dap-chrome-setup</code> after requiring <code>dap-chrome</code>.</p>
+<ul>
+<li>Or manually download and extract <a href="https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome">VSCode Chrome Debug
+    Extension</a>.</li>
+</ul>
+</li>
+<li>
+<p>Make sure that <code>dap-chrome-debug-program</code> is pointing to the
+    proper file.</p>
+</li>
+<li>
+<p>Put in your configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-chrome</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+</li>
+<li>
+<p>Usage</p>
+<p><code>dap-debug</code> or <code>dap-debug-edit-template</code> and select the chrome
+template. For additional documentation on the supported template
+parameters or about different configuration templates refer to
+<a href="https://github.com/Microsoft/vscode-chrome-debug">Chrome Debug
+Adapter</a>.</p>
+</li>
+</ol>
+</li>
+<li>
+<p>Microsoft Edge</p>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>For easier of setting up vscode extension, you only need
+    call <code>dap-edge-setup</code> after requiring <code>dap-edge</code>.</p>
+<ul>
+<li>Or manually download and extract <a href="https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-edge">VSCode Edge Debug
+    Extension</a>.</li>
+</ul>
+</li>
+<li>
+<p>Make sure that <code>dap-edge-debug-program</code> is pointing to the
+    proper file.</p>
+</li>
+<li>
+<p>Put in your configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-edge</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+</li>
+<li>
+<p>Usage</p>
+<p><code>dap-debug</code> or <code>dap-debug-edit-template</code> and select the edge
+template. For additional documentation on the supported template
+parameters or about different configuration templates refer to
+<a href="https://github.com/microsoft/vscode-edge-debug2">Edge Debug
+Adapter</a>.</p>
+</li>
+</ol>
+</li>
+<li>
+<p>Node</p>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>For easier of setting up vscode extension, you only need
+    call <code>dap-node-setup</code> after requiring <code>dap-node</code>.</p>
+<ul>
+<li>Or manually download and extract <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.node-debug2">VSCode Node Debug
+    Extension</a>.</li>
+</ul>
+</li>
+<li>
+<p>Make sure that <code>dap-node-debug-program</code> is pointing to the
+    proper file.</p>
+</li>
+<li>
+<p>Put in your configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-node</span><span class="p">)</span>
+</code></pre></div>
+
+</li>
+</ul>
+</li>
+<li>
+<p>Usage</p>
+<p><code>dap-debug</code> or <code>dap-debug-edit-template</code> and select the node
+template. For additional documentation on the supported template
+parameters or about different configuration templates refer to
+<a href="https://code.visualstudio.com/docs/nodejs/nodejs-debugging">Nodejs
+Debugging</a>.</p>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="powershell">Powershell<a class="headerlink" href="#powershell" title="Permanent link">#</a></h2>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-pwsh</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Start debugging by selecting "Powershell: Launch Script" from
+<code>dap-debug</code> menu.</p>
                 
                   
                     
@@ -631,7 +1160,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../configuration/" title="Configuration" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../features/" title="Features" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -640,19 +1169,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Configuration
+                Features
               </div>
             </div>
           </a>
         
         
-          <a href="../clojure/" title="Clojure" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../how-to/" title="How to" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Clojure
+                How to
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
