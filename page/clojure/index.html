@@ -10,16 +10,16 @@
       
       
       
-      <link rel="shortcut icon" href="/screenshots/logo.png">
+      <link rel="shortcut icon" href="../../screenshots/logo.png">
       <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.1.5">
     
     
       
-        <title>DAP Mode</title>
+        <title>Clojure - DAP Mode</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.df84b5fe.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.df84b5fe.min.css">
       
       
     
@@ -33,7 +33,7 @@
     
     
     
-      <link rel="stylesheet" href="/stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
     
       
@@ -49,6 +49,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#clojure-debugging-and-introspecting-java-code" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -56,9 +61,9 @@
     
       <header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid" aria-label="Header">
-    <a href="/." title="DAP Mode" class="md-header-nav__button md-logo" aria-label="DAP Mode">
+    <a href="../.." title="DAP Mode" class="md-header-nav__button md-logo" aria-label="DAP Mode">
       
-  <img src="/screenshots/logo.png" alt="logo">
+  <img src="../../screenshots/logo.png" alt="logo">
 
     </a>
     <label class="md-header-nav__button md-icon" for="__drawer">
@@ -72,7 +77,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              
+              Clojure
             
           </span>
         </div>
@@ -142,9 +147,9 @@
                   <div class="md-sidebar__inner">
                     <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="DAP Mode" class="md-nav__button md-logo" aria-label="DAP Mode">
+    <a href="../.." title="DAP Mode" class="md-nav__button md-logo" aria-label="DAP Mode">
       
-  <img src="/screenshots/logo.png" alt="logo">
+  <img src="../../screenshots/logo.png" alt="logo">
 
     </a>
     DAP Mode
@@ -171,7 +176,7 @@
 
 
   <li class="md-nav__item">
-    <a href="/." title="Home" class="md-nav__link">
+    <a href="../.." title="Home" class="md-nav__link">
       Home
     </a>
   </li>
@@ -183,7 +188,7 @@
 
 
   <li class="md-nav__item">
-    <a href="/page/how-to/" title="How to" class="md-nav__link">
+    <a href="../how-to/" title="How to" class="md-nav__link">
       How to
     </a>
   </li>
@@ -193,10 +198,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
     
     <label class="md-nav__link" for="nav-3">
       Tutorials
@@ -218,11 +225,86 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="/page/clojure/" title="Clojure" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Clojure
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Clojure" class="md-nav__link md-nav__link--active">
       Clojure
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#java-code-navigation" class="md-nav__link">
+    Java code navigation
+  </a>
+  
+    <nav class="md-nav" aria-label="Java code navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#implementations-of-clojurelangireduce" class="md-nav__link">
+    Implementations of clojure.lang.IReduce
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging" class="md-nav__link">
+    Debugging
+  </a>
+  
+    <nav class="md-nav" aria-label="Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debugging-in-progress" class="md-nav__link">
+    Debugging in progress
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -237,7 +319,7 @@
 
 
   <li class="md-nav__item">
-    <a href="/CHANGELOG/" title="Changelog" class="md-nav__link">
+    <a href="../../CHANGELOG/" title="Changelog" class="md-nav__link">
       Changelog
     </a>
   </li>
@@ -250,12 +332,126 @@
               </div>
             
             
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#java-code-navigation" class="md-nav__link">
+    Java code navigation
+  </a>
+  
+    <nav class="md-nav" aria-label="Java code navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#implementations-of-clojurelangireduce" class="md-nav__link">
+    Implementations of clojure.lang.IReduce
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging" class="md-nav__link">
+    Debugging
+  </a>
+  
+    <nav class="md-nav" aria-label="Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debugging-in-progress" class="md-nav__link">
+    Debugging in progress
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
               
-  <h1>404 - Not found</h1>
+                
+                  <a href="https://github.com/emacs-lsp/dap-mode/edit/master/docs/page/clojure.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="clojure-debugging-and-introspecting-java-code">Clojure debugging and introspecting Java Code<a class="headerlink" href="#clojure-debugging-and-introspecting-java-code" title="Permanent link">#</a></h1>
+<p>One of the limitations of Cider is that it does not support debugging Java(or it is not very easy to do so). This page provides information on how to do that using <code>dap-mode</code>
+As a bonus, it will also enable navigation through java code like finding definitions, references, implementations, etc.</p>
+<h2 id="java-code-navigation">Java code navigation<a class="headerlink" href="#java-code-navigation" title="Permanent link">#</a></h2>
+<ol>
+<li>Follow the guides on installing <code>lsp-java</code>. If you are <code>Spacemacs</code> user you need to add the following layers <code>dap</code>,<code>lsp</code>, <code>(lsp-java :variables java-backend 'lsp)</code>. <code>lsp-java</code> automatically downloads all required server-side components(<code>JDT Language Server</code>, <code>Java Debug Adapter</code> and <code>JUnit Test Runner</code>).</li>
+<li>Go to the root of your project and do
+<div class="highlight"><pre><span></span><code>lein pom
+</code></pre></div></li>
+<li>Open a file from your project and do <code>C-u</code>- <code>M-x</code> - <code>lsp</code> which will prompt you to select a server to start, select <code>jdtls</code> server. Once the server has started(the initialization may take some time since JDT LS is downloading sources) you may call <code>xref-appropos</code> and open type a Java Type like <code>ArrayList</code> or <code>PersistentList</code>. When you are in java file you can inspect documentation, look for class implementations, references and so on.</li>
+<li>Invoke <code>xref-apropos</code>, type a Java class name and then you can set breakpoints, go to definitions, find references, etc.</li>
+</ol>
+<h3 id="implementations-of-clojurelangireduce">Implementations of <code>clojure.lang.IReduce</code><a class="headerlink" href="#implementations-of-clojurelangireduce" title="Permanent link">#</a></h3>
+<p><img alt="Debug cider" src="../../screenshots/implementations.png" /></p>
+<h2 id="debugging">Debugging<a class="headerlink" href="#debugging" title="Permanent link">#</a></h2>
+<ol>
+<li>Configure cider to start nrepl with remote debugging enabled and do <code>cider-jack-in</code></li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">setenv</span> <span class="s">&quot;JAVA_OPTS&quot;</span> <span class="s">&quot;-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044&quot;</span><span class="p">)</span>
+</code></pre></div>
 
+<ol>
+<li>Call <code>dap-debug</code> and select <code>Java Attach configuration</code> and enter port 1044 (the same port as the port above.).</li>
+<li>Go to java class and place a breakpoint using <code>dap-breakpoint-toggle</code>.</li>
+</ol>
+<h3 id="debugging-in-progress">Debugging in progress<a class="headerlink" href="#debugging-in-progress" title="Permanent link">#</a></h3>
+<p><img alt="Debug cider" src="../../screenshots/debug.png" /></p>
+                
+                  
+                    
+
+<hr>
+<div class="md-source-date">
+  <small>
+    
+      Last update: May 6, 2020
+    
+  </small>
+</div>
+                  
+                
+              
               
                 
 
@@ -268,6 +464,41 @@
       
         
 <footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../how-to/" title="How to" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                How to
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../../CHANGELOG/" title="Changelog" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Changelog
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -316,15 +547,15 @@
       
     </div>
     
-      <script src="/assets/javascripts/vendor.83fe6e3c.min.js"></script>
-      <script src="/assets/javascripts/bundle.7e1cb91c.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="../../assets/javascripts/vendor.83fe6e3c.min.js"></script>
+      <script src="../../assets/javascripts/bundle.7e1cb91c.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
-          base: "/",
+          base: "../..",
           features: [],
           search: Object.assign({
-            worker: "/assets/javascripts/worker/search.37585f48.min.js"
+            worker: "../../assets/javascripts/worker/search.37585f48.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>
