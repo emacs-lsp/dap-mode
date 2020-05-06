@@ -1,11 +1,18 @@
 site_name: DAP Mode
+site_url: https://emacs-lsp.github.io/dap-mode
 
 nav:
   - Home: README.md
+  - Features: page/features.md
+  - Configuration: page/configuration.md
   - How to: page/how-to.md
   - Tutorials:
       - Clojure: page/clojure.md
-  - Changelog: CHANGELOG.md
+  - Gallery:
+      - page/gallery.md
+  - Adding a new debug server: page/adding-debug-server.md
+  - Changelog:
+      - CHANGELOG.md
 
 extra_css:
   - stylesheets/extra.css
@@ -16,6 +23,8 @@ theme:
   favicon: screenshots/logo.png
   icon:
     repo: fontawesome/brands/github
+  features:
+    - tabs
 
 extra:
   social:
@@ -34,8 +43,15 @@ markdown_extensions:
   - codehilite
   - toc:
       permalink: '#'
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
 
 plugins:
   - search
   - awesome-pages
   - git-revision-date-localized
+
+google_analytics:
+  - UA-165661257-2
+  - auto
