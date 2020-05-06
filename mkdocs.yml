@@ -1,5 +1,12 @@
 site_name: DAP Mode
 
+nav:
+  - Home: README.md
+  - How to: page/how-to.md
+  - Tutorials:
+      - Clojure: page/clojure.md
+  - Changelog: CHANGELOG.md
+
 extra_css:
   - stylesheets/extra.css
 
