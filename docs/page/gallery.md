@@ -3,24 +3,24 @@ Gallery
 
 ## Java
 
-![Java](/screenshots/MultiSession.png)
+![Java](../screenshots/MultiSession.png)
 
 ## Flutter
 
-![Flutter](/screenshots/flutter-debug.gif)
+![Flutter](../screenshots/flutter-debug.gif)
 
 ## Swift
 
-![Swift](/screenshots/Swift.png)
+![Swift](../screenshots/Swift.png)
 
 ## RUST
 
-![RUST via Native Debug](/screenshots/rust.png)
+![RUST via Native Debug](../screenshots/rust.png)
 
 ## Go
 
-![Go](/screenshots/go.png)
+![Go](../screenshots/go.png)
 
 ## Javascript
 
-![Javascript via Firefox debugger](/screenshots/javascript.png)
+![Javascript via Firefox debugger](../screenshots/javascript.png)
