@@ -15,7 +15,7 @@ lein pom
 4. Invoke `xref-apropos`, type a Java class name and then you can set breakpoints, go to definitions, find references, etc.
 
 ### Implementations of `clojure.lang.IReduce`
-![Debug cider](../screenshots/implementations.png)
+![Debug cider](/screenshots/implementations.png)
 
 ## Debugging
 1. Configure cider to start nrepl with remote debugging enabled and do `cider-jack-in`
@@ -28,5 +28,5 @@ lein pom
 3. Go to java class and place a breakpoint using `dap-breakpoint-toggle`.
 
 ### Debugging in progress
-![Debug cider](../screenshots/debug.png)
+![Debug cider](/screenshots/debug.png)
 
