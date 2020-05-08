@@ -40,7 +40,7 @@
               (lambda (arg) (call-interactively #'dap-hydra)))
   #+END_SRC
 ** [[https://emacs-lsp.github.io/dap-mode/page/features/][Features]]
-** [[https://emacs-lsp.github.io/dap-mode/page/gallery/][Configuration]]
+** [[https://emacs-lsp.github.io/dap-mode/page/configuration/][Configuration]]
 ** [[https://emacs-lsp.github.io/dap-mode/page/gallery][Gallery]]
 ** [[https://emacs-lsp.github.io/dap-mode/page/adding-debug-server][Extending DAP with new Debug servers]]
 ** Links
