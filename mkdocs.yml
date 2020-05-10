@@ -13,6 +13,8 @@ nav:
   - Adding a new debug server: page/adding-debug-server.md
   - Changelog:
       - CHANGELOG.md
+  - LSP Mode:
+      - LSP Mode: https://emacs-lsp.github.io/lsp-mode
 
 extra_css:
   - stylesheets/extra.css
