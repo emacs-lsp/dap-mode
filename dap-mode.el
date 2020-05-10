@@ -1250,7 +1250,7 @@ before starting the debug process."
   "Calculate DAP modeline."
   (when lsp-mode
     (-when-let (debug-session (dap--cur-session))
-      (format "%s - %s|"
+      (format " %s - %s"
               (dap--debug-session-name debug-session)
               (dap--debug-session-state debug-session)))))
 
