@@ -30,7 +30,8 @@
 (require 'dap-mode)
 (require 'dap-utils)
 
-(defcustom dap-firefox-debug-path (expand-file-name "vscode/hbenl.vscode-firefox-debug" dap-utils-extension-path)
+(defcustom dap-firefox-debug-path (expand-file-name "vscode/firefox-devtools.vscode-firefox-debug"
+                                                    dap-utils-extension-path)
   "The path to firefox vscode extension."
   :group 'dap-firefox
   :type 'string)
@@ -42,7 +43,8 @@
   :group 'dap-firefox
   :type '(repeat string))
 
-(dap-utils-vscode-setup-function "dap-firefox" "hbenl" "vscode-firefox-debug" dap-firefox-debug-path)
+(dap-utils-vscode-setup-function "dap-firefox" "firefox-devtools" "vscode-firefox-debug"
+                                 dap-firefox-debug-path)
 
 (defun dap-firefox--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
