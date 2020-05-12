@@ -105,7 +105,8 @@ as the pyenv version then also return nil. This works around https://github.com/
 
 
 (cl-defmethod == ((lhs list) (rhs list))
-  (-reduce (lambda (x y) (and x y)) (-zip-with '== lhs rhs)))
+  (and (== (length lhs) (length rhs))
+       (-reduce (lambda (x y) (and x y)) (-zip-with '== lhs rhs))))
 
 
 (cl-defmethod == ((lhs point) (rhs point))
