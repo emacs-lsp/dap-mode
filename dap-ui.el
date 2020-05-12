@@ -460,7 +460,7 @@ DEBUG-SESSION is the debug session triggering the event."
 
 
 ;; dap-ui posframe stuff
-(defvar dap-ui--control-images-root-dir (f-join (f-dirname (or load-file-name buffer-file-name)) "icons/vscode"))
+(defvar dap-ui--control-images-root-dir (f-join (f-dirname (file-truename (or load-file-name buffer-file-name))) "icons/vscode"))
 (defvar dap-ui--control-buffer " *dap-ui*")
 
 (defun dap-ui--create-command (image command hover-text)
