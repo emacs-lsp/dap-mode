@@ -126,11 +126,11 @@ as the pyenv version then also return nil. This works around https://github.com/
 					     :character (gethash "character" end))))))
 
 (defun dap-python--symbol-before-point (point lsp-symbol)
-  (let ((dap-python--symbol-line (-> lsp-symbol
-				     dap-python--symbol-location
-				     dap-python--location-start
-				     dap-python--point-line)))
-    (< dap-python--symbol-line (dap-python--point-line point))))
+  (-> lsp-symbol
+      dap-python--symbol-location
+      dap-python--location-start
+      dap-python--point-line
+      (< (dap-python--point-line point))))
 
 (defun dap-python--symbols-before-point (point lsp-symbols)
   (-filter (-partial 'dap-python--symbol-before-point point) lsp-symbols))
