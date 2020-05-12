@@ -504,6 +504,7 @@ DEBUG-SESSION is the debug session triggering the event."
                                                   "Session not stopped?"))
                         " "
                         (dap-ui--create-command "disconnect.png" #'dap-disconnect "Disconnect")
+                        " "
                         (dap-ui--create-command "restart.png" #'dap-debug-restart "Restart")))
               (posframe-mouse-banish nil)
               (pos-frame (-first
