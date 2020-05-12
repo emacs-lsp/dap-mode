@@ -1076,7 +1076,7 @@ DEBUG-SESSION is the debug session triggering the event."
     (define-key (kbd "C L") #'dap-ui-breakpoint-log-message)))
 
 (define-minor-mode dap-ui-breakpoints-mode
-  "UI Session list minor mode."
+  "UI Breakpoints list minor mode."
   :init-value nil
   :group dap-ui
   :keymap dap-ui-breakpoints-mode-map)
@@ -1108,6 +1108,28 @@ DEBUG-SESSION is the debug session triggering the event."
   (add-hook 'dap-stack-frame-changed-hook #'dap-ui-breakpoints--refresh)
   (add-hook 'dap-breakpoints-changed-hook #'dap-ui-breakpoints--refresh)
   (add-hook 'kill-buffer-hook 'dap-ui-breakpoints--cleanup-hooks nil t))
+
+(defun dap-ui--window-visible-p (window-name)
+  "Return whether WINDOW-NAME is visible."
+  (-> (-compose 'buffer-name 'window-buffer)
+      (-map (window-list))
+      (-contains? window-name)))
+
+(defun dap-ui-show-debug-windows (_session)
+  "Show available debug windows for SESSION."
+  (save-excursion
+    (unless (dap-ui--window-visible-p dap-ui--locals-buffer)
+      (dap-ui-locals))
+    (unless (dap-ui--window-visible-p dap-ui--sessions-buffer)
+      (dap-ui-sessions))))
+
+(defun dap-ui-hide-debug-windows (_session)
+  "Hide all debug windows when sessions are dead."
+  (unless (-filter 'dap--session-running (dap--get-sessions))
+    (and (get-buffer dap-ui--sessions-buffer)
+         (kill-buffer dap-ui--sessions-buffer))
+    (and (get-buffer dap-ui--locals-buffer)
+         (kill-buffer dap-ui--locals-buffer))))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

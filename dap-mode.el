@@ -137,7 +137,13 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defcustom dap-debug-template-configurations nil
   "Plist Template configurations for DEBUG/RUN."
   :safe #'listp
+  :group 'dap-mode
   :type '(plist))
+
+(defcustom dap-auto-configure t
+  "Whether to auto configure dap-mode and dap-ui-mode"
+  :group 'dap-mode
+  :type 'bool)
 
 (defvar dap--debug-configuration nil
   "List of the previous configuration that have been executed.")
@@ -1236,6 +1242,8 @@ before starting the debug process."
 
 (defun dap--after-initialize ()
   "After initialize handler."
+  (when dap-auto-configure
+    (dap-auto-configure-mode 1))
   (with-demoted-errors
       "Failed to load breakpoints for the current workspace with error: %S"
     (let ((breakpoints-file dap-breakpoints-file))
@@ -1597,6 +1605,27 @@ point is set."
   "Turn on function `dap-mode'."
   (interactive)
   (dap-mode t))
+
+
+
+;; Auto configure
+
+(define-minor-mode dap-auto-configure-mode
+  "Auto configure dap minor mode."
+  :init-value dap-auto-configure
+  :group 'dap-mode
+  (cond
+   (dap-auto-configure-mode
+    (dap-ui-mode 1)
+    (when (require 'posframe nil t)
+      (dap-ui-controls-mode 1))
+    (add-hook 'dap-stopped-hook #'dap-ui-show-debug-windows)
+    (add-hook 'dap-terminated-hook #'dap-ui-hide-debug-windows))
+   (t
+    (dap-ui-mode nil)
+    (dap-ui-controls-mode nil)
+    (remove-hook 'dap-stopped-hook #'dap-ui-show-debug-windows)
+    (remove-hook 'dap-terminated-hook #'dap-ui-hide-debug-windows))))
 
 (provide 'dap-mode)
 ;;; dap-mode.el ends here
