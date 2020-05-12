@@ -471,6 +471,7 @@ DEBUG-SESSION is the debug session triggering the event."
                                :background ,(face-attribute 'fringe :background nil t))
               'local-map (--doto (make-sparse-keymap)
                            (define-key it [mouse-1] command))
+              'pointer 'hand
               'help-echo hover-text))
 
 (declare-function posframe-show "ext:posframe")
