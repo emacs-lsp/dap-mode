@@ -483,22 +483,26 @@ DEBUG-SESSION is the debug session triggering the event."
     (if running?
         (let ((content (s-concat
                         (dap-ui--create-command "continue.png" #'dap-continue "Continue")
+                        " "
                         (dap-ui--create-command (if stopped?
                                                     "step-over.png"
                                                   "step-over-disabled.png")
                                                 (when stopped? #'dap-next)
                                                 (if stopped? "Step over"
                                                   "Session not stopped?"))
+                        " "
                         (dap-ui--create-command (if stopped? "step-out.png"
                                                   "step-out-disabled.png")
                                                 (when stopped? #'dap-step-out)
                                                 (if stopped? "Step out"
                                                   "Session not stopped? "))
+                        " "
                         (dap-ui--create-command (if stopped? "step-into.png"
                                                   "step-into-disabled.png")
                                                 (when stopped? #'dap-step-in)
                                                 (if stopped? "Step in"
                                                   "Session not stopped?"))
+                        " "
                         (dap-ui--create-command "disconnect.png" #'dap-disconnect "Disconnect")
                         (dap-ui--create-command "restart.png" #'dap-debug-restart "Restart")))
               (posframe-mouse-banish nil)
@@ -512,7 +516,8 @@ DEBUG-SESSION is the debug session triggering the event."
             (select-frame (frame-parent pos-frame)))
           (posframe-show dap-ui--control-buffer
                          :string content
-                         :poshandler #'posframe-poshandler-frame-top-center))
+                         :poshandler #'posframe-poshandler-frame-top-center
+                         :internal-border-width 8))
       (posframe-hide dap-ui--control-buffer))))
 
 ;;;###autoload
