@@ -1624,21 +1624,6 @@ point is set."
 
 ;; Auto configure
 
-(defun dap--show-feature-window (_session)
-  "Show auto configured feature windows."
-  (seq-doseq (feature-start-stop dap-auto-configure-features)
-    (when-let (start-stop (alist-get feature-start-stop dap-features->windows))
-      (funcall (car start-stop)))))
-
-(defun dap--hide-feature-window (_session)
-  "Hide all debug windows when sessions are dead."
-  (unless (-filter 'dap--session-running (dap--get-sessions))
-    (seq-doseq (feature-start-stop dap-auto-configure-features)
-      (-when-let* ((feature-start-stop (alist-get feature-start-stop dap-features->windows))
-                   (buffer-name (symbol-value (cdr feature-start-stop))))
-        (and (get-buffer buffer-name)
-             (kill-buffer buffer-name))))))
-
 ;;;###autoload
 (define-minor-mode dap-auto-configure-mode
   "Auto configure dap minor mode."
@@ -1655,8 +1640,8 @@ point is set."
             (when (require (cdr mode) nil t)
               (funcall (car mode) 1))
             (funcall mode 1))))
-    (add-hook 'dap-stopped-hook #'dap--show-feature-window)
-    (add-hook 'dap-terminated-hook #'dap--hide-feature-window))
+    (add-hook 'dap-stopped-hook #'dap-ui-show-many-windows)
+    (add-hook 'dap-terminated-hook #'dap-ui-hide-many-windows))
    (t
     (dap-mode -1)
     (dap-ui-mode -1)
@@ -1665,8 +1650,8 @@ point is set."
         (if (consp mode)
             (funcall (car mode) -1)
             (funcall mode -1))))
-    (remove-hook 'dap-stopped-hook #'dap--show-feature-window)
-    (remove-hook 'dap-terminated-hook #'dap--hide-feature-window))))
+    (remove-hook 'dap-stopped-hook #'dap-ui-show-many-windows)
+    (remove-hook 'dap-terminated-hook #'dap-ui-hide-many-windows))))
 
 (provide 'dap-mode)
 ;;; dap-mode.el ends here

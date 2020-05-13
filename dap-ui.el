@@ -1109,5 +1109,28 @@ DEBUG-SESSION is the debug session triggering the event."
   (add-hook 'dap-breakpoints-changed-hook #'dap-ui-breakpoints--refresh)
   (add-hook 'kill-buffer-hook 'dap-ui-breakpoints--cleanup-hooks nil t))
 
+(defun dap-ui-show-many-windows (_session)
+  "Show auto configured feature windows."
+  (dap-ui-many-windows-mode 1))
+
+(defun dap-ui-hide-many-windows (_session)
+  "Hide all debug windows when sessions are dead."
+  (dap-ui-many-windows-mode -1))
+
+(define-minor-mode dap-ui-many-windows-mode
+  "Shows/hide the windows from `dap-auto-configure-features`"
+  :global t
+  (cond
+   (dap-ui-many-windows-mode
+    (seq-doseq (feature-start-stop dap-auto-configure-features)
+      (when-let (start-stop (alist-get feature-start-stop dap-features->windows))
+        (funcall (car start-stop)))))
+   (t
+    (seq-doseq (feature-start-stop dap-auto-configure-features)
+      (-when-let* ((feature-start-stop (alist-get feature-start-stop dap-features->windows))
+                   (buffer-name (symbol-value (cdr feature-start-stop))))
+        (and (get-buffer buffer-name)
+             (kill-buffer buffer-name)))))))
+
 (provide 'dap-ui)
 ;;; dap-ui.el ends here
