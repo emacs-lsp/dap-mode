@@ -1640,8 +1640,7 @@ point is set."
             (when (require (cdr mode) nil t)
               (funcall (car mode) 1))
             (funcall mode 1))))
-    (add-hook 'dap-stopped-hook #'dap-ui-show-many-windows)
-    (add-hook 'dap-terminated-hook #'dap-ui-hide-many-windows))
+    (dap-ui-many-windows-mode 1))
    (t
     (dap-mode -1)
     (dap-ui-mode -1)
@@ -1650,8 +1649,7 @@ point is set."
         (if (consp mode)
             (funcall (car mode) -1)
             (funcall mode -1))))
-    (remove-hook 'dap-stopped-hook #'dap-ui-show-many-windows)
-    (remove-hook 'dap-terminated-hook #'dap-ui-hide-many-windows))))
+    (dap-ui-many-windows-mode -1))))
 
 (provide 'dap-mode)
 ;;; dap-mode.el ends here
