@@ -735,14 +735,13 @@
                 
                 <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h1>
 <h2 id="dap-mode-configuration">DAP mode configuration<a class="headerlink" href="#dap-mode-configuration" title="Permanent link">#</a></h2>
-<p>You only need to enable <code>dap-mode</code> first with:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-mode</span> <span class="mi">1</span><span class="p">)</span>
+<p>For an auto-configuration enable the <code>dap-auto-configure-mode</code>. You can configure which features from <code>dap-mode</code> do you want with <code>dap-auto-configure-features</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">;; Enabling only some features</span>
+<span class="p">(</span><span class="k">setq</span> <span class="nv">dap-auto-configure-features</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">sessions</span> <span class="nv">locals</span> <span class="nv">controls</span> <span class="nv">tooltip</span><span class="p">))</span>
 </code></pre></div>
 
-<p>Enabling <code>dap-mode</code> triggers the auto-configuration by default but if you want to enable only specific modes instead, you can disable it setting <code>dap-auto-configure</code> to <code>nil</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">setq</span> <span class="nv">dap-mode-auto-configure</span> <span class="no">nil</span><span class="p">)</span>
-
-<span class="p">(</span><span class="nv">dap-mode</span> <span class="mi">1</span><span class="p">)</span>
+<p>Or if you want to enable only specific modes instead:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-mode</span> <span class="mi">1</span><span class="p">)</span>
 
 <span class="c1">;; The modes above are optional</span>
 
