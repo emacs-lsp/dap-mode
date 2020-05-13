@@ -143,12 +143,12 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defcustom dap-auto-configure-features '(sessions locals breakpoints expressions controls tooltip)
   "Windows to auto show on debugging when in dap-ui-auto-configure-mode."
   :group 'dap-mode
-  :type '(set (const sessions)
-              (const locals)
-              (const breakpoints)
-              (const expressions)
-              (const controls)
-              (const tooltip)))
+  :type '(set (const :tag "Show sessions popup window when debugging and enable `dap-ui-sessions-mode`" sessions)
+              (const :tag "Show locals popup window when debugging" locals)
+              (const :tag "Show breakpoints popup window when debugging and enable `dap-ui-breakpoints-mode`" breakpoints)
+              (const :tag "Show expressions popup window when debugging" expressions)
+              (const :tag "Enable `dap-ui-controls-mode` with controls to manage the debug session when debugging" controls)
+              (const :tag "Enable `dap-tooltip-mode` that enables mouse hover support when debugging" tooltip)))
 
 (defconst dap-feature->start-stop
   '((sessions . (dap-ui-sessions . dap-ui--sessions-buffer))
