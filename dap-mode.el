@@ -1623,7 +1623,7 @@ point is set."
     (add-hook 'dap-terminated-hook #'dap-ui-hide-debug-windows))
    (t
     (dap-ui-mode -1)
-    (dap-ui-controls-mode nil)
+    (dap-ui-controls-mode -1)
     (remove-hook 'dap-stopped-hook #'dap-ui-show-debug-windows)
     (remove-hook 'dap-terminated-hook #'dap-ui-hide-debug-windows))))
 
