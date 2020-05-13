@@ -800,7 +800,7 @@ DEBUG-SESSION is the debug session triggering the event."
                                               (dap--cur-session)
                                               variables-reference)))
                   it)
-            (lsp-treemacs-render it " Locals " nil dap-ui--locals-buffer)
+            (lsp-treemacs-render it " Locals " t dap-ui--locals-buffer)
             (or it t))
           (lsp-treemacs-render
            '((:label "Nothing to display..."
