@@ -140,10 +140,27 @@ The hook will be called with the session file and the new set of breakpoint loca
   :group 'dap-mode
   :type '(plist))
 
-(defcustom dap-auto-configure t
-  "Whether to auto configure dap-mode and dap-ui-mode"
+(defcustom dap-auto-configure-features '(sessions locals breakpoints expressions controls tooltip)
+  "Windows to auto show on debugging when in dap-ui-auto-configure-mode."
   :group 'dap-mode
-  :type 'bool)
+  :type '(set (const sessions)
+              (const locals)
+              (const breakpoints)
+              (const expressions)
+              (const controls)
+              (const tooltip)))
+
+(defconst dap-feature->start-stop
+  '((sessions . (dap-ui-sessions . dap-ui--sessions-buffer))
+    (locals . (dap-ui-locals . dap-ui--locals-buffer))
+    (breakpoints . (dap-ui-breakpoints . dap-ui--breakpoints-buffer))
+    (expressions . (dap-ui-expressions . dap-ui--expressions-buffer))))
+
+(defconst dap-feature->mode
+  '((sessions . dap-ui-sessions-mode)
+    (breakpoints . dap-ui-breakpoints-mode)
+    (controls . (dap-ui-controls-mode . posframe))
+    (tooltip . dap-tooltip-mode)))
 
 (defvar dap--debug-configuration nil
   "List of the previous configuration that have been executed.")
@@ -1242,8 +1259,6 @@ before starting the debug process."
 
 (defun dap--after-initialize ()
   "After initialize handler."
-  (when dap-auto-configure
-    (dap-auto-configure-mode 1))
   (with-demoted-errors
       "Failed to load breakpoints for the current workspace with error: %S"
     (let ((breakpoints-file dap-breakpoints-file))
@@ -1502,6 +1517,7 @@ If the current session it will be terminated."
                        (-when-let (buffer (dap--debug-session-output-buffer debug-session))
                          (kill-buffer buffer))
                        (dap--refresh-breakpoints))))
+    (message "=>%s" cleanup-fn)
     (if (not (dap--session-running debug-session))
         (funcall cleanup-fn)
       (dap--send-message (dap--make-request "disconnect"
@@ -1607,25 +1623,47 @@ point is set."
   (dap-mode t))
 
 
-
 ;; Auto configure
+
+(defun dap--show-feature-window (_session)
+  "Show auto confiured feature windows."
+  (seq-doseq (feature-start-stop dap-auto-configure-features)
+    (when-let ((start-stop (alist-get feature-start-stop dap-feature->start-stop)))
+      (funcall (car start-stop)))))
+
+(defun dap--hide-feature-window (_session)
+  "Hide all debug windows when sessions are dead."
+  (unless (-filter 'dap--session-running (dap--get-sessions))
+    (seq-doseq (feature-start-stop dap-auto-configure-features)
+      (-when-let* ((feature-start-stop (alist-get feature-start-stop dap-feature->start-stop))
+                   (buffer-name (symbol-value (cdr feature-start-stop))))
+        (and (get-buffer buffer-name)
+             (kill-buffer buffer-name))))))
 
 (define-minor-mode dap-auto-configure-mode
   "Auto configure dap minor mode."
-  :init-value dap-auto-configure
+  :init-value nil
   :group 'dap-mode
   (cond
    (dap-auto-configure-mode
+    (dap-mode 1)
     (dap-ui-mode 1)
-    (when (require 'posframe nil t)
-      (dap-ui-controls-mode 1))
-    (add-hook 'dap-stopped-hook #'dap-ui-show-debug-windows)
-    (add-hook 'dap-terminated-hook #'dap-ui-hide-debug-windows))
+    (seq-doseq (feature dap-auto-configure-features)
+      (when-let ((mode (alist-get feature dap-feature->mode)))
+        (if (consp mode)
+            (when (require (cdr mode) nil t)
+              (funcall (car mode) 1))
+            (funcall mode 1))))
+    (add-hook 'dap-stopped-hook #'dap--show-feature-window)
+    (add-hook 'dap-terminated-hook #'dap--hide-feature-window))
    (t
+    (dap-mode -1)
     (dap-ui-mode -1)
-    (dap-ui-controls-mode -1)
-    (remove-hook 'dap-stopped-hook #'dap-ui-show-debug-windows)
-    (remove-hook 'dap-terminated-hook #'dap-ui-hide-debug-windows))))
+    (seq-doseq (feature dap-auto-configure-features)
+      (when-let ((mode (alist-get feature dap-feature->mode)))
+        (funcall mode -1)))
+    (remove-hook 'dap-stopped-hook #'dap--show-feature-window)
+    (remove-hook 'dap-terminated-hook #'dap--hide-feature-window))))
 
 (provide 'dap-mode)
 ;;; dap-mode.el ends here
