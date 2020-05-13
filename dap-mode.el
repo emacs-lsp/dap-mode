@@ -1517,7 +1517,6 @@ If the current session it will be terminated."
                        (-when-let (buffer (dap--debug-session-output-buffer debug-session))
                          (kill-buffer buffer))
                        (dap--refresh-breakpoints))))
-    (message "=>%s" cleanup-fn)
     (if (not (dap--session-running debug-session))
         (funcall cleanup-fn)
       (dap--send-message (dap--make-request "disconnect"
