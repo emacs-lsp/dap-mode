@@ -150,13 +150,13 @@ The hook will be called with the session file and the new set of breakpoint loca
               (const :tag "Enable `dap-ui-controls-mode` with controls to manage the debug session when debugging" controls)
               (const :tag "Enable `dap-tooltip-mode` that enables mouse hover support when debugging" tooltip)))
 
-(defconst dap-feature->start-stop
+(defconst dap-features->windows
   '((sessions . (dap-ui-sessions . dap-ui--sessions-buffer))
     (locals . (dap-ui-locals . dap-ui--locals-buffer))
     (breakpoints . (dap-ui-breakpoints . dap-ui--breakpoints-buffer))
     (expressions . (dap-ui-expressions . dap-ui--expressions-buffer))))
 
-(defconst dap-feature->mode
+(defconst dap-features->modes
   '((sessions . dap-ui-sessions-mode)
     (breakpoints . dap-ui-breakpoints-mode)
     (controls . (dap-ui-controls-mode . posframe))
@@ -1627,14 +1627,14 @@ point is set."
 (defun dap--show-feature-window (_session)
   "Show auto configured feature windows."
   (seq-doseq (feature-start-stop dap-auto-configure-features)
-    (when-let (start-stop (alist-get feature-start-stop dap-feature->start-stop))
+    (when-let (start-stop (alist-get feature-start-stop dap-features->windows))
       (funcall (car start-stop)))))
 
 (defun dap--hide-feature-window (_session)
   "Hide all debug windows when sessions are dead."
   (unless (-filter 'dap--session-running (dap--get-sessions))
     (seq-doseq (feature-start-stop dap-auto-configure-features)
-      (-when-let* ((feature-start-stop (alist-get feature-start-stop dap-feature->start-stop))
+      (-when-let* ((feature-start-stop (alist-get feature-start-stop dap-features->windows))
                    (buffer-name (symbol-value (cdr feature-start-stop))))
         (and (get-buffer buffer-name)
              (kill-buffer buffer-name))))))
@@ -1650,7 +1650,7 @@ point is set."
     (dap-mode 1)
     (dap-ui-mode 1)
     (seq-doseq (feature dap-auto-configure-features)
-      (when-let (mode (alist-get feature dap-feature->mode))
+      (when-let (mode (alist-get feature dap-features->modes))
         (if (consp mode)
             (when (require (cdr mode) nil t)
               (funcall (car mode) 1))
@@ -1661,7 +1661,7 @@ point is set."
     (dap-mode -1)
     (dap-ui-mode -1)
     (seq-doseq (feature dap-auto-configure-features)
-      (when-let (mode (alist-get feature dap-feature->mode))
+      (when-let (mode (alist-get feature dap-features->modes))
         (if (consp mode)
             (funcall (car mode) -1)
             (funcall mode -1))))
