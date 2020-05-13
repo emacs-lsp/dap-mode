@@ -334,6 +334,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#display-debug-windows-on-session-startup" class="md-nav__link">
+    Display debug windows on session startup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#activate-minor-modes-when-stepping-through-code" class="md-nav__link">
     Activate minor modes when stepping through code
   </a>
@@ -553,6 +560,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#display-debug-windows-on-session-startup" class="md-nav__link">
+    Display debug windows on session startup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#activate-minor-modes-when-stepping-through-code" class="md-nav__link">
     Activate minor modes when stepping through code
   </a>
@@ -580,6 +594,38 @@
                 
                 
                 <h1 id="how-to">How to<a class="headerlink" href="#how-to" title="Permanent link">#</a></h1>
+<h2 id="display-debug-windows-on-session-startup">Display debug windows on session startup<a class="headerlink" href="#display-debug-windows-on-session-startup" title="Permanent link">#</a></h2>
+<p>Here it is a code that can be used to automatically display/hide debug windows.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">defun</span> <span class="nv">my/window-visible</span> <span class="p">(</span><span class="nv">b-name</span><span class="p">)</span>
+  <span class="s">&quot;Return whether B-NAME is visible.&quot;</span>
+  <span class="p">(</span><span class="nv">-&gt;</span> <span class="p">(</span><span class="nv">-compose</span> <span class="ss">&#39;buffer-name</span> <span class="ss">&#39;window-buffer</span><span class="p">)</span>
+      <span class="p">(</span><span class="nv">-map</span> <span class="p">(</span><span class="nf">window-list</span><span class="p">))</span>
+      <span class="p">(</span><span class="nv">-contains?</span> <span class="nv">b-name</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">my/show-debug-windows</span> <span class="p">(</span><span class="nv">session</span><span class="p">)</span>
+  <span class="s">&quot;Show debug windows.&quot;</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">lsp--cur-workspace</span> <span class="p">(</span><span class="nv">dap--debug-session-workspace</span> <span class="nv">session</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">save-excursion</span>
+      <span class="c1">;; display locals</span>
+      <span class="p">(</span><span class="nb">unless</span> <span class="p">(</span><span class="nv">my/window-visible</span> <span class="nv">dap-ui--locals-buffer</span><span class="p">)</span>
+        <span class="p">(</span><span class="nv">dap-ui-locals</span><span class="p">))</span>
+      <span class="c1">;; display sessions</span>
+      <span class="p">(</span><span class="nb">unless</span> <span class="p">(</span><span class="nv">my/window-visible</span> <span class="nv">dap-ui--sessions-buffer</span><span class="p">)</span>
+        <span class="p">(</span><span class="nv">dap-ui-sessions</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;dap-stopped-hook</span> <span class="ss">&#39;my/show-debug-windows</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">my/hide-debug-windows</span> <span class="p">(</span><span class="nv">session</span><span class="p">)</span>
+  <span class="s">&quot;Hide debug windows when all debug sessions are dead.&quot;</span>
+  <span class="p">(</span><span class="nb">unless</span> <span class="p">(</span><span class="nv">-filter</span> <span class="ss">&#39;dap--session-running</span> <span class="p">(</span><span class="nv">dap--get-sessions</span><span class="p">))</span>
+    <span class="p">(</span><span class="k">and</span> <span class="p">(</span><span class="nf">get-buffer</span> <span class="nv">dap-ui--sessions-buffer</span><span class="p">)</span>
+         <span class="p">(</span><span class="nf">kill-buffer</span> <span class="nv">dap-ui--sessions-buffer</span><span class="p">))</span>
+    <span class="p">(</span><span class="k">and</span> <span class="p">(</span><span class="nf">get-buffer</span> <span class="nv">dap-ui--locals-buffer</span><span class="p">)</span>
+         <span class="p">(</span><span class="nf">kill-buffer</span> <span class="nv">dap-ui--locals-buffer</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;dap-terminated-hook</span> <span class="ss">&#39;my/hide-debug-windows</span><span class="p">)</span>
+</code></pre></div>
+
 <h2 id="activate-minor-modes-when-stepping-through-code">Activate minor modes when stepping through code<a class="headerlink" href="#activate-minor-modes-when-stepping-through-code" title="Permanent link">#</a></h2>
 <p>You may want to activate minor modes, e.g. <code>read-only-mode</code>, when the debugger is active in a buffer. If so, you could use a trick like this:</p>
 <div class="highlight"><pre><span></span><code><span class="c1">;; -*- lexical-binding: t -*-</span>
