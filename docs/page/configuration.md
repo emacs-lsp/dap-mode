@@ -3,11 +3,20 @@ Configuration
 
 ## DAP mode configuration
 
-Enable both `dap-mode` and `dap-ui-mode` (requires posframe to be
-installed manually, available only for emacs version \>= 26).
+For an auto-configuration enable the `dap-auto-configure-mode`. You can configure which features from `dap-mode` do you want with `dap-auto-configure-features`:
 
-``` elisp
+```elisp
+;; Enabling only some features
+(setq dap-auto-configure-features '(sessions locals controls tooltip))
+```
+
+Or if you want to enable only specific modes instead:
+
+```elisp
 (dap-mode 1)
+
+;; The modes above are optional
+
 (dap-ui-mode 1)
 ;; enables mouse hover support
 (dap-tooltip-mode 1)

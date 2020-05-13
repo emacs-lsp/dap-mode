@@ -1,41 +1,6 @@
 How to
 ======
 
-## Display debug windows on session startup
-
-Here it is a code that can be used to automatically display/hide debug windows.
-
-```elisp
-(defun my/window-visible (b-name)
-  "Return whether B-NAME is visible."
-  (-> (-compose 'buffer-name 'window-buffer)
-      (-map (window-list))
-      (-contains? b-name)))
-
-(defun my/show-debug-windows (session)
-  "Show debug windows."
-  (let ((lsp--cur-workspace (dap--debug-session-workspace session)))
-    (save-excursion
-      ;; display locals
-      (unless (my/window-visible dap-ui--locals-buffer)
-        (dap-ui-locals))
-      ;; display sessions
-      (unless (my/window-visible dap-ui--sessions-buffer)
-        (dap-ui-sessions)))))
-
-(add-hook 'dap-stopped-hook 'my/show-debug-windows)
-
-(defun my/hide-debug-windows (session)
-  "Hide debug windows when all debug sessions are dead."
-  (unless (-filter 'dap--session-running (dap--get-sessions))
-    (and (get-buffer dap-ui--sessions-buffer)
-         (kill-buffer dap-ui--sessions-buffer))
-    (and (get-buffer dap-ui--locals-buffer)
-         (kill-buffer dap-ui--locals-buffer))))
-
-(add-hook 'dap-terminated-hook 'my/hide-debug-windows)
-```
-
 ## Activate minor modes when stepping through code
 
 You may want to activate minor modes, e.g. `read-only-mode`, when the debugger is active in a buffer. If so, you could use a trick like this:

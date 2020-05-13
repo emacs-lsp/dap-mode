@@ -1076,7 +1076,7 @@ DEBUG-SESSION is the debug session triggering the event."
     (define-key (kbd "C L") #'dap-ui-breakpoint-log-message)))
 
 (define-minor-mode dap-ui-breakpoints-mode
-  "UI Session list minor mode."
+  "UI Breakpoints list minor mode."
   :init-value nil
   :group dap-ui
   :keymap dap-ui-breakpoints-mode-map)
@@ -1108,6 +1108,43 @@ DEBUG-SESSION is the debug session triggering the event."
   (add-hook 'dap-stack-frame-changed-hook #'dap-ui-breakpoints--refresh)
   (add-hook 'dap-breakpoints-changed-hook #'dap-ui-breakpoints--refresh)
   (add-hook 'kill-buffer-hook 'dap-ui-breakpoints--cleanup-hooks nil t))
+
+(defun dap-ui--show-many-windows (_session)
+  "Show auto configured feature windows."
+  (seq-doseq (feature-start-stop dap-auto-configure-features)
+    (when-let (start-stop (alist-get feature-start-stop dap-features->windows))
+      (funcall (car start-stop)))))
+
+(defun dap-ui--hide-many-windows (_session)
+  "Hide all debug windows when sessions are dead."
+  (seq-doseq (feature-start-stop dap-auto-configure-features)
+    (-when-let* ((feature-start-stop (alist-get feature-start-stop dap-features->windows))
+                 (buffer-name (symbol-value (cdr feature-start-stop))))
+      (and (get-buffer buffer-name)
+           (kill-buffer buffer-name)))))
+
+;;;###autoload
+(defun dap-ui-show-many-windows ()
+  "Show auto configured feature windows."
+  (interactive)
+  (dap-ui--show-many-windows nil))
+
+;;;###autoload
+(defun dap-ui-hide-many-windows ()
+  "Hide all debug windows when sessions are dead."
+  (interactive)
+  (dap-ui--hide-many-windows nil))
+
+(define-minor-mode dap-ui-many-windows-mode
+  "Shows/hide the windows from `dap-auto-configure-features`"
+  :global t
+  (cond
+   (dap-ui-many-windows-mode
+    (add-hook 'dap-stopped-hook #'dap-ui--show-many-windows)
+    (add-hook 'dap-terminated-hook #'dap-ui--hide-many-windows))
+   (t
+    (remove-hook 'dap-stopped-hook #'dap-ui--show-many-windows)
+    (remove-hook 'dap-terminated-hook #'dap-ui--hide-many-windows))))
 
 (provide 'dap-ui)
 ;;; dap-ui.el ends here

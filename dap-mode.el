@@ -137,7 +137,30 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defcustom dap-debug-template-configurations nil
   "Plist Template configurations for DEBUG/RUN."
   :safe #'listp
+  :group 'dap-mode
   :type '(plist))
+
+(defcustom dap-auto-configure-features '(sessions locals breakpoints expressions controls tooltip)
+  "Windows to auto show on debugging when in dap-ui-auto-configure-mode."
+  :group 'dap-mode
+  :type '(set (const :tag "Show sessions popup window when debugging and enable `dap-ui-sessions-mode`" sessions)
+              (const :tag "Show locals popup window when debugging" locals)
+              (const :tag "Show breakpoints popup window when debugging and enable `dap-ui-breakpoints-mode`" breakpoints)
+              (const :tag "Show expressions popup window when debugging" expressions)
+              (const :tag "Enable `dap-ui-controls-mode` with controls to manage the debug session when debugging" controls)
+              (const :tag "Enable `dap-tooltip-mode` that enables mouse hover support when debugging" tooltip)))
+
+(defconst dap-features->windows
+  '((sessions . (dap-ui-sessions . dap-ui--sessions-buffer))
+    (locals . (dap-ui-locals . dap-ui--locals-buffer))
+    (breakpoints . (dap-ui-breakpoints . dap-ui--breakpoints-buffer))
+    (expressions . (dap-ui-expressions . dap-ui--expressions-buffer))))
+
+(defconst dap-features->modes
+  '((sessions . dap-ui-sessions-mode)
+    (breakpoints . dap-ui-breakpoints-mode)
+    (controls . (dap-ui-controls-mode . posframe))
+    (tooltip . dap-tooltip-mode)))
 
 (defvar dap--debug-configuration nil
   "List of the previous configuration that have been executed.")
@@ -1597,6 +1620,36 @@ point is set."
   "Turn on function `dap-mode'."
   (interactive)
   (dap-mode t))
+
+
+;; Auto configure
+
+;;;###autoload
+(define-minor-mode dap-auto-configure-mode
+  "Auto configure dap minor mode."
+  :init-value nil
+  :global t
+  :group 'dap-mode
+  (cond
+   (dap-auto-configure-mode
+    (dap-mode 1)
+    (dap-ui-mode 1)
+    (seq-doseq (feature dap-auto-configure-features)
+      (when-let (mode (alist-get feature dap-features->modes))
+        (if (consp mode)
+            (when (require (cdr mode) nil t)
+              (funcall (car mode) 1))
+            (funcall mode 1))))
+    (dap-ui-many-windows-mode 1))
+   (t
+    (dap-mode -1)
+    (dap-ui-mode -1)
+    (seq-doseq (feature dap-auto-configure-features)
+      (when-let (mode (alist-get feature dap-features->modes))
+        (if (consp mode)
+            (funcall (car mode) -1)
+            (funcall mode -1))))
+    (dap-ui-many-windows-mode -1))))
 
 (provide 'dap-mode)
 ;;; dap-mode.el ends here
