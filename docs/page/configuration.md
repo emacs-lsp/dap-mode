@@ -3,17 +3,16 @@ Configuration
 
 ## DAP mode configuration
 
-You only need to enable `dap-mode` first with:
+For an auto-configuration enable the `dap-auto-configure-mode`. You can configure which features from `dap-mode` do you want with `dap-auto-configure-features`:
 
 ```elisp
-(dap-mode 1)
+;; Enabling only some features
+(setq dap-auto-configure-features '(sessions locals controls tooltip))
 ```
 
-Enabling `dap-mode` triggers the auto-configuration by default but if you want to enable only specific modes instead, you can disable it setting `dap-auto-configure` to `nil`:
+Or if you want to enable only specific modes instead:
 
 ```elisp
-(setq dap-mode-auto-configure nil)
-
 (dap-mode 1)
 
 ;; The modes above are optional
