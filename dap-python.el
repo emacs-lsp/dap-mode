@@ -174,7 +174,7 @@ as the pyenv version then also return nil. This works around https://github.com/
 
 (defun dap-python--debug-test-at-point ()
   (interactive)
-  (dap-debug (dap-python--template "Python Debug Test At Point")))
+  (dap-debug (dap-python--template "Python :: Run pytest (at point)")))
 
 (defun dap-python--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
@@ -230,31 +230,31 @@ as the pyenv version then also return nil. This works around https://github.com/
     conf))
 
 (dap-register-debug-provider "python" 'dap-python--populate-start-file-args)
-(dap-register-debug-template "Python :: Run Configuration"
+(dap-register-debug-template "Python :: Run file (buffer)"
                              (list :type "python"
                                    :args ""
                                    :cwd nil
                                    :module nil
                                    :program nil
                                    :request "launch"
-                                   :name "Python :: Run Configuration"))
+                                   :name "Python :: Run file (buffer)"))
 
-(dap-register-debug-template "Python :: pytest"
+(dap-register-debug-template "Python :: Run pytest (buffer)"
                              (list :type "python"
                                    :args ""
                                    :cwd nil
                                    :program nil
                                    :module "pytest"
                                    :request "launch"
-                                   :name "Python :: Run Configuration"))
+                                   :name "Python :: Run pytest (buffer)"))
 
 (dap-register-debug-provider "python-test-at-point" 'dap-python--populate-test-at-point)
-(dap-register-debug-template "Python Debug Test At Point"
+(dap-register-debug-template "Python :: Run pytest (at point)"
 			     (list :type "python-test-at-point"
 				   :args ""
 				   :module "pytest"
 				   :request "launch"
-				   :name "Python Debug Test At Point"))
+				   :name "Python :: Run pytest (at point)"))
 
 (provide 'dap-python)
 ;;; dap-python.el ends here
