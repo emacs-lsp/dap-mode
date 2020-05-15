@@ -781,10 +781,49 @@ DEBUG-SESSION is the debug session triggering the event."
                                                     debug-session
                                                     variables-reference)))))))))
 
+(defun dap-ui--most-specific-locals (session &optional parent-variables-reference)
+  ""
+  (if parent-variables-reference
+      (when (and (dap--session-running session)
+                 parent-variables-reference
+                 (not (zerop parent-variables-reference)))
+        (->> parent-variables-reference
+             (dap-request session "variables" :variablesReference)
+             (gethash "variables")
+             (-filter (-lambda ((&hash "expensive"))
+                        (or (null expensive) (not expensive))))
+             (-map (-lambda ((&hash "name" "value" "line" "column" "variablesReference" variables-reference))
+                     (if-let ((children (dap-ui--most-specific-locals session variables-reference)))
+                         (ht ("name" name)
+                             ("value" value)
+                             ("line" line)
+                             ("column" column)
+                             ("children" children))
+                       (ht ("name" name)
+                           ("line" line)
+                           ("column" column)
+                           ("value" value)))))))
+    (-some->> session
+      (dap--debug-session-active-frame)
+      (gethash "id")
+      (dap-request session "scopes" :frameId)
+      (gethash "scopes")
+      (-map (-lambda ((&hash "variablesReference" variables-reference))
+              (dap-ui--most-specific-locals session variables-reference)))
+      (-flatten))))
+
+(defun dap-ui-refresh-inline-locals ()
+  ""
+  (-when-let* ((session (dap--cur-session))
+               (specific-locals (dap-ui--most-specific-locals session)))
+    (message "%s" (dap--json-encode specific-locals))))
+
 (defvar dap-ui--locals-timer nil)
 
 (defun dap-ui-locals--refresh (&rest _)
+  "Refresh local variables from current debug session."
   (save-excursion
+    (dap-ui-refresh-inline-locals)
     (setq dap-ui--locals-timer nil)
     (with-current-buffer (get-buffer-create dap-ui--locals-buffer)
       (or (-some--> (dap--cur-session)
