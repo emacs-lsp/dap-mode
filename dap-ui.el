@@ -556,6 +556,7 @@ DEBUG-SESSION is the debug session triggering the event."
   `(defun ,name (&rest args)
      ,(format "Code action %s" name)
      (interactive)
+     (ignore args)
      (if-let (node (treemacs-node-at-point))
          (-let [,(cons '&plist keys) (button-get node :item)]
            ,@body)
@@ -753,7 +754,8 @@ DEBUG-SESSION is the debug session triggering the event."
                       (list :variablesReference variables-reference
                             :name name
                             :value (read-string (format "Enter value for %s: " name ) value)))
-   (-lambda (result))
+   ;; FIXME: create properly callback here
+   #'ignore
    session))
 
 (defun dap-ui-render-variables (debug-session variables-reference _node)
@@ -763,7 +765,7 @@ DEBUG-SESSION is the debug session triggering the event."
      (dap-request debug-session "variables" :variablesReference)
      (gethash "variables")
      (-map (-lambda ((&hash "value" "name"
-                            "indexedVariables" indexed-variables
+                            "indexedVariables" _indexed-variables
                             "variablesReference" variables-reference))
              `(:label ,(concat (propertize (format "%s" name)
                                            'face 'font-lock-variable-name-face)
