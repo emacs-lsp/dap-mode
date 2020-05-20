@@ -476,6 +476,8 @@ DEBUG-SESSION is the debug session triggering the event."
 
 (declare-function posframe-show "ext:posframe")
 (declare-function posframe-hide "ext:posframe")
+(declare-function posframe-poshandler-frame-top-center "ext:posframe")
+(defvar posframe-mouse-banish)
 
 (defun dap-ui--update-controls (&rest _)
   (let* ((session (dap--cur-session))
@@ -507,13 +509,14 @@ DEBUG-SESSION is the debug session triggering the event."
                         (dap-ui--create-command "disconnect.png" #'dap-disconnect "Disconnect")
                         " "
                         (dap-ui--create-command "restart.png" #'dap-debug-restart "Restart")))
-              (posframe-mouse-banish nil)
+              posframe-mouse-banish
               (pos-frame (-first
                           (lambda (frame)
                             (let ((buffer-info (frame-parameter frame 'posframe-buffer)))
                               (or (equal dap-ui--control-buffer (car buffer-info))
                                   (equal dap-ui--control-buffer (cdr buffer-info)))))
                           (frame-list))))
+          (ignore posframe-mouse-banish)
           (when (eq (selected-frame) pos-frame)
             (select-frame (frame-parent pos-frame)))
           (posframe-show dap-ui--control-buffer

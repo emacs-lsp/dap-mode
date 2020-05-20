@@ -157,9 +157,7 @@ The hook will be called with the session file and the new set of breakpoint loca
     (expressions . (dap-ui-expressions . dap-ui--expressions-buffer))))
 
 (defconst dap-features->modes
-  '((sessions . dap-ui-sessions-mode)
-    (breakpoints . dap-ui-breakpoints-mode)
-    (controls . (dap-ui-controls-mode . posframe))
+  '((controls . (dap-ui-controls-mode . posframe))
     (tooltip . dap-tooltip-mode)))
 
 (defvar dap--debug-configuration nil
@@ -1154,8 +1152,9 @@ RESULT to use for the callback."
                                                         stack-frames
                                                         (-lambda ((frame &as &hash "name"))
                                                           (if-let (frame-path (dap--get-path-for-frame frame))
-                                                              (format "%s: %s (in %s)" (incf index) name frame-path)
-                                                            (format "%s: %s" (incf index) name)))
+                                                              (format "%s: %s (in %s)"
+                                                                      (cl-incf index) name frame-path)
+                                                            (format "%s: %s" (cl-incf index) name)))
                                                         nil
                                                         t)))
             (dap--go-to-stack-frame (dap--cur-session) new-stack-frame))
