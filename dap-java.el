@@ -226,6 +226,8 @@ initiate `compile' and attach to the process."
   (interactive (list (dap-java--populate-default-args nil)))
   (dap-start-debugging debug-args))
 
+(defvar testng-report-directory)
+
 (defun dap-java--run-unit-test-command (runner run-method?)
   "Run debug test with the following arguments.
 RUNNER is the test executor. RUN-METHOD? when t it will try to
@@ -309,7 +311,7 @@ attaching to the test."
                     port)
             nil))))
 
-(cl-defmethod dap-handle-event ((event (eql hotcodereplace)) session _params)
+(cl-defmethod dap-handle-event ((_event (eql hotcodereplace)) session _params)
   (when (eq dap-java-hot-reload 'always)
     (-let [(&hash "changedClasses" classes) (dap-request session "redefineClasses")]
       (if classes
