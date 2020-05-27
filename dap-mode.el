@@ -1274,10 +1274,12 @@ before starting the debug process."
 (defun dap-mode-line ()
   "Calculate DAP modeline."
   (when lsp-mode
-    (-when-let (debug-session (dap--cur-session))
-      (format " %s - %s"
-              (dap--debug-session-name debug-session)
-              (dap--debug-session-state debug-session)))))
+    (-when-let* ((debug-session (dap--cur-session))
+                 (state (dap--debug-session-state debug-session)))
+      (unless (member state '(failed terminated))
+        (format " %s - %s"
+                (dap--debug-session-name debug-session)
+                (dap--debug-session-state debug-session))))))
 
 (defun dap--thread-label (debug-session thread)
   "Calculate thread name for THREAD from DEBUG-SESSION."
