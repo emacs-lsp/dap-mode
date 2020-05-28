@@ -143,10 +143,11 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defcustom dap-auto-configure-features '(sessions locals breakpoints expressions controls tooltip)
   "Windows to auto show on debugging when in dap-ui-auto-configure-mode."
   :group 'dap-mode
-  :type '(set (const :tag "Show sessions popup window when debugging and enable `dap-ui-sessions-mode`" sessions)
+  :type '(set (const :tag "Show sessions popup window when debugging" sessions)
               (const :tag "Show locals popup window when debugging" locals)
-              (const :tag "Show breakpoints popup window when debugging and enable `dap-ui-breakpoints-mode`" breakpoints)
+              (const :tag "Show breakpoints popup window when debugging" breakpoints)
               (const :tag "Show expressions popup window when debugging" expressions)
+              (const :tag "Show REPL popup window when debugging" repl)
               (const :tag "Enable `dap-ui-controls-mode` with controls to manage the debug session when debugging" controls)
               (const :tag "Enable `dap-tooltip-mode` that enables mouse hover support when debugging" tooltip)))
 
@@ -154,7 +155,8 @@ The hook will be called with the session file and the new set of breakpoint loca
   '((sessions . (dap-ui-sessions . dap-ui--sessions-buffer))
     (locals . (dap-ui-locals . dap-ui--locals-buffer))
     (breakpoints . (dap-ui-breakpoints . dap-ui--breakpoints-buffer))
-    (expressions . (dap-ui-expressions . dap-ui--expressions-buffer))))
+    (expressions . (dap-ui-expressions . dap-ui--expressions-buffer))
+    (repl . (dap-ui-repl . dap-ui--repl-buffer))))
 
 (defconst dap-features->modes
   '((controls . (dap-ui-controls-mode . posframe))
@@ -162,6 +164,12 @@ The hook will be called with the session file and the new set of breakpoint loca
 
 (defvar dap--debug-configuration nil
   "List of the previous configuration that have been executed.")
+
+(defvar dap-connect-retry-count 1000
+  "Retry count for dap connect.")
+
+(defvar dap-connect-retry-interval 0.02
+  "Retry interval for dap connect.")
 
 (defun dash-expand:&dap-session (key source)
   `(,(intern-soft (format "dap--debug-session-%s" (eval key) )) ,source))
@@ -1577,12 +1585,6 @@ If the current session it will be terminated."
          (gethash buffer-file-name)
          (dap--set-breakpoints-in-file buffer-file-name))
     (add-hook 'kill-buffer-hook 'dap--buffer-killed nil t)))
-
-(defvar dap-connect-retry-count 1000
-  "Retry count for dap connect.")
-
-(defvar dap-connect-retry-interval 0.02
-  "Retry interval for dap connect.")
 
 (defun dap-mode-mouse-set-clear-breakpoint (event)
   "Set or remove a breakpoint at the position represented by an

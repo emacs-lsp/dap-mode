@@ -34,6 +34,7 @@
 (require 'compile)
 (require 'gdb-mi)
 (require 'lsp-treemacs)
+(require 'dap-ui-repl)
 
 (defcustom dap-ui-stack-frames-loaded nil
   "Stack frames loaded."
@@ -854,7 +855,7 @@ DEBUG-SESSION is the debug session triggering the event."
                                            (region-end)))
                        (t (symbol-at-point))))))
   (when (-contains? dap-ui-expressions expression)
-    (user-error "\"%s\" is already watched." expression))
+    (user-error "\"%s\" is already watched" expression))
   (add-to-list 'dap-ui-expressions expression)
   (dap-ui-expressions)
   (dap-ui-expressions-refresh))
@@ -866,7 +867,7 @@ DEBUG-SESSION is the debug session triggering the event."
                       nil
                       t)))
   (unless (-contains? dap-ui-expressions expression)
-    (user-error "\"%s\" is not present." expression))
+    (user-error "\"%s\" is not present" expression))
   (setq dap-ui-expressions (remove expression dap-ui-expressions))
   (dap-ui-expressions-refresh))
 
@@ -1123,8 +1124,10 @@ DEBUG-SESSION is the debug session triggering the event."
 (defun dap-ui--hide-many-windows (_session)
   "Hide all debug windows when sessions are dead."
   (seq-doseq (feature-start-stop dap-auto-configure-features)
-    (-when-let* ((feature-start-stop (alist-get feature-start-stop dap-features->windows))
-                 (buffer-name (symbol-value (cdr feature-start-stop))))
+    (when-let* ((feature-start-stop (alist-get feature-start-stop dap-features->windows))
+                (buffer-name (symbol-value (cdr feature-start-stop))))
+      (when-let (window (get-buffer-window buffer-name))
+        (delete-window window))
       (and (get-buffer buffer-name)
            (kill-buffer buffer-name)))))
 

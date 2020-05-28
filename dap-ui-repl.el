@@ -4,7 +4,7 @@
 
 ;;; Commentary:
 
-;; This code is heavily based on `skewer-repl'. Run `dap-ui-repl' to switch to
+;; This code is heavily based on `skewer-repl'.  Run `dap-ui-repl' to switch to
 ;; the REPL buffer and evaluate code.
 
 ;;; Code:
@@ -27,6 +27,8 @@
 Hack notice: this allows log messages to appear before anything is
 evaluated because it provides insertable space at the top of the
 buffer.")
+
+(defconst dap-ui--repl-buffer "*dap-ui-repl*")
 
 (defun dap-ui-repl-process ()
   "Return the process for the dap-ui REPL."
@@ -65,7 +67,7 @@ INPUT is the current input."
                             (list :expression input
                                   :frameId active-frame-id))
          (-lambda ((&hash "success" "message" "body"))
-           (-when-let (buffer (get-buffer "*dap-ui-repl*"))
+           (-when-let (buffer (get-buffer dap-ui--repl-buffer))
              (with-current-buffer buffer
                (comint-output-filter (dap-ui-repl-process)
                                      (concat (if success (gethash "result" body) message)
@@ -79,13 +81,15 @@ INPUT is the current input."
   "Start a JavaScript REPL to be evaluated in the visiting browser."
   (interactive)
   (let ((workspaces (lsp-workspaces)))
-    (unless (get-buffer "*dap-ui-repl*")
-      (with-current-buffer (get-buffer-create "*dap-ui-repl*")
+    (unless (get-buffer dap-ui--repl-buffer)
+      (with-current-buffer (get-buffer-create dap-ui--repl-buffer)
         (dap-ui-repl-mode)
         (when (functionp 'company-mode)
           (company-mode 1))
         (setq-local lsp--buffer-workspaces workspaces))))
-  (pop-to-buffer (get-buffer "*dap-ui-repl*")))
+  (if (called-interactively-p 'any)
+      (pop-to-buffer dap-ui--repl-buffer)
+    (display-buffer dap-ui--repl-buffer)))
 
 (defun dap-ui-repl--calculate-candidates ()
   "Calculate candidates.
