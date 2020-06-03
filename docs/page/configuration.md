@@ -39,9 +39,10 @@ settings.
     will automatically discover if `dap-mode` is present and it will
     download and install the required server side components. If you
     have already downloaded a `Eclispe JDT Server` you will have to
-    force a server update via `lsp-java-update-server`. In order to
-    enable lsp java, you will have to require `dap-java.el`.
-    
+    force a server update via `C-u M-x lsp-install-server` and select
+    "jdtls". In order to enable lsp java, you will have to require
+    `dap-java.el`.
+
     ``` elisp
     (require 'dap-java)
     ```
