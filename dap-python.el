@@ -48,28 +48,6 @@ For example you may set it to `xterm -e' which will pop xterm console when you a
   :risky t
   :type 'string)
 
-(defun dap-python--pyenv-executable-find (command)
-  "Find executable taking pyenv shims into account.
-If the executable is a system executable and not in the same path
-as the pyenv version then also return nil. This works around https://github.com/pyenv/pyenv-which-ext
-"
-  (if (executable-find "pyenv")
-      (progn
-        (let ((pyenv-string (shell-command-to-string (concat "pyenv which " command)))
-              (pyenv-version-names (split-string (string-trim (shell-command-to-string "pyenv version-name")) ":"))
-              (executable nil)
-              (i 0))
-          (if (not (string-match "not found" pyenv-string))
-              (while (and (not executable)
-                          (< i (length pyenv-version-names)))
-                (if (string-match (elt pyenv-version-names i) (string-trim pyenv-string))
-                    (setq executable (string-trim pyenv-string)))
-                (if (string-match (elt pyenv-version-names i) "system")
-                    (setq executable (string-trim (executable-find command))))
-                (setq i (1+ i))))
-          executable))
-    (executable-find command)))
-
 (cl-defstruct dap-python--point
   (line (:type integer) :named t)
   (character (:type integer) :named t))
@@ -180,7 +158,7 @@ as the pyenv version then also return nil. This works around https://github.com/
   "Populate CONF with the required arguments."
   (let* ((host "localhost")
          (debug-port (dap--find-available-port))
-         (python-executable (dap-python--pyenv-executable-find dap-python-executable))
+         (python-executable (plist-get conf :python-exec-path))
          (python-args (or (plist-get conf :args) ""))
          (program (or (plist-get conf :target-module)
                       (plist-get conf :program)
@@ -237,6 +215,7 @@ as the pyenv version then also return nil. This works around https://github.com/
                                    :module nil
                                    :program nil
                                    :request "launch"
+				   :python-exec-path "/usr/bin/python"
                                    :name "Python :: Run file (buffer)"))
 
 (dap-register-debug-template "Python :: Run pytest (buffer)"
@@ -246,6 +225,7 @@ as the pyenv version then also return nil. This works around https://github.com/
                                    :program nil
                                    :module "pytest"
                                    :request "launch"
+				   :python-exec-path "/usr/bin/python"
                                    :name "Python :: Run pytest (buffer)"))
 
 (dap-register-debug-provider "python-test-at-point" 'dap-python--populate-test-at-point)
@@ -254,6 +234,7 @@ as the pyenv version then also return nil. This works around https://github.com/
 				   :args ""
 				   :module "pytest"
 				   :request "launch"
+				   :python-exec-path "/usr/bin/python"
 				   :name "Python :: Run pytest (at point)"))
 
 (provide 'dap-python)
