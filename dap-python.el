@@ -193,9 +193,9 @@ as the pyenv version then also return nil. This works around https://github.com/
          (debug-port (dap--find-available-port))
 	 (virtualenv-type (plist-get conf :virtualenv))
          (python-executable 
-	  (cond ((= virtualenv-type "pyenv")
+	  (cond ((string= virtualenv-type "pyenv")
 		 (dap-python--pyenv-executable-find dap-python-executable))
-		((= virtualenv-type "pipenv")
+		((string= virtualenv-type "pipenv")
 		 (dap-python--pipenv-executable-find dap-python-executable))
 		(t
 		 (executable-find dap-python-executable))))
