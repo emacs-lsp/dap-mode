@@ -265,7 +265,7 @@ as the pyenv version then also return nil. This works around https://github.com/
                                    :program nil
                                    :module "pytest"
                                    :request "launch"
-				   :virtualenv "pyenv"
+				     :virtualenv "pyenv"
                                    :name "Python :: Run pytest (buffer)"))
 
 (dap-register-debug-provider "python-test-at-point" 'dap-python--populate-test-at-point)
