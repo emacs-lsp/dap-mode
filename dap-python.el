@@ -273,7 +273,6 @@ as the pyenv version then also return nil. This works around https://github.com/
 			     (list :type "python-test-at-point"
 				   :args ""
 				   :module "pytest"
-				   :virtualenv "pyenv"
 				   :request "launch"
 				   :virtualenv "pyenv"
 				   :name "Python :: Run pytest (at point)"))
