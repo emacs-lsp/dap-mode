@@ -23,7 +23,7 @@
 ;; Version: 0.2
 
 ;;; Commentary:
-;; Adapter for https://github.com/Microsoft/vscode-go
+;; Adapter for https://github.com/golang/vscode-go
 
 ;;; Code:
 
