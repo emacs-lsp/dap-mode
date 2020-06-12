@@ -30,7 +30,7 @@
 (require 'dap-mode)
 (require 'dap-utils)
 
-(defcustom dap-go-debug-path (expand-file-name "vscode/ms-vscode.go" dap-utils-extension-path)
+(defcustom dap-go-debug-path (expand-file-name "vscode/golang.go" dap-utils-extension-path)
   "The path to go vscode extension."
   :group 'dap-go
   :type 'string)
@@ -47,7 +47,7 @@
   :group 'dap-go
   :type 'string)
 
-(dap-utils-vscode-setup-function "dap-go" "ms-vscode" "go" dap-go-debug-path)
+(dap-utils-vscode-setup-function "dap-go" "golang" "go" dap-go-debug-path)
 
 (defun dap-go--populate-default-args (conf)
   "Populate CONF with the default arguments."
