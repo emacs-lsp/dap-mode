@@ -155,7 +155,7 @@ you are good to debug dart.
     and Swift.
     
       - Clone and follow the instructions to compile lldb-vscode from
-        <https://github.com/llvm-mirror/lldb/tree/master/tools/lldb-vscode>
+        <https://github.com/llvm/llvm-project/tree/master/lldb/tools/lldb-vscode>
     
       - Put in your emacs configuration.
         
