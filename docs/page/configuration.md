@@ -234,7 +234,7 @@ Using <https://github.com/WebFreak001/code-debug>
             Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go)..
             it is actually zip file.
           - check that you now have
-            .emacs.d/.extension/vscode/ms-vscode.go/extension/out/src/debugAdapter/goDebug.js
+            .emacs.d/.extension/vscode/golang.go/extension/out/src/debugAdapter/goDebug.js
     
       - install latest stable nodejs
     
