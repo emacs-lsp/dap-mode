@@ -93,10 +93,10 @@ If the port is taken, DAP will try the next port."
   "Get class FDQN."
   (-if-let* ((symbols (lsp--get-document-symbols))
              (package-name (-some->> symbols
-                             (-first (-lambda ((&DocumentSymbol :kind)) (= kind 4)))
+                             (-first (-lambda ((&DocumentSymbol :kind)) (= kind lsp/symbol-kind-package)))
                              lsp:document-symbol-name))
              (class-name (->> symbols
-                              (--first (= (lsp:document-symbol-kind it) 5))
+                              (--first (= (lsp:document-symbol-kind it) lsp/symbol-kind-class))
                               lsp:document-symbol-name)))
       (concat package-name "." class-name)
     (user-error "No class found")))
@@ -105,15 +105,15 @@ If the port is taken, DAP will try the next port."
   "Get method at point."
   (-let* ((symbols (lsp--get-document-symbols))
           (package-name (-some->> symbols
-                          (-first (-lambda ((&DocumentSymbol :kind)) (= kind 4)))
+                          (-first (-lambda ((&DocumentSymbol :kind)) (= kind lsp/symbol-kind-package)))
                           lsp:document-symbol-name)))
     (or (->> symbols
              (-keep (-lambda ((&DocumentSymbol :children? :kind :name class-name))
-                      (and (= kind 5)
+                      (and (= kind lsp/symbol-kind-class)
                            (seq-some
                             (-lambda ((&DocumentSymbol :kind :range :selection-range))
                               (-let (((beg . end) (lsp--range-to-region range)))
-                                (and (= 6 kind ) (<= beg (point) end)
+                                (and (= lsp/symbol-kind-method kind) (<= beg (point) end)
                                      (concat package-name "." class-name "#"
                                              (lsp-region-text selection-range)))))
                             children?))))
