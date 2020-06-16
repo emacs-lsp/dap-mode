@@ -112,18 +112,20 @@ as the pyenv version then also return nil. This works around https://github.com/
        (dap-python--equal (dap-python--symbol-type lhs) (dap-python--symbol-type rhs))
        (dap-python--equal (dap-python--symbol-location lhs) (dap-python--symbol-location rhs))))
 
-(defun dap-python--parse-lsp-symbol (symbol)
-  (-let* (((&hash "name" "kind" "location") symbol)
-	  ((&hash "range") location)
-	  ((&hash "start" "end") range))
-    (make-dap-python--symbol
-     :name name
-     :type (alist-get kind lsp--symbol-kind)
-     :location (make-dap-python--location
-		:start (make-dap-python--point :line (gethash "line" start)
-					       :character (gethash "character" start))
-		:end (make-dap-python--point :line (gethash "line" end)
-					     :character (gethash "character" end))))))
+(lsp-defun dap-python--parse-lsp-symbol
+  ((&SymbolInformation :name :kind
+                       :location (&Location :range (&Range :start (&Position :line start-line
+                                                                             :character start-character)
+                                                           :end (&Position :line end-line
+                                                                           :character end-character)))))
+  (make-dap-python--symbol
+   :name name
+   :type (alist-get kind lsp--symbol-kind)
+   :location (make-dap-python--location
+              :start (make-dap-python--point :line start-line
+                                             :character start-character)
+              :end (make-dap-python--point :line end-line
+                                           :character end-character))))
 
 (defun dap-python--symbol-before-point (point lsp-symbol)
   (-> lsp-symbol
