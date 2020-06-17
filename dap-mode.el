@@ -911,6 +911,7 @@ PARAMS are the event params.")
   "Creates an output buffer with with name SESSION-NAME."
   (with-current-buffer (get-buffer-create (concat "*" session-name " out*"))
     (set (make-local-variable 'window-point-insertion-type) t)
+    (special-mode)
     (current-buffer)))
 
 (defun dap--make-request (command &optional args)
