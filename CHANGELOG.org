@@ -2,6 +2,10 @@
 #+STARTUP: content
 
 * Changelog
+** 0.5
+   - added support for running TestNG tests
+   - added ~dap-auto-configure-mode~ as the new ~dap-mode~ integration point.
+   - Migrated to ~lsp-protocol.el~.
 ** 0.3
    - Added node/go/chrome/firefox/php/ruby/elixir/go/LLDB debuggers support
    - Added support for mouse hover
