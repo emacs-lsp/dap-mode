@@ -89,6 +89,10 @@ If the port is taken, DAP will try the next port."
   :group 'dap-java
   :type 'number)
 
+(eval-and-compile
+  (lsp-interface
+   (java:MainClass (:mainClass :projectName))))
+
 (defun dap-java-test-class ()
   "Get class FDQN."
   (-if-let* ((symbols (lsp--get-document-symbols))
@@ -130,23 +134,22 @@ If the port is taken, DAP will try the next port."
      ((= main-classes-count 0) (error "Unable to find main class.
 Please check whether the server is configured propertly"))
      ((= main-classes-count 1) (cl-first main-classes))
-     ((setq current-class (--first (string= buffer-file-name (gethash "filePath" it))
+     ((setq current-class (--first (string= buffer-file-name (lsp-get it :filePath))
                                    main-classes))
       current-class)
      (t (dap--completing-read "Select main class to run: "
                               main-classes
                               (lambda (it)
                                 (format "%s(%s)"
-                                        (gethash "mainClass" it)
-                                        (gethash "projectName" it)))
+                                        (lsp-get it :mainClass)
+                                        (lsp-get it :projectName)))
                               nil
                               t)))))
-
 (defun dap-java--populate-launch-args (conf)
   "Populate CONF with launch related configurations."
   (when (not (and (plist-get conf :mainClass)
                   (plist-get conf :projectName)))
-    (-let [(&hash "mainClass" main-class "projectName" project-name) (dap-java--select-main-class)]
+    (-let [(&java:MainClass :main-class :project-name) (dap-java--select-main-class)]
       (setq conf (plist-put conf :mainClass main-class))
       (plist-put conf :projectName project-name)))
 
