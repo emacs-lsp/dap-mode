@@ -35,6 +35,7 @@
 (require 'gdb-mi)
 (require 'lsp-treemacs)
 (require 'dap-ui-repl)
+(require 'posframe)
 
 (defcustom dap-ui-stack-frames-loaded nil
   "Stack frames loaded."
@@ -475,11 +476,6 @@ DEBUG-SESSION is the debug session triggering the event."
               'pointer 'hand
               'help-echo hover-text))
 
-(declare-function posframe-show "ext:posframe")
-(declare-function posframe-hide "ext:posframe")
-(declare-function posframe-poshandler-frame-top-center "ext:posframe")
-(defvar posframe-mouse-banish)
-
 (defun dap-ui--update-controls (&rest _)
   (let* ((session (dap--cur-session))
          (stopped? (and session (dap--debug-session-active-frame session)))
@@ -532,8 +528,6 @@ DEBUG-SESSION is the debug session triggering the event."
   :init-value nil
   :global t
   :require 'dap-ui
-  (unless (require 'posframe nil t)
-    (error "Displaying DAP controls requires that the posframe Emacs package is installed"))
   (cond
    (dap-ui-controls-mode
     (add-hook 'dap-session-changed-hook 'dap-ui--update-controls)
