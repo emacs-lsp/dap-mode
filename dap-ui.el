@@ -37,14 +37,16 @@
 (require 'dap-ui-repl)
 (require 'posframe)
 
-(defcustom dap-ui-stack-frames-loaded nil
-  "Stack frames loaded."
-  :type 'hook
-  :group 'dap-ui)
-
 (defcustom dap-ui-breakpoints-ui-list-displayed-hook nil
   "List of functions to run when breakpoints list is displayed."
   :type 'hook
+  :group 'dap-ui)
+
+(defcustom dap-ui-locals-expand-depth 1
+  "Dap"
+  :type '(choice (const :tag "Do not expand" nil)
+                 (const :tag "Expand recursively" t)
+                 (number :tag "Expand level"))
   :group 'dap-ui)
 
 (defface dap-ui-compile-errline
@@ -146,9 +148,6 @@
     (,dap-ui--sessions-buffer . ((side . right) (slot . 3) (window-width . 0.20)))
     (,dap-ui--breakpoints-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
     (,dap-ui--debug-window-buffer . ((side . bottom) (slot . 3) (window-width . 0.20)))))
-
-(defvar-local dap-ui--locals-request-id 0
-  "The locals request id that is currently active.")
 
 (defun dap-ui-session--calculate-face (debug-session)
   "Calculate the face of DEBUG-SESSION based on its state."
@@ -800,7 +799,7 @@ DEBUG-SESSION is the debug session triggering the event."
                                               (dap--cur-session)
                                               variables-reference)))
                   it)
-            (lsp-treemacs-render it " Locals " nil dap-ui--locals-buffer)
+            (lsp-treemacs-render it " Locals " dap-ui-locals-expand-depth  dap-ui--locals-buffer)
             (or it t))
           (lsp-treemacs-render
            '((:label "Nothing to display..."
