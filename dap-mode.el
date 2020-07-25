@@ -987,7 +987,8 @@ ADAPTER-ID the id of the adapter."
                 (< retries dap-connect-retry-count))
       (condition-case err
           (setq result (open-network-stream session-name nil
-                                            host port :type 'plain))
+                                            host port :type 'plain
+                                            :coding 'no-conversion))
         (file-error
          (let ((inhibit-message t))
            (message "Failed to connect to %s:%s with error message %s"
@@ -1411,7 +1412,9 @@ SLEEP-INTERVAL is the sleep interval between each retry."
     (while (and (not success) (< retries (or retry-count 100)))
       (condition-case err
           (progn
-            (delete-process (open-network-stream "*connection-test*" nil host port :type 'plain))
+            (delete-process (open-network-stream "*connection-test*" nil host port
+                                                 :type 'plain
+                                                 :coding 'no-conversion))
             (setq success t))
         (file-error
          (let ((inhibit-message t))
