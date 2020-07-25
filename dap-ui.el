@@ -43,7 +43,20 @@
   :group 'dap-ui)
 
 (defcustom dap-ui-locals-expand-depth 1
-  "Dap"
+  "Locals expand strategy.
+When nil - do not expand.
+t - expand recursively
+number - expand N levels."
+  :type '(choice (const :tag "Do not expand" nil)
+                 (const :tag "Expand recursively" t)
+                 (number :tag "Expand level"))
+  :group 'dap-ui)
+
+(defcustom dap-ui-expressiosn-expand-depth nil
+  "Expressions expand strategy.
+When nil - do not expand.
+t - expand recursively
+number - expand N levels."
   :type '(choice (const :tag "Do not expand" nil)
                  (const :tag "Expand recursively" t)
                  (number :tag "Expand level"))
@@ -918,7 +931,7 @@ DEBUG-SESSION is the debug session triggering the event."
                                ["Refresh" dap-ui-expressions-refresh]))))
           dap-ui-expressions))
        " Expressions "
-       nil
+       dap-ui-expressiosn-expand-depth
        dap-ui--expressions-buffer
        '(["Add" dap-ui-expressions-add]
          ["Refresh" dap-ui-expressions-refresh])))))
