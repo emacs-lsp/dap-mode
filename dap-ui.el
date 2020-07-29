@@ -294,32 +294,36 @@ DEBUG-SESSION is the debug session triggering the event."
     (when (string= buffer-file-name path)
       (dap-ui--stack-frame-changed debug-session))))
 
+(defvar dap-ui-menu-items
+  `("Debug"
+    :visible (bound-and-true-p dap-ui-mode)
+    ["Start" dap-debug]
+    ["Create Debug Template" dap-debug-edit-template]
+    ["Debug last session" dap-debug-last]
+    ("Recent Sessions"
+     :filter ,(lambda (_)
+                (-map (-lambda ((name . debug-args))
+                        (vector name (lambda ()
+                                       (interactive)
+                                       (dap-debug debug-args))))
+                      dap--debug-configuration))
+     :active dap--debug-configuration)
+    "--"
+    ["Sessions" dap-ui-sessions]
+    ["Locals" dap-ui-locals]
+    ["Expressions" dap-ui-expressions]
+    ["Sources" dapui-loaded-sources]
+    ["Output" dap-go-to-output-buffer]
+    ["Breakpoints" dap-ui-breakpoints]
+    "---"
+    ["Toggle Controls" dap-ui-controls-mode]
+    ["Toggle Mouse Hover" dap-tooltip-mode]))
+
 (defvar dap-ui-mode-map
   (let ((map (make-sparse-keymap)))
     (easy-menu-define dap-ui-mode-menu map
       "Menu for DAP"
-      `("DAP Debug"
-        ["Debug" dap-debug]
-        ["Create Debug Template" dap-debug-edit-template]
-        ["Debug last session" dap-debug-last]
-        ("Recent Sessions"
-         :filter ,(lambda (_)
-                    (-map (-lambda ((name . debug-args))
-                            (vector name (lambda ()
-                                           (interactive)
-                                           (dap-debug debug-args))))
-                          dap--debug-configuration))
-         :active dap--debug-configuration)
-        "--"
-        ["Sessions" dap-ui-sessions]
-        ["Locals" dap-ui-locals]
-        ["Expressions" dap-ui-expressions]
-        ["Sources" dapui-loaded-sources]
-        ["Output" dap-go-to-output-buffer]
-        ["Breakpoints" dap-ui-breakpoints]
-        "---"
-        ["Toggle Controls" dap-ui-controls-mode]
-        ["Toggle Mouse Hover" dap-tooltip-mode]))
+      dap-ui-menu-items)
     map)
   "Keymap for DAP mode.")
 
