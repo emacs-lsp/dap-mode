@@ -37,24 +37,44 @@ applied with lower priority than the syntax highlighting."
   :group 'dap
   :package-version '(dap "0.9.1"))
 
+(defvar dap-mouse--hide-timer nil)
+
+(defvar dap-mouse-posframe-properties
+  (list :min-width 50
+        :internal-border-width 2
+        :internal-border-color (face-attribute 'mode-line :background)
+        :width 50
+        :min-height 10)
+  "The properties which will be used for creating the `posframe'.")
+
+(defconst dap-mouse-buffer "*dap-mouse*")
+
+(defun dap-mouse--hide-popup? ()
+  (let ((buffer-under-mouse (window-buffer (cl-first (window-list (cl-first (mouse-position))))))
+        (popup-buffer (get-buffer dap-mouse-buffer)))
+    (not (or (and (eq (current-buffer) popup-buffer)
+                  (eq buffer-under-mouse popup-buffer))
+             (eq buffer-under-mouse popup-buffer)))))
+
+(defcustom dap-mouse-popup-timeout 0.3
+  "The time to wait after command before hiding the popup.")
+
 ;;;###autoload
 (define-minor-mode dap-tooltip-mode
   "Toggle the display of GUD tooltips."
   :global t
   :group 'dap-mouse
   :group 'tooltip (require 'tooltip)
-  (if dap-tooltip-mode
-      (progn
-        (add-hook 'pre-command-hook 'tooltip-hide)
-        (add-hook 'tooltip-functions 'dap-tooltip-tips)
-        (add-hook 'lsp-mode-hook 'dap-tooltip-activate-mouse-motions-if-enabled)
-        (define-key lsp-mode-map [mouse-movement] 'dap-tooltip-mouse-motion))
-    (unless tooltip-mode
-      (remove-hook 'pre-command-hook 'tooltip-hide)
-      (remove-hook 'tooltip-functions 'dap-tooltip-tips)
-      (define-key lsp-mode-map  [mouse-movement] 'ignore)
-      (remove-hook 'lsp-mode-hook 'dap-tooltip-activate-mouse-motions-if-enabled)))
-  (dap-tooltip-activate-mouse-motions-if-enabled))
+  (cond
+   (dap-tooltip-mode
+    (add-hook 'tooltip-functions 'dap-tooltip-tips)
+    (add-hook 'lsp-mode-hook 'dap-tooltip-update-mouse-motions-if-enabled)
+    (define-key lsp-mode-map [mouse-movement] 'dap-tooltip-mouse-motion))
+   ((not tooltip-mode)
+    (remove-hook 'tooltip-functions 'dap-tooltip-tips)
+    (define-key lsp-mode-map  [mouse-movement] 'ignore)
+    (remove-hook 'lsp-mode-hook 'dap-tooltip-update-mouse-motions-if-enabled)))
+  (dap-tooltip-update-mouse-motions-if-enabled))
 
 (defcustom dap-tooltip-echo-area nil
   "Use the echo area instead of frames for DAP tooltips."
@@ -64,10 +84,10 @@ applied with lower priority than the syntax highlighting."
 
 ;;; Reacting on mouse movements
 
-(defun dap-tooltip-activate-mouse-motions-if-enabled ()
+(defun dap-tooltip-update-mouse-motions-if-enabled ()
   "Reconsider for all buffers whether mouse motion events are desired."
   (remove-hook 'post-command-hook
-               'dap-tooltip-activate-mouse-motions-if-enabled)
+               'dap-tooltip-update-mouse-motions-if-enabled)
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
       (if (and dap-tooltip-mode lsp-mode)
@@ -111,25 +131,37 @@ If there is an active selection - return it."
 
 (defun dap-tooltip-post-tooltip ()
   "Clean tooltip properties."
-  (remove-hook 'post-command-hook #'dap-tooltip-post-tooltip)
 
-  (when dap-tooltip-bounds
-    (remove-text-properties (car dap-tooltip-bounds)
-                            (cdr dap-tooltip-bounds)
-                            '(mouse-face))
-    ;; restore the selection
-    (when (region-active-p)
-      (let ((bounds dap-tooltip-bounds))
-        (run-with-idle-timer
-         0.0
-         nil
-         (lambda ()
-           (let ((point (point)))
-             (push-mark (car bounds) t t)
-             (goto-char (cdr bounds))
-             (unless (= point (point))
-               (exchange-point-and-mark)))))))
-    (setq dap-tooltip-bounds nil)))
+  (when dap-mouse--hide-timer
+    (cancel-timer dap-mouse--hide-timer))
+  (when (dap-mouse--hide-popup?)
+    (setq
+     dap-mouse--hide-timer
+     (run-at-time
+      dap-mouse-popup-timeout nil
+      (lambda ()
+        (when (dap-mouse--hide-popup?)
+          (posframe-hide dap-mouse-buffer)
+          (when dap-tooltip-bounds
+            (remove-text-properties (car dap-tooltip-bounds)
+                                    (cdr dap-tooltip-bounds)
+                                    '(mouse-face))
+            ;; restore the selection
+            (when (region-active-p)
+              (let ((bounds dap-tooltip-bounds))
+                (run-with-idle-timer
+                 0.0
+                 nil
+                 (lambda ()
+                   (let ((point (point)))
+                     (push-mark (car bounds) t t)
+                     (goto-char (cdr bounds))
+                     (unless (= point (point))
+                       (exchange-point-and-mark)))))))
+            (setq dap-tooltip-bounds nil))
+
+          (setq dap-mouse--hide-timer nil)
+          (remove-hook 'post-command-hook #'dap-tooltip-post-tooltip)))))))
 
 (defun dap-tooltip-tips (event)
   "Show tip for identifier or selection under the mouse.
@@ -149,25 +181,38 @@ This function must return nil if it doesn't handle EVENT."
                dap-tooltip-mode
                mouse-point)
       (-when-let* ((active-frame-id (-some->> debug-session
-                                              dap--debug-session-active-frame
-                                              (gethash "id")))
+                                      dap--debug-session-active-frame
+                                      (gethash "id")))
                    (bounds (dap-tooltip-thing-bounds mouse-point))
                    ((start . end) bounds)
-                   (expression (buffer-substring start end)))
+                   (expression (s-trim (buffer-substring start end))))
         (setq dap-tooltip-bounds bounds)
         (dap--send-message
          (dap--make-request "evaluate"
                             (list :expression expression
                                   :frameId active-frame-id))
-         (-lambda ((&hash "message" "body" (&hash? "result")))
+         (-lambda ((&hash "message" "body" (var &as &hash? "result")))
            (when (= request-id dap-tooltip--request)
              (if result
                  (progn
                    (add-text-properties start end
                                         '(mouse-face dap-mouse-eval-thing-face))
-                   (tooltip-show result
-                                 (or dap-tooltip-echo-area tooltip-use-echo-area
-                                     (not tooltip-mode)))
+                   (apply #'posframe-show
+                          (with-current-buffer (get-buffer-create dap-mouse-buffer)
+                            (lsp-treemacs-render
+                             (-let [(&hash "result" "variablesReference" variables-reference) var]
+                               `((:key ,expression
+                                       :label ,result
+                                       :icon dap-field
+                                       :children ,(dap-ui-render-variables
+                                                   debug-session
+                                                   variables-reference nil))))
+                             ""
+                             nil
+                             (buffer-name)))
+                          :position start
+                          :accept-focus t
+                          dap-mouse-posframe-properties)
                    (add-hook 'post-command-hook 'dap-tooltip-post-tooltip))
                (message message))))
          debug-session))))

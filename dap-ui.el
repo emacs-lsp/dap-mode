@@ -171,14 +171,13 @@ number - expand N levels."
    ((not (dap--session-running debug-session)) 'dap-ui-sessions-terminated-face)
    (t 'dap-ui-sessions-running-face)))
 
-(defun dap-ui--make-overlay (beg end tooltip-text visuals &optional mouse-face buf)
+(defun dap-ui--make-overlay (beg end visuals &optional mouse-face buf)
   "Allocate a DAP UI overlay in range BEG and END.
 TOOLTIP-TEXT, VISUALS, MOUSE-FACE will be used for the overlay.
 BUF is the active buffer."
   (let ((ov (make-overlay beg end buf t t)))
     (overlay-put ov 'face           (plist-get visuals :face))
     (overlay-put ov 'mouse-face     mouse-face)
-    (overlay-put ov 'help-echo      tooltip-text)
     (overlay-put ov 'dap-ui-overlay  t)
     (overlay-put ov 'priority (plist-get visuals :priority))
     (let ((char (plist-get visuals :char)))
@@ -192,7 +191,7 @@ BUF is the active buffer."
                                            (plist-get visuals :fringe)))))))
     ov))
 
-(defun dap-ui--make-overlay-at (file point msg visuals)
+(defun dap-ui--make-overlay-at (file point visuals)
   "Create an overlay highlighting the given POINT in FILE.
 VISUALS and MSG will be used for the overlay."
   (-when-let (buf (find-buffer-visiting file))
@@ -201,7 +200,7 @@ VISUALS and MSG will be used for the overlay."
       (when (integer-or-marker-p point)
         (save-excursion
           (goto-char point)
-          (dap-ui--make-overlay (point-at-bol) (point-at-eol) msg visuals nil buf))))))
+          (dap-ui--make-overlay (point-at-bol) (point-at-eol) visuals nil buf))))))
 
 (defvar-local dap-ui--breakpoint-overlays nil)
 
@@ -236,7 +235,6 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
   (-map (-lambda ((bp . remote-bp))
           (push (dap-ui--make-overlay-at buffer-file-name
                                          (dap-breakpoint-get-point bp)
-                                         "Breakpoint"
                                          (dap-ui--breakpoint-visuals bp remote-bp))
                 dap-ui--breakpoint-overlays))
         (-zip-fill
@@ -261,7 +259,6 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
   (setq-local dap-ui--cursor-overlay
               (dap-ui--make-overlay-at
                file point
-               "Debug Marker"
                (list :face 'dap-ui-marker-face
                      :char ">"
                      :bitmap 'right-triangle
@@ -785,7 +782,7 @@ DEBUG-SESSION is the debug session triggering the event."
                                            'face 'font-lock-variable-name-face)
                                ": "
                                value)
-                      :icon variable
+                      :icon dap-variable
                       :value ,value
                       :session ,debug-session
                       :variables-reference ,variables-reference
@@ -811,7 +808,7 @@ DEBUG-SESSION is the debug session triggering the event."
             (-map (-lambda ((&hash "name" "variablesReference" variables-reference))
                     (list :key name
                           :label name
-                          :icon 'scope
+                          :icon 'dap-scope
                           :children (-partial #'dap-ui-render-variables
                                               (dap--cur-session)
                                               variables-reference)))
@@ -1065,7 +1062,7 @@ DEBUG-SESSION is the debug session triggering the event."
                                                    (s-join "\n"))
                                             "Breakpoint"))))
                    (list :key label
-                         :icon 'breakpoint
+                         :icon 'dap-breakpoint
                          :icon-literal (propertize
                                         "⬤ "
                                         'face (if (and remote-bp (gethash "verified" remote-bp))
