@@ -986,9 +986,10 @@ ADAPTER-ID the id of the adapter."
     (while (and (not result)
                 (< retries dap-connect-retry-count))
       (condition-case err
-          (setq result (open-network-stream session-name nil
-                                            host port :type 'plain
-                                            :coding 'no-conversion))
+          (prog1 (setq result (open-network-stream session-name nil
+                                                   host port :type 'plain
+                                                   :coding 'no-conversion))
+            (set-process-coding-system result 'no-conversion 'no-conversion))
         (file-error
          (let ((inhibit-message t))
            (message "Failed to connect to %s:%s with error message %s"
