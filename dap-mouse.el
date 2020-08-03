@@ -42,7 +42,7 @@ applied with lower priority than the syntax highlighting."
 (defvar dap-mouse-posframe-properties
   (list :min-width 50
         :internal-border-width 2
-        :internal-border-color (face-attribute 'mode-line :background)
+        :internal-border-color (face-attribute 'tooltip :background)
         :width 50
         :min-height 10)
   "The properties which will be used for creating the `posframe'.")
