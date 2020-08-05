@@ -26,6 +26,9 @@
 ;; DAP Windows/overlays
 
 ;;; Code:
+
+(require 'lsp-lens)
+
 (require 'dap-mode)
 (require 'wid-edit)
 (require 'dash)
