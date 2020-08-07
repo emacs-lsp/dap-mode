@@ -36,7 +36,7 @@
   :type 'string)
 
 (defcustom dap-go-debug-program `("node"
-                                  ,(f-join dap-go-debug-path "extension/out/src/debugAdapter/goDebug.js"))
+                                  ,(f-join dap-go-debug-path "extension/dist/debugAdapter.js"))
   "The path to the go debugger."
   :group 'dap-go
   :type '(repeat string))
