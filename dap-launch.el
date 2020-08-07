@@ -102,7 +102,7 @@ If no text is selected, return the empty string."
   ;; (`buffer-substring-no-properties') will yield "", as it should.
   (buffer-substring-no-properties (mark) (point)))
 
-(defun dap--launch-json-getenv (var)
+(defun dap--launch-configuration-var-getenv (var)
   "Return the environment variable in matched string VAR.
 Only for use in `dap-launch-configuration-variables'."
   (let ((envvar (match-string 1 var)))
@@ -124,7 +124,7 @@ Only for use in `dap-launch-configuration-variables'."
     ("lineNumber" . dap--buffer-current-line)
     ("selectedText" . dap--buffer-selected-text)
     ("file" . buffer-file-name)
-    ("env:\\(.*\\)" . dap--launch-json-getenv)
+    ("env:\\(.*\\)" . dap--launch-configuration-var-getenv)
     ;; technically not in VSCode, but I still wanted to add a way to escape $
     ("$" . "$")
     ;; the following variables are valid in VSCode, but have no meaning in
@@ -135,8 +135,7 @@ Only for use in `dap-launch-configuration-variables'."
     ;; ("defaultBuildTask")
     )
   "Alist of (REGEX . VALUE) pairs listing variables usable in launch.json files.
-This list is iterated from the top to bottom when expanding
-variables in the strings of the selected launch configuration
+This list is iterated from the top to bottom when expanding variables in the strings of the selected launch configuration
 from launch.json or in `dap-expand-launch-configuration-variable'.
 
 When a REGEX matches (`string-match'), its corresponding VALUE is
@@ -152,10 +151,10 @@ is used the same way. Lastly, if it is a string, the string is
 used as a replacement. If no regex matches, the empty string is
 used as a replacement and a warning is issued.
 
-See `dap--launch-json-getenv' for an example on how to use
+See `dap--launch-configuration-var-getenv' for an example on how to use
 capture groups in REGEX.")
 
-(defun dap--launch-json-eval-poly-type (value var)
+(defun dap--eval-poly-type (value var)
   "Get the value from VALUE depending on its type.
 If it is a function, and VAR is not nil, call VALUE and pass VAR as an argument.
 If it is a symbol, return its value.
@@ -173,7 +172,7 @@ Otherwise, return VALUE"
         (when (string-match (car var-pair) var)
           (throw 'ret
                  (or
-                  (dap--launch-json-eval-poly-type
+                  (dap--eval-poly-type
                    (cdr var-pair)
                    (if (= (length (match-data)) 2) ;; no capture groups
                        nil
