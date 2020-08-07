@@ -125,10 +125,10 @@ is used the same way. Lastly, if it is a string, the string is
 used as a replacement. If no regex matches, the empty string is
 used as a replacement and a warning is issued.
 
-See `dap--launch-configuration-var-getenv' for an example on how to use
-capture groups in REGEX.")
+See `dap-variables--launch-configuration-var-getenv' for an
+example on how to use capture groups in REGEX.")
 
-(defun dap--variables-eval-poly-type (value var)
+(defun dap-variables--eval-poly-type (value var)
   "Get the value from VALUE depending on its type.
 If it is a function, and VAR is not nil, call VALUE and pass VAR as an argument.
 If it is a symbol, return its value.
@@ -146,7 +146,7 @@ Otherwise, return VALUE"
         (when (string-match (car var-pair) var)
           (throw 'ret
                  (or
-                  (dap--variables-eval-poly-type
+                  (dap-variables--eval-poly-type
                    (cdr var-pair)
                    (if (= (length (match-data)) 2) ;; no capture groups
                        nil
