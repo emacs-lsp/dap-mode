@@ -762,6 +762,11 @@ DEBUG-SESSION is the debug session triggering the event."
 
 ;; locals
 
+(defcustom dap-ui-variable-length 30
+  "Default number of variables to load in inspect variables view for array variables."
+  :group 'dap-ui
+  :type 'number)
+
 (dap-ui-define-action dap-ui-set-variable-value (:session :variables-reference :value :name)
   (dap--send-message
    (dap--make-request "setVariable"
@@ -784,7 +789,9 @@ DEBUG-SESSION is the debug session triggering the event."
              `(:label ,(concat (propertize (format "%s" name)
                                            'face 'font-lock-variable-name-face)
                                ": "
-                               value)
+                               (propertize (s-truncate dap-ui-variable-length
+                                                       (s-replace "\n" "\\n" value))
+                                           'help-echo value))
                       :icon dap-variable
                       :value ,value
                       :session ,debug-session
