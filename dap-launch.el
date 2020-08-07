@@ -20,6 +20,7 @@
 
 (require 'lsp-mode)
 (require 'cl-lib)
+(require 'json)
 
 ;;; Commentary:
 ;; Extend dap-mode with support for launch.json files
@@ -34,23 +35,30 @@
 (defun dap-launch-get-launch-json ()
   "Parse the project's launch.json as json data and return the result."
   (when-let ((launch-json (dap-launch-find-launch-json))
-             (json-object-type 'plist))
+             (json-object-type 'plist)
+             (json-array-type 'list))
     (json-read-file launch-json)))
+
+(defun dap-launch-configuration-get-name (conf)
+  "Return the name of launch configuration CONF."
+  (plist-get conf :name))
+
+(defun dap-launch-configuration-prepend-name (conf)
+  "Prepend the name of CONF to it as a string.
+Extract the name from the :name property."
+  (push (dap-launch-configuration-get-name conf) conf))
 
 (defun dap-launch-parse-launch-json (json)
   "Return a list of all launch configurations in JSON.
 JSON must have been acquired with `dap-launch--get-launch-json'."
-  (or (plist-get json :configurations) (list json)))
+  (mapcar #'dap-launch-configuration-prepend-name
+          (or (plist-get json :configurations) (list json))))
 
 (defun dap-launch-find-parse-launch-json ()
   "Return a list of all launch configurations for the current project.
 Usable as a dap-launch-configuration-providers backend."
   (when-let ((launch-json (dap-launch-get-launch-json)))
     (dap-launch-parse-launch-json launch-json)))
-
-(defun dap-launch-configuration-get-name (conf)
-"Return the name of launch configuration CONF."
-  (plist-get conf :name))
 
 (provide 'dap-launch)
 ;;; dap-launch.el ends here
