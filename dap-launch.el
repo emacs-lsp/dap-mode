@@ -19,7 +19,7 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'dap-mode)
-(require 'lsp)
+(require 'lsp-mode)
 (require 'cl-lib)
 (require 'f)
 
@@ -102,22 +102,14 @@ If no text is selected, return the empty string."
   ;; (`buffer-substring-no-properties') will yield "", as it should.
   (buffer-substring-no-properties (mark) (point)))
 
-(defun dap--launch-json-warn-nil (text)
-  "Issue a warning related to the launch.json file containing TEXT.
-Always return nil."
-  (message (concat "warning: launch.json: " text))
-  nil)
-
-(defun dap--warn-unknown-envvar (var)
-  "Warn, related to launch.json, that VAR is an unknown environment variable.
-Always return nil."
-  (dap--launch-json-warn-nil (format "no such environment variable '%s'" var)))
-
 (defun dap--launch-json-getenv (var)
   "Return the environment variable in matched string VAR.
 Only for use in `dap-launch-json-variables'."
   (let ((envvar (match-string 1 var)))
-    (or (getenv envvar) (dap--warn-unknown-envvar envvar) "")))
+    (or (getenv envvar)
+        (lsp-warn "launch.json: no such environment variable '%s' (in ${%s})"
+                  envvar var)
+         "")))
 
 (defvar dap-launch-json-variables
   ;; list taken from https://code.visualstudio.com/docs/editor/variables-reference
@@ -173,11 +165,6 @@ Otherwise, return VALUE"
         ((symbolp value) (symbol-value value))
         (t value)))
 
-(defun dap--warn-var-nil (var)
-  "Warn that VAR is an unknown launch.json variable."
-  (dap--launch-json-warn-nil
-   (format "variable '%s' is unknown and was ignored" var)))
-
 (defun dap-expand-variable (var)
   "Expand variable VAR using `dap--launch-json-variables'."
   (catch 'ret
@@ -190,9 +177,8 @@ Otherwise, return VALUE"
                    (cdr var-pair)
                    (if (= (length (match-data)) 2) ;; no capture groups
                        nil
-                     var
-                     (message "wow capture groups")))
-                  (dap--warn-var-nil var)
+                     var))
+                  (and (lsp-warn "launch.json: no such variable ${%s}" var) nil)
                   "")))))
     nil))
 
@@ -237,5 +223,5 @@ CONF is regular dap-mode launch configuration. Return the result."
   (interactive)
   (dap-debug (dap--acquire-launch-json)))
 
-(provide 'dap-mode-launch-json)
-;;; dap-mode-launch-json.el ends here
+(provide 'dap-launch)
+;;; dap-launch.el ends here

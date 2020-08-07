@@ -870,11 +870,6 @@ DEBUG-SESSION is the debug session triggering the event."
   (dap-ui-expressions)
   (dap-ui-expressions-refresh))
 
-(defun dap-ui-expressions-add-prompt (expression)
-  "Prompts for an expression and adds it to `dap-ui-expressions'."
-  (interactive (list (read-string "Add watch expression: ")))
-  (dap-ui-expressions-add expression))
-
 (defun dap-ui-expressions-remove (expression)
   (interactive (list (completing-read
                       "Select expression to remove: "
