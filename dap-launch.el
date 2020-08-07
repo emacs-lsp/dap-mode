@@ -104,14 +104,14 @@ If no text is selected, return the empty string."
 
 (defun dap--launch-json-getenv (var)
   "Return the environment variable in matched string VAR.
-Only for use in `dap-launch-json-variables'."
+Only for use in `dap-launch-configuration-variables'."
   (let ((envvar (match-string 1 var)))
     (or (getenv envvar)
         (lsp-warn "launch.json: no such environment variable '%s' (in ${%s})"
                   envvar var)
          "")))
 
-(defvar dap-launch-json-variables
+(defvar dap-launch-configuration-variables
   ;; list taken from https://code.visualstudio.com/docs/editor/variables-reference
   '(("workspaceFolderBasename" . dap--project-project-basename)
     ("workspaceFolder" . lsp-workspace-root)
@@ -137,7 +137,7 @@ Only for use in `dap-launch-json-variables'."
   "Alist of (REGEX . VALUE) pairs listing variables usable in launch.json files.
 This list is iterated from the top to bottom when expanding
 variables in the strings of the selected launch configuration
-from launch.json or in `dap-expand-variable'.
+from launch.json or in `dap-expand-launch-configuration-variable'.
 
 When a REGEX matches (`string-match'), its corresponding VALUE is
 evaluated as follows: if it is a function (or a quoted lambda),
@@ -165,11 +165,11 @@ Otherwise, return VALUE"
         ((symbolp value) (symbol-value value))
         (t value)))
 
-(defun dap-expand-variable (var)
+(defun dap-expand-launch-configuration-variable (var)
   "Expand variable VAR using `dap--launch-json-variables'."
   (catch 'ret
     (save-match-data
-      (dolist (var-pair dap-launch-json-variables)
+      (dolist (var-pair dap-launch-configuration-variables)
         (when (string-match (car var-pair) var)
           (throw 'ret
                  (or
@@ -182,7 +182,7 @@ Otherwise, return VALUE"
                   "")))))
     nil))
 
-(defun dap-expand-variables-in-string (s)
+(defun dap-expand-launch-configuration-variables-in-string (s)
   "Expand all launch.json variables of the from ${variable} in S.
 Return the result."
   (let ((old-buffer (current-buffer)))
@@ -195,17 +195,18 @@ Return the result."
           (let ((var (match-string 1)))
             (replace-match
              (with-current-buffer old-buffer
-               (dap-expand-variable var))))))
+               (dap-expand-launch-configuration-variable var))))))
 
       (buffer-string))))
 
-(defun dap--launch-json-expand-vars (conf)
+(defun dap-launch-configuration-expand-vars (conf)
   "Non-destructively expand all variables in all strings of CONF.
 CONF is regular dap-mode launch configuration. Return the result."
   (cond ((listp conf)
          (apply #'nconc (cl-loop for (k v) on conf by #'cddr collect
-                                 (list k (dap--launch-json-expand-vars v)))))
-        ((stringp conf) (dap-expand-variables-in-string conf))
+                                 (list k (dap-launch-configuration-expand-vars v)))))
+        ((stringp conf) (dap-expand-launch-configuration-variables-in-string
+                         conf))
         (t conf)))
 
 (defun dap--launch-json-prompt-configuration ()
@@ -216,7 +217,7 @@ CONF is regular dap-mode launch configuration. Return the result."
 
 (defun dap--acquire-launch-json ()
   "Prompt the user for a launch configuration and expand its variables."
-  (dap--launch-json-expand-vars (dap--launch-json-prompt-configuration)))
+  (dap-launch-configuration-expand-vars (dap--launch-json-prompt-configuration)))
 
 (defun dap-debug-launch-json ()
   "Read the project's launch.json and ask the user for a launch configuration."
