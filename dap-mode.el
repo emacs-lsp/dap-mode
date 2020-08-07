@@ -35,6 +35,9 @@
 (require 'ansi-color)
 (require 'posframe)
 
+(require 'dap-variables)
+(require 'dap-launch)
+
 (defcustom dap-breakpoints-file (expand-file-name (locate-user-emacs-file ".dap-breakpoints"))
   "Where to persist breakpoints"
   :group 'dap-mode
@@ -1210,6 +1213,7 @@ should be started after the :port argument is taken.
 
 :program-to-start - when set it will be started using `compilation-start'
 before starting the debug process."
+  (setq launch-args (dap-variables-expand-in-launch-configuration launch-args))
   (-let* (((&plist :name :skip-debug-session :cwd :program-to-start
                    :wait-for-port :type :request :port
                    :environment-variables :hostName host) launch-args)
@@ -1446,10 +1450,13 @@ If ORIGIN is t, return the original configuration without prepopulation"
   dap-debug-template-configurations)
 
 (defvar dap-launch-configuration-providers
-  '(dap-debug-template-configurations-provider)
-  "List of functions that can contribute launch configurations.
-The launch configurations from all backends are gathered into a
-list, and the user is asked to select one of them for debugging.")
+  '(dap-debug-template-configurations-provider
+    dap-launch-find-parse-launch-json)
+  "List of functions that can contribute launch configurations to dap-debug.
+When the user invokes dap-debug, all of the functions in this
+list are called and their results (which must be lists) are
+concatenated. The user can then choose one of them from the
+resulting list.")
 
 (defun dap-debug (debug-args)
   "Run debug configuration DEBUG-ARGS.
