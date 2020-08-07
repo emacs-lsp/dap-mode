@@ -1442,13 +1442,22 @@ If ORIGIN is t, return the original configuration without prepopulation"
           (error "There is no debug provider for language %s"
                  (or (plist-get debug-args :type) "'Not specified'"))))))
 
+(defun dap-debug-template-configurations-provider ()
+  dap-debug-template-configurations)
+
+(defvar dap-launch-configuration-providers
+  '(dap-debug-template-configurations-provider)
+  "List of functions that can contribute launch configurations.
+The launch configurations from all backends are gathered into a
+list, and the user is asked to select one of them for debugging.")
+
 (defun dap-debug (debug-args)
   "Run debug configuration DEBUG-ARGS.
 
 If DEBUG-ARGS is not specified the configuration is generated
 after selecting configuration template."
   (interactive (list (-> (dap--completing-read "Select configuration template: "
-                                               dap-debug-template-configurations
+                                               (-mapcat #'funcall dap-launch-configuration-providers)
                                                'cl-first nil t)
                          cl-rest
                          copy-tree)))
