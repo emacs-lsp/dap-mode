@@ -1,4 +1,4 @@
-;; dap-mode-launch-json.el --- support launch.json -*- lexical-binding: t -*-
+;; dap-mode.el --- support launch.json -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Nikita Bloshchanevich
 
