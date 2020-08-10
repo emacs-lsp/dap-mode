@@ -870,7 +870,7 @@ DEBUG-SESSION is the debug session triggering the event."
                        ((region-active-p) (buffer-substring-no-properties
                                            (region-beginning)
                                            (region-end)))
-                       (t (symbol-at-point))))))
+                       (t (symbol-name (symbol-at-point)))))))
   (when (-contains? dap-ui-expressions expression)
     (user-error "\"%s\" is already watched" expression))
   (add-to-list 'dap-ui-expressions expression)
@@ -918,7 +918,9 @@ DEBUG-SESSION is the debug session triggering the event."
                       `(:key ,expression
                              :expression ,expression
                              :label ,(concat (propertize (format "%s: " expression) 'face 'font-lock-variable-name-face)
-                                             result)
+                                             (propertize (s-truncate dap-ui-variable-length
+                                                                     (s-replace "\n" "\\n" result))
+                                                         'help-echo result))
                              :icon expression
                              ,@(when (and variables-reference (not (zerop variables-reference)))
                                  (list :children (-partial #'dap-ui-render-variables debug-session variables-reference)))
