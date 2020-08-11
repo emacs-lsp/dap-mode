@@ -175,7 +175,11 @@ Return the result."
 (defun dap-variables-expand-in-launch-configuration (conf)
   "Non-destructively expand all variables in all strings of CONF.
 CONF is regular dap-mode launch configuration. Return the result."
-  (cond ((listp conf)
+  (cond ((and (listp conf) (-all? #'consp conf))
+         (-map (-lambda ((k . v))
+                 (cons k (dap-variables-expand-in-launch-configuration v)))
+               conf))
+        ((listp conf)
          (apply #'nconc
                 (cl-loop
                  for (k v) on conf by #'cddr collect
