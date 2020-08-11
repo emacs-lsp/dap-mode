@@ -29,13 +29,13 @@
 (defun dap-variables--project-basename (&optional dir)
   "Return the name of the project root directory.
 Starts the project-root search at DIR."
-    (file-name-nondirectory (directory-file-name (lsp-workspace-root dir))))
+  (file-name-nondirectory (directory-file-name (lsp-workspace-root dir))))
 
 (defun dap-variables--project-relative-file (&optional file dir)
   "Return the path to FILE relative to the project root.
 The search for the project root starts at DIR. FILE defaults to
 variable `buffer-file-name'."
-    (file-relative-name (or file buffer-file-name) (lsp-workspace-root dir)))
+  (file-relative-name (or file buffer-file-name) (lsp-workspace-root dir)))
 
 (defun dap-variables--project-relative-dirname (&optional file dir)
   "Return the path to the directory of file relative to the project root.
@@ -81,26 +81,27 @@ If no text is selected, return the empty string."
 Only for use in `dap-launch-configuration-variables'."
   (let ((envvar (match-string 1 var)))
     (or (getenv envvar)
-        (lsp-warn "launch.json: no such environment variable '%s' (in ${%s})"
-                  envvar var)
-         "")))
+        (progn
+          (lsp-warn "launch.json: no such environment variable '%s' (in ${%s})"
+                    envvar var)
+          ""))))
 
 (defvar dap-variables-launch-configuration-variables
   ;; list taken from https://code.visualstudio.com/docs/editor/variables-reference
-  '(("workspaceFolderBasename" . dap-variables--project-basename)
-    ("workspaceFolder" . lsp-workspace-root)
-    ("relativeFileDirname" . dap-variables--project-relative-dirname)
-    ("relativeFile" . dap-variables--project-relative-file)
-    ("fileBasenameNoExtension" . dap-variables--buffer-basename-sans-extension)
-    ("fileBasename" . dap-variables--buffer-basename)
-    ("fileDirname" . dap-variables--buffer-dirname)
-    ("fileExtname" . dap-variables--buffer-extension)
-    ("lineNumber" . dap-variables--buffer-current-line)
-    ("selectedText" . dap-variables--buffer-selected-text)
-    ("file" . buffer-file-name)
-    ("env:\\(.*\\)" . dap-variables--launch-configuration-var-getenv)
+  '(("^workspaceFolderBasename$" . dap-variables--project-basename)
+    ("^workspaceFolder$" . lsp-workspace-root)
+    ("^relativeFileDirname$" . dap-variables--project-relative-dirname)
+    ("^relativeFile$" . dap-variables--project-relative-file)
+    ("^fileBasenameNoExtension$" . dap-variables--buffer-basename-sans-extension)
+    ("^fileBasename$" . dap-variables--buffer-basename)
+    ("^fileDirname$" . dap-variables--buffer-dirname)
+    ("^fileExtname$" . dap-variables--buffer-extension)
+    ("^lineNumber$" . dap-variables--buffer-current-line)
+    ("^selectedText$" . dap-variables--buffer-selected-text)
+    ("^file$" . buffer-file-name)
+    ("^env:\\(.*\\)$" . dap-variables--launch-configuration-var-getenv)
     ;; technically not in VSCode, but I still wanted to add a way to escape $
-    ("$" . "$")
+    ("^\\$$" . "$")
     ;; the following variables are valid in VSCode, but have no meaning in
     ;; Emacs, and are as such unsupported.
     ;; ("cwd") ;; the task runner's current working directory,
@@ -139,9 +140,9 @@ Otherwise, return VALUE"
         (t value)))
 
 (defun dap-variables-expand-variable (var)
-  "Expand variable VAR using `dap--launch-json-variables'."
-  (catch 'ret
-    (save-match-data
+  "Expand VAR using `dap-variables-launch-configuration-variables'."
+  (save-match-data
+    (catch 'ret
       (dolist (var-pair dap-variables-launch-configuration-variables)
         (when (string-match (car var-pair) var)
           (throw 'ret
@@ -151,9 +152,22 @@ Otherwise, return VALUE"
                    (if (= (length (match-data)) 2) ;; no capture groups
                        nil
                      var))
-                  (and (lsp-warn "launch.json: no such variable ${%s}" var) nil)
-                  "")))))
-    nil))
+                  (progn
+                    (lsp-warn "launch.json: variable ${%s} is nil here" var)
+                    "")))))
+      (progn (lsp-warn "launch.json: variable ${%s} is unknown" var) ""))))
+
+(defun dap-variables-expand-escapes (s)
+  "Expand all backslash escaped strings in S. Return the result."
+  (with-temp-buffer
+    (insert s)
+    (goto-char (point-min))
+
+    (save-match-data
+      (while (re-search-forward "\\\\\\(.\\)" nil t)
+        (replace-match (match-string 1))))
+
+    (buffer-string)))
 
 (defun dap-variables-expand-in-string (s)
   "Expand all launch.json variables of the from ${variable} in S.
@@ -164,11 +178,15 @@ Return the result."
       (goto-char (point-min))
 
       (save-match-data
-        (while (re-search-forward "${\\([^}]*\\)}" nil t)
-          (let ((var (match-string 1)))
-            (replace-match
-             (with-current-buffer old-buffer
-               (dap-variables-expand-variable var))))))
+        (while (re-search-forward
+                "\\(\\\\\\$\\)\\|${\\(\\([^}\\]\\|\\(\\\\.\\)\\)*\\)}" nil t)
+          (if-let ((pre-unescaped (match-string 2))
+                   (var (identity pre-unescaped)))
+              (replace-match
+               (with-current-buffer old-buffer
+                 (dap-variables-expand-variable var)))
+            (replace-match "$") ;; escaped \\$, since match-string 2 is nil
+            )))
 
       (buffer-string))))
 
