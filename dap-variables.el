@@ -168,8 +168,24 @@ be \"1:host?\". Only for use in
   (push (list (string-to-number (match-string 1 var))
               (match-string 2 var) var) dap-variables-numbered-prompts))
 
-(defvar dap-variables--prompt-history '()
-  "History of the user's answers to variable prompts (${1:host?}).")
+(defvar dap-variables-prompt-histories (make-hash-table :test 'equal)
+  "History of the user's answers to variable prompts (${1:host?}).
+You may want to add this to `savehist-additional-variables'.")
+
+(defun dap-variables-reset-prompt-histories ()
+  "Reset the histories of prompting variables."
+  (interactive)
+  (setq dap-variables-prompt-histories (make-hash-table :test 'equal)))
+
+(defvar dap-variables--temp-hist nil
+  "Temporarily the history list during expansion of a prompting variable.
+Since read-string's history must be a symbol, I devised the
+following trick to implement per prompt history: Look up the
+corresponding history entry in `dap-variables--prompt-histories',
+setq this variable to the result and pass this variable as the
+history argument. puthash this variable under the prompt back
+into `dap-variables--prompt-histories' and then finally setq this
+back to nil.")
 
 (defun dap-variables--do-prompts (_)
   "Ask the questions in `dap-variables-numbered-prompts' in correct order."
@@ -189,9 +205,14 @@ be \"1:host?\". Only for use in
               "launch.json: multiple prompts for variable number %d (in ${%s})"
               id var))
          (setq prev-id id)
+         (setq dap-variables--temp-hist
+               (gethash prompt dap-variables-prompt-histories))
          (setq prev-answer (read-string (format "\(%d/%d) %s: " current-promptn
                                                 unique-prompts prompt)
-                                        nil 'dap-variables--prompt-history))
+                                        nil 'dap-variables--temp-hist))
+         (puthash prompt dap-variables--temp-hist
+                  dap-variables-prompt-histories)
+         (setq dap-variables--temp-hist nil)
          (setq current-promptn (1+ current-promptn))
          ;; Doesn't appear to work. The intention was to have per-prompt
          ;; history.
