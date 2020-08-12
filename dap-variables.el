@@ -19,6 +19,7 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'cl-lib)
+(require 'dash)
 (require 'lsp-mode)
 
 ;;; Commentary:
@@ -129,6 +130,103 @@ used as a replacement and a warning is issued.
 See `dap-variables--launch-configuration-var-getenv' for an
 example on how to use capture groups in REGEX.")
 
+(defvar dap-variables-numbered-prompts '()
+  "Mapping between numbered variables ${1} and their prompts.
+List of lists (NUMBER QUESTION VAR) where NUMBER is the number of
+the question (questions are asked in correct order), QUESTION is
+a prompt to be displayed to the user and VAR is the variable
+corresponding to the prompt. So if there is a variable
+${1:hostname}, NUMBER would be 1, QUESTION would be hostname and
+VAR would be 1:hostname.")
+
+(defun dap-variables-count-unique-numbered-prompts (prompts)
+  "Count the unique prompt numbers in PROMPTS.
+PROMPTS must have the form of `dap-variables-numbered-prompts'
+and it must be sorted by NUMBER."
+  (let ((prev-n nil)
+        (count 0))
+    (dolist (prompt prompts)
+      (unless (eq prev-n (nth 0 prompt))
+        (setq count (1+ count))))
+    count))
+
+(defvar dap-variables-pre-expand-hook
+  '((lambda (_) (setq dap-variables-numbered-prompts '())))
+  "List of functions to be run before a launch configuration is expanded.
+They take one argument: the run configuration.")
+
+(defvar dap-variables-post-expand-hook '()
+  "List of functions to be run after a launch configuration has been expanded.
+They take one argument: the run configuration, this time with all
+variables expanded.")
+
+(defun dap-variables--colon-prompt-var (var)
+  "Implement a variable of the form ${num:message}.
+VAR is the original variable encountered. For ${1:host?} it would
+be \"1:host?\". Only for use in
+`dap-variables-pre-expand-variables'."
+  (push (list (string-to-number (match-string 1 var))
+              (match-string 2 var) var) dap-variables-numbered-prompts))
+
+(defvar dap-variables--prompt-history '()
+  "History of the user's answers to variable prompts (${1:host?}).")
+
+(defun dap-variables--do-prompts (_)
+  "Ask the questions in `dap-variables-numbered-prompts' in correct order."
+  (let* ((prev-id nil)
+        (prev-answer nil)
+        (extra-vars '())
+        (current-promptn 1)
+        (numbered-prompts (--sort (< (car it) (car other))
+                                  dap-variables-numbered-prompts))
+        (unique-prompts (dap-variables-count-unique-numbered-prompts
+                                  numbered-prompts)))
+    (mapc
+     (-lambda ((id prompt var))
+       (if (eq prev-id id) ;; prev-id can be nil, so eq and not =
+           (progn
+             (lsp-warn
+              "launch.json: multiple prompts for variable number %d (in ${%s})"
+              id var))
+         (setq prev-id id)
+         (setq prev-answer (read-string (format "\(%d/%d) %s: " current-promptn
+                                                unique-prompts prompt)
+                                        nil 'dap-variables--prompt-history))
+         (setq current-promptn (1+ current-promptn))
+         ;; Doesn't appear to work. The intention was to have per-prompt
+         ;; history.
+         ;; (let ((history (gethash prompt dap-variables--prompt-history '())))
+         ;;   (setq prev-answer (read-string (format "%s: " prompt) nil history))
+         ;;   (push prev-answer history) ;; add the answer to history
+         ;;   (puthash prompt history dap-variables--prompt-history))
+         )
+       ;; the variable with the prompt still has to be expanded
+       (push (cons (concat "^" (regexp-quote var) "$") prev-answer) extra-vars)
+       (push (cons (format "^%d$" id) prev-answer) extra-vars)) ;; ${n}
+     numbered-prompts)
+    extra-vars))
+
+(defvar dap-variables-post-walk-hook '(dap-variables--do-prompts)
+  "Functions to be run after first walking the launch configuration.
+When expanding a launch configuration, first
+`dap-variables-pre-expand-hook' is called. Then, the launch
+configuration is walked, visiting, but not expanding, all
+variables in `dap-variables-pre-expand-variables'. Then all
+functions in this list are called, with the launch configuration
+as their only argument. They shall return a list of additional
+variables of the form (REGEX . VALUE) (see
+`dap-variables-launch-configuration-variables'). All lists are
+concatenated and added to the list of variables used for
+expansion.")
+
+(defvar dap-variables-pre-expand-variables
+  '(("\\(^[[:digit:]]+\\):\\(.*\\)$" . dap-variables--colon-prompt-var))
+  "Alist of (REGEX . FUNCTION) pairs listing pre-expansion variables.
+Before any expansion occurs, all variables matching REGEX have
+their corresponding FUNCTION called, with the variable as
+argument. Its result is ignored, and FUNCTION could be used to
+initialize something for expansion.")
+
 (defun dap-variables--eval-poly-type (value var)
   "Get the value from VALUE depending on its type.
 If it is a function, and VAR is not nil, call VALUE and pass VAR as an argument.
@@ -139,26 +237,26 @@ Otherwise, return VALUE"
         ((symbolp value) (symbol-value value))
         (t value)))
 
-(defun dap-variables-expand-variable (var)
-  "Expand VAR using `dap-variables-launch-configuration-variables'."
+(defun dap-variables-find-matching (var variable-alist)
+  "Return the VALUE whose REGEX matches VAR, or nil.
+VARIABLE-ALIST is a list of the form (REGEX . VARIABLE). This
+function modifies the `match-data'. REGEX may contain captures,
+which may be accessed with regular (`match-string' <n> VAR) or
+`match-data'."
+  (cdr (cl-find-if (lambda (x) (string-match (car x) var)) variable-alist)))
+
+(defun dap-variables-expand-alist-variable (var variable-alist)
+  "Expand VAR by looking it up in VARIABLE-ALIST."
   (save-match-data
-    (catch 'ret
-      (dolist (var-pair dap-variables-launch-configuration-variables)
-        (when (string-match (car var-pair) var)
-          (throw 'ret
-                 (or
-                  (dap-variables--eval-poly-type
-                   (cdr var-pair)
-                   (if (= (length (match-data)) 2) ;; no capture groups
-                       nil
-                     var))
-                  (progn
-                    (lsp-warn "launch.json: variable ${%s} is nil here" var)
-                    "")))))
+    (if-let ((value (dap-variables-find-matching var variable-alist)))
+        (or (dap-variables--eval-poly-type
+             value (if (= (length (match-data)) 2) nil var))
+            (progn (lsp-warn "launch.json: variable ${%s} is nil here" var) ""))
       (progn (lsp-warn "launch.json: variable ${%s} is unknown" var) ""))))
 
 (defun dap-variables-expand-escapes (s)
-  "Expand all backslash escaped strings in S. Return the result."
+  "Expand all characters escaped with backslashes in S. Return the result.
+S is not altered."
   (with-temp-buffer
     (insert s)
     (goto-char (point-min))
@@ -169,9 +267,11 @@ Otherwise, return VALUE"
 
     (buffer-string)))
 
-(defun dap-variables-expand-in-string (s)
+(defun dap-variables-expand-in-string (s var-callback)
   "Expand all launch.json variables of the from ${variable} in S.
-Return the result."
+Return the result. This function does not modify S. To expand
+each variable, VAR-CALLBACK is called, with the variable as
+argument. If it returns nil, no expansion is performed."
   (let ((old-buffer (current-buffer)))
     (with-temp-buffer
       (insert s)
@@ -179,27 +279,72 @@ Return the result."
 
       (save-match-data
         (while (re-search-forward
+                ;; roughly corresponds to this rx expression
+                ;; (minus unused groups):
+                ;; (rx (or (group "\\$") ("${" (group (or (not (any "\\}"))
+                ;;                                    (and "\\" any)))"}")))
                 "\\(\\\\\\$\\)\\|${\\(\\([^}\\]\\|\\(\\\\.\\)\\)*\\)}" nil t)
           (if-let ((pre-unescaped (match-string 2))
-                   (var (identity pre-unescaped)))
-              (replace-match
-               (with-current-buffer old-buffer
-                 (dap-variables-expand-variable var)))
+                   (var (dap-variables-expand-escapes pre-unescaped)))
+              (when-let ((replacement (with-current-buffer old-buffer
+                                        (funcall var-callback var))))
+                (replace-match replacement))
             (replace-match "$") ;; escaped \\$, since match-string 2 is nil
             )))
 
       (buffer-string))))
 
-(defun dap-variables-expand-in-launch-configuration (conf)
+(defun dap-variables-walk-launch-configuration (conf var-callback)
   "Non-destructively expand all variables in all strings of CONF.
-CONF is regular dap-mode launch configuration. Return the result."
-  (cond ((listp conf)
+VAR-CALLBACK is called on each variable. Its result, if it is not
+nil, is used as the replacement. Otherwise, nothing is replaced."
+  (cond ((and (listp conf) (-all? #'consp conf))
+         (-map (-lambda ((k . v))
+                 (cons k (dap-variables-walk-launch-configuration
+                          v var-callback))) conf))
+        ((listp conf)
          (apply #'nconc
                 (cl-loop
                  for (k v) on conf by #'cddr collect
-                 (list k (dap-variables-expand-in-launch-configuration v)))))
-        ((stringp conf) (dap-variables-expand-in-string conf))
+                 (list k (dap-variables-walk-launch-configuration
+                          v var-callback)))))
+        ((stringp conf) (dap-variables-expand-in-string conf var-callback))
         (t conf)))
+
+(defun dap-variables--call-pre-expand-variable (var)
+  "Call the corresponding FUNCTION for VAR.
+The function is looked up in
+`dap-variables-pre-expand-variables'. Always returns nil."
+  (when-let ((cb (dap-variables-find-matching
+                  var dap-variables-pre-expand-variables)))
+    (funcall cb var)
+    nil))
+
+(defun dap-variables-expand-in-launch-configuration (conf)
+  "Non-destructively expand all variables in all strings of CONF.
+CONF is regular dap-mode launch configuration. Return the result."
+  (run-hook-with-args 'dap-variables-pre-expand-hook conf)
+
+  (dap-variables-walk-launch-configuration
+   conf #'dap-variables--call-pre-expand-variable)
+
+  (let ((vars (nconc (-mapcat (lambda (f) (funcall f conf))
+                              dap-variables-post-walk-hook)
+                     dap-variables-launch-configuration-variables)))
+    (prog1 (dap-variables-walk-launch-configuration
+            conf (lambda (var) (dap-variables-expand-alist-variable var vars)))
+      (run-hook-with-args 'dap-variables-post-expand-hook conf))))
+
+;; Not used anywhere, but it wasn't private, so keep it as to not break
+;; anything; also, I might make use of it in a future feature.
+(defun dap-variables-expand-variable (var)
+  "Expand VAR with `dap-variables-launch-configuration-variables'.
+VAR is looked up in
+`dap-variables-launch-configuration-variables' and the result is
+returned, as a string. A warning is issued and the empty string
+returned if VAR doesn't match any REGEX."
+  (dap-variables-expand-alist-variable
+   var dap-variables-launch-configuration-variables))
 
 (provide 'dap-variables)
 ;;; dap-variables.el ends here
