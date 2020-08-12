@@ -172,6 +172,9 @@ be \"1:host?\". Only for use in
   "History of the user's answers to variable prompts (${1:host?}).
 You may want to add this to `savehist-additional-variables'.")
 
+(when (boundp 'savehist-additional-variables)
+  (add-to-list 'savehist-additional-variables 'dap-variables-prompt-histories))
+
 (defun dap-variables-reset-prompt-histories ()
   "Reset the histories of prompting variables."
   (interactive)
