@@ -273,7 +273,8 @@ which may be accessed with regular (`match-string' <n> VAR) or
         (or (dap-variables--eval-poly-type
              value (if (= (length (match-data)) 2) nil var))
             (progn (lsp-warn "launch.json: variable ${%s} is nil here" var) ""))
-      (progn (lsp-warn "launch.json: variable ${%s} is unknown" var) ""))))
+      (lsp-warn "launch.json: variable ${%s} is unknown" var)
+      "")))
 
 (defun dap-variables-expand-escapes (s)
   "Expand all characters escaped with backslashes in S. Return the result.
