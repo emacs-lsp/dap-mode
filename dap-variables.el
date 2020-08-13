@@ -151,7 +151,7 @@ and it must be sorted by NUMBER."
     count))
 
 (defvar dap-variables-pre-expand-hook
-  '((lambda (_) (setq dap-variables-numbered-prompts '())))
+  '()
   "List of functions to be run before a launch configuration is expanded.
 They take one argument: the run configuration.")
 
@@ -230,7 +230,9 @@ back to nil.")
      numbered-prompts)
     extra-vars))
 
-(defvar dap-variables-post-walk-hook '(dap-variables--do-prompts)
+(defvar dap-variables-post-walk-hook
+  '(dap-variables--do-prompts
+    (lambda (_) (setq dap-variables-numbered-prompts '())))
   "Functions to be run after first walking the launch configuration.
 When expanding a launch configuration, first
 `dap-variables-pre-expand-hook' is called. Then, the launch
