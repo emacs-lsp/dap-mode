@@ -151,7 +151,7 @@ and it must be sorted by NUMBER."
     count))
 
 (defvar dap-variables-pre-expand-hook
-  '()
+  '((lambda (_) (setq dap-variables-numbered-prompts '())))
   "List of functions to be run before a launch configuration is expanded.
 They take one argument: the run configuration.")
 
