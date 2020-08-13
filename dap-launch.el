@@ -30,7 +30,7 @@
 (defun dap-launch-find-launch-json ()
   "Return the location of the launch.json file in the current project."
   (when-let ((project (lsp-workspace-root))
-             (launch-json (concat project (file-name-as-directory "launch.json"))))
+             (launch-json (concat (file-name-as-directory project) "launch.json")))
     (when (file-exists-p launch-json)
       launch-json)))
 
