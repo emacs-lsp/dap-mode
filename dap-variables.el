@@ -229,7 +229,7 @@ back to nil.")
      numbered-prompts)
     extra-vars))
 
-(defun dap-variables--do-prompts-reset (_)
+(defun dap-variables--do-prompts-reset (&optional _)
   "Ask and reset the questions in `dap-variables-numbered-prompts'.
 For details, see `dap-variables--do-prompts'."
   (unwind-protect (dap-variables--do-prompts)
