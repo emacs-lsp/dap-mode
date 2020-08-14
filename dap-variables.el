@@ -150,8 +150,7 @@ and it must be sorted by NUMBER."
         (setq count (1+ count))))
     count))
 
-(defvar dap-variables-pre-expand-hook
-  '((lambda (_) (setq dap-variables-numbered-prompts '())))
+(defvar dap-variables-pre-expand-hook '()
   "List of functions to be run before a launch configuration is expanded.
 They take one argument: the run configuration.")
 
@@ -190,16 +189,16 @@ history argument. puthash this variable under the prompt back
 into `dap-variables--prompt-histories' and then finally setq this
 back to nil.")
 
-(defun dap-variables--do-prompts (_)
+(defun dap-variables--do-prompts ()
   "Ask the questions in `dap-variables-numbered-prompts' in correct order."
   (let* ((prev-id nil)
-        (prev-answer nil)
-        (extra-vars '())
-        (current-promptn 1)
-        (numbered-prompts (--sort (< (car it) (car other))
-                                  dap-variables-numbered-prompts))
-        (unique-prompts (dap-variables-count-unique-numbered-prompts
-                                  numbered-prompts)))
+         (prev-answer nil)
+         (extra-vars '())
+         (current-promptn 1)
+         (numbered-prompts (--sort (< (car it) (car other))
+                                   dap-variables-numbered-prompts))
+         (unique-prompts (dap-variables-count-unique-numbered-prompts
+                          numbered-prompts)))
     (mapc
      (-lambda ((id prompt var))
        (if (eq prev-id id) ;; prev-id can be nil, so eq and not =
@@ -230,9 +229,14 @@ back to nil.")
      numbered-prompts)
     extra-vars))
 
+(defun dap-variables--do-prompts-reset (_)
+  "Ask and reset the questions in `dap-variables-numbered-prompts'.
+For details, see `dap-variables--do-prompts'."
+  (unwind-protect (dap-variables--do-prompts)
+    (setq dap-variables-numbered-prompts nil)))
+
 (defvar dap-variables-post-walk-hook
-  '(dap-variables--do-prompts
-    (lambda (_) (setq dap-variables-numbered-prompts '())))
+  '(dap-variables--do-prompts-reset)
   "Functions to be run after first walking the launch configuration.
 When expanding a launch configuration, first
 `dap-variables-pre-expand-hook' is called. Then, the launch
