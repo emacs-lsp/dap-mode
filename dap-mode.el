@@ -1450,8 +1450,8 @@ If ORIGIN is t, return the original configuration without prepopulation"
   dap-debug-template-configurations)
 
 (defvar dap-launch-configuration-providers
-  '(dap-debug-template-configurations-provider
-    dap-launch-find-parse-launch-json)
+  '(dap-launch-find-parse-launch-json
+    dap-debug-template-configurations-provider)
   "List of functions that can contribute launch configurations to dap-debug.
 When the user invokes dap-debug, all of the functions in this
 list are called and their results (which must be lists) are
