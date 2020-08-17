@@ -329,18 +329,20 @@ argument. If it returns nil, no expansion is performed."
   "Non-destructively expand all variables in all strings of CONF.
 VAR-CALLBACK is called on each variable. Its result, if it is not
 nil, is used as the replacement. Otherwise, nothing is replaced."
-  (cond ((and (listp conf) (-all? #'consp conf))
-         (-map (-lambda ((k . v))
-                 (cons k (dap-variables-walk-launch-configuration
-                          v var-callback))) conf))
-        ((listp conf)
-         (apply #'nconc
-                (cl-loop
-                 for (k v) on conf by #'cddr collect
-                 (list k (dap-variables-walk-launch-configuration
-                          v var-callback)))))
-        ((stringp conf) (dap-variables-expand-in-string conf var-callback))
-        (t conf)))
+  (cond
+   ((functionp conf) conf)
+   ((and (listp conf) (-all? #'consp conf))
+    (-map (-lambda ((k . v))
+            (cons k (dap-variables-walk-launch-configuration
+                     v var-callback))) conf))
+   ((listp conf)
+    (apply #'nconc
+           (cl-loop
+            for (k v) on conf by #'cddr collect
+            (list k (dap-variables-walk-launch-configuration
+                     v var-callback)))))
+   ((stringp conf) (dap-variables-expand-in-string conf var-callback))
+   (t conf)))
 
 (defun dap-variables--call-pre-expand-variable (var)
   "Call the corresponding FUNCTION for VAR.
