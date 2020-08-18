@@ -19,8 +19,8 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'lsp-mode)
-(require 'cl-lib)
 (require 'json)
+(require 'f)
 
 ;;; Commentary:
 ;; Extend dap-mode with support for launch.json files
@@ -30,9 +30,13 @@
 (defun dap-launch-find-launch-json ()
   "Return the location of the launch.json file in the current project."
   (when-let ((project (lsp-workspace-root))
-             (launch-json (concat (file-name-as-directory project) "launch.json")))
-    (when (file-exists-p launch-json)
-      launch-json)))
+             (launch-json (f-join project "launch.json"))
+             ;; launch.json files can also be found in a .vscode folder at the
+             ;; project root.
+             (launch-json-vscode (f-join project ".vscode" "launch.json")))
+    (cond ((file-exists-p launch-json) launch-json)
+          ((file-exists-p launch-json-vscode) launch-json-vscode)
+          (t nil))))
 
 (defun dap-launch-get-launch-json ()
   "Parse the project's launch.json as json data and return the result."
