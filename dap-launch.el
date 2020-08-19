@@ -19,27 +19,59 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'lsp-mode)
-(require 'cl-lib)
 (require 'json)
+(require 'f)
+(require 'rx)
 
 ;;; Commentary:
 ;; Extend dap-mode with support for launch.json files
 
 ;;; Code:
 
+(defun dap-launch-remove-comments ()
+  "Remove all C-style comments in the current buffer.
+Comments in strings are ignored. The buffer is modified in place.
+Replacement starts at point, and strings before it are ignored,
+so you may want to move point to `point-min' with `goto-char'
+first. This function moves `point'. Both // and /**/ comments are
+supported."
+  ;; (rx (or (group "//" (* nonl) eol)
+  ;;         (: "\"" (* (or (not (any ?\\ ?\")) (: "\"" nonl))))))
+  ;; "\\(//.*$\\)\\|\"\\(?:[^\"\\]\\|\".\\)*"
+  ;; The rx expression above directly corresponds the regex used below.
+  (while (re-search-forward
+          (rx (or (group (or (: "//" (* nonl) eol)
+                             (: "/*" (* (or (not ?*) (: "*" (not ?/)))) "*/")))
+                  (: "\"" (* (or (not (any ?\\ ?\")) (: ?\\ nonl))) "\"")))
+          nil t)
+    ;; we matched a comment
+    (when (match-beginning 1)
+      (replace-match ""))))
+
 (defun dap-launch-find-launch-json ()
   "Return the location of the launch.json file in the current project."
   (when-let ((project (lsp-workspace-root))
-             (launch-json (concat (file-name-as-directory project) "launch.json")))
-    (when (file-exists-p launch-json)
-      launch-json)))
+             (launch-json (f-join project "launch.json"))
+             ;; launch.json files can also be found in a .vscode folder at the
+             ;; project root.
+             (launch-json-vscode (f-join project ".vscode" "launch.json")))
+    (cond ((file-exists-p launch-json-vscode) launch-json-vscode)
+          ((file-exists-p launch-json) launch-json)
+          (t nil))))
 
 (defun dap-launch-get-launch-json ()
   "Parse the project's launch.json as json data and return the result."
   (when-let ((launch-json (dap-launch-find-launch-json))
              (json-object-type 'plist)
              (json-array-type 'list))
-    (json-read-file launch-json)))
+    (with-temp-buffer
+      ;; note: insert-file-contents does not move point
+      (insert-file-contents launch-json)
+      (dap-launch-remove-comments)
+      ;; dap-launch-remove-comments does move point
+      (goto-char (point-min))
+
+      (json-read))))
 
 (defun dap-launch-configuration-get-name (conf)
   "Return the name of launch configuration CONF."
