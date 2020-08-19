@@ -34,8 +34,8 @@
              ;; launch.json files can also be found in a .vscode folder at the
              ;; project root.
              (launch-json-vscode (f-join project ".vscode" "launch.json")))
-    (cond ((file-exists-p launch-json) launch-json)
-          ((file-exists-p launch-json-vscode) launch-json-vscode)
+    (cond ((file-exists-p launch-json-vscode) launch-json-vscode)
+          ((file-exists-p launch-json) launch-json)
           (t nil))))
 
 (defun dap-launch-get-launch-json ()
