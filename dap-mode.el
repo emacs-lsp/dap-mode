@@ -684,11 +684,9 @@ the list of debug sessions."
       (progn
         (when (dap--session-running debug-session)
           (message "Disconnecting from %s" (dap--debug-session-name debug-session))
-          (dap-disconnect debug-session)
-          (when delete-session
-            (lsp-workspace-set-metadata
-             "debug-sessions"
-             (cdr (lsp-workspace-get-metadata "debug-sessions")))))
+          (if delete-session
+              (dap-delete-session debug-session)
+            (dap-disconnect debug-session)))
         (dap-debug (dap--debug-session-launch-args debug-session)))
     (user-error "There is session to restart")))
 
