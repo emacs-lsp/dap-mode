@@ -1,4 +1,5 @@
 [[https://melpa.org/#/dap-mode][file:https://melpa.org/packages/dap-mode-badge.svg]]
+[[https://stable.melpa.org/#/dap-mode][file:https://stable.melpa.org/packages/dap-mode-badge.svg]]
 [[http://spacemacs.org][file:https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg]]
 [[https://travis-ci.org/emacs-lsp/dap-mode][file:https://travis-ci.org/emacs-lsp/dap-mode.svg]]
 
