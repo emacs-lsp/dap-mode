@@ -675,16 +675,28 @@ thread exection but the server will log message."
                      debug-session)
   (dap--resume-application debug-session))
 
-(defun dap-debug-restart (&optional delete-session)
+(defcustom dap-debug-restart-keep-session t
+  "Set if `dap-debug-restart' should use a new session.
+When running `dap-debug-restart' with this variable set, the old
+session will still be visible and accessible after restarting. If
+not, the old session will be deleted, `dap-debug-restart'
+behaving like an in-place restart instead. Note that you can
+override this variable by calling `dap-debug-restart' with a
+prefix argument (the effect will be reversed)."
+  :group 'dap-mode
+  :type 'boolean)
+
+(defun dap-debug-restart (&optional toggle-keep-session)
   "Restarts current frame.
-If DELETE-SESSION is not nil, also delete the debug session from
-the list of debug sessions."
+If TOGGLE-KEEP-SESSION is set (in interactive mode this is the
+prefix argument), the effect of `dap-debug-restart-keep-session'
+will be reversed."
   (interactive "P")
   (if-let ((debug-session (dap--cur-session)))
       (progn
         (when (dap--session-running debug-session)
           (message "Disconnecting from %s" (dap--debug-session-name debug-session))
-          (if delete-session
+          (if (eq toggle-keep-session dap-debug-restart-keep-session)
               (dap-delete-session debug-session)
             (dap-disconnect debug-session)))
         (dap-debug (dap--debug-session-launch-args debug-session)))
