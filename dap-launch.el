@@ -1,4 +1,4 @@
-;; dap-launch.el --- support launch.json -*- lexical-binding: t -*-
+;;; dap-launch.el --- support launch.json -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Nikita Bloshchanevich
 
