@@ -675,14 +675,20 @@ thread exection but the server will log message."
                      debug-session)
   (dap--resume-application debug-session))
 
-(defun dap-debug-restart ()
-  "Restarts current frame."
-  (interactive)
+(defun dap-debug-restart (&optional delete-session)
+  "Restarts current frame.
+If DELETE-SESSION is not nil, also delete the debug session from
+the list of debug sessions."
+  (interactive "P")
   (if-let ((debug-session (dap--cur-session)))
       (progn
         (when (dap--session-running debug-session)
           (message "Disconnecting from %s" (dap--debug-session-name debug-session))
-          (dap-disconnect debug-session))
+          (dap-disconnect debug-session)
+          (when delete-session
+            (lsp-workspace-set-metadata
+             "debug-sessions"
+             (cdr (lsp-workspace-get-metadata "debug-sessions")))))
         (dap-debug (dap--debug-session-launch-args debug-session)))
     (user-error "There is session to restart")))
 
