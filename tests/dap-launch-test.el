@@ -40,7 +40,7 @@
 /* no nesting // */
 // \" // non-string
 /* \" // non-string */
-// string\"
+\"// string\"
 \"/*string*/\"")
          (post-exp (dap-launch-test--delete-string-comments orig)))
     (should (string= post-exp "
@@ -53,6 +53,10 @@
 (ert-deftest dap-launch-test--comment-in-string ()
   (let ((orig "\"// orig\""))
     (should (string= orig (dap-launch-test--delete-string-comments orig)))))
+
+(ert-deftest dap-launch-test--comment-star ()
+  (let ((orig "/* * **/"))
+    (should (string-empty-p (dap-launch-test--delete-string-comments orig)))))
 
 (provide 'dap-launch-test)
 ;;; dap-launch-test.el ends here

@@ -1,4 +1,4 @@
-;; dap-launch.el --- support launch.json -*- lexical-binding: t -*-
+;;; dap-launch.el --- support launch.json -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Nikita Bloshchanevich
 
@@ -35,14 +35,12 @@ Replacement starts at point, and strings before it are ignored,
 so you may want to move point to `point-min' with `goto-char'
 first. This function moves `point'. Both // and /**/ comments are
 supported."
-  ;; (rx (or (group "//" (* nonl) eol)
-  ;;         (: "\"" (* (or (not (any ?\\ ?\")) (: "\"" nonl))))))
-  ;; "\\(//.*$\\)\\|\"\\(?:[^\"\\]\\|\".\\)*"
-  ;; The rx expression above directly corresponds the regex used below.
   (while (re-search-forward
-          (rx (or (group (or (: "//" (* nonl) eol)
-                             (: "/*" (* (or (not ?*) (: "*" (not ?/)))) "*/")))
-                  (: "\"" (* (or (not (any ?\\ ?\")) (: ?\\ nonl))) "\"")))
+          (rx
+           (or (group
+                (or (: "//" (* nonl) eol)
+                    (: "/*" (* (or (not ?*) (: (+ ?*) (not ?/)))) (+ ?*) ?/)))
+               (: "\"" (* (or (not (any ?\\ ?\")) (: ?\\ nonl))) "\"")))
           nil t)
     ;; we matched a comment
     (when (match-beginning 1)
