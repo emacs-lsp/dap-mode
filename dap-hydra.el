@@ -38,7 +38,7 @@
 _n_: Next           _ss_: Session            _bb_: Toggle          _dd_: Debug                 _ee_: Eval
 _i_: Step in        _st_: Thread             _bd_: Delete          _dr_: Debug recent          _er_: Eval region
 _o_: Step out       _sf_: Stack frame        _ba_: Add             _dl_: Debug last            _es_: Eval thing at point
-_c_: Continue       _sl_: List locals        _bc_: Set condition   _dt_: Edit debug template   _ea_: Add expression.
+_c_: Continue       _sl_: List locals        _bc_: Set condition   _de_: Edit debug template   _ea_: Add expression.
 _r_: Restart frame  _sb_: List breakpoints   _bh_: Set hit count
 _Q_: Disconnect     _sS_: List sessions      _bl_: Set log message
 "
@@ -62,7 +62,7 @@ _Q_: Disconnect     _sS_: List sessions      _bl_: Set log message
   ("dd" dap-debug)
   ("dr" dap-debug-recent)
   ("dl" dap-debug-last)
-  ("dt" dap-debug-edit-template)
+  ("de" dap-debug-edit-template)
   ("ee" dap-eval)
   ("ea" dap-ui-expressions-add)
   ("er" dap-eval-region)
