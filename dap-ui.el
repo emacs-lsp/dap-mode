@@ -1006,7 +1006,8 @@ DEBUG-SESSION is the debug session triggering the event."
   (goto-char point))
 
 (dap-ui-define-action dap-ui-breakpoint-delete (:file-name :breakpoint)
-  (dap-breakpoint-delete breakpoint file-name))
+  (with-current-buffer (find-file-noselect file-name)
+    (dap-breakpoint-delete breakpoint file-name)))
 
 (dap-ui-define-action dap-ui-breakpoint-condition (:file-name :breakpoint)
   (dap-breakpoint-condition file-name breakpoint))
