@@ -15,7 +15,7 @@ Or if you want to enable only specific modes instead:
 ```elisp
 (dap-mode 1)
 
-;; The modes above are optional
+;; The modes below are optional
 
 (dap-ui-mode 1)
 ;; enables mouse hover support
