@@ -190,7 +190,8 @@ This function must return nil if it doesn't handle EVENT."
         (dap--send-message
          (dap--make-request "evaluate"
                             (list :expression expression
-                                  :frameId active-frame-id))
+                                  :frameId active-frame-id
+                                  :context "hover"))
          (-lambda ((&hash "message" "body" (var &as &hash? "result")))
            (when (= request-id dap-tooltip--request)
              (if result

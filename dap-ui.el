@@ -914,7 +914,8 @@ DEBUG-SESSION is the debug session triggering the event."
                             (dap--cur-session)
                             "evaluate"
                             :expression expression
-                            :frameId active-frame-id)]
+                            :frameId active-frame-id
+                            :context "watch")]
                       `(:key ,expression
                              :expression ,expression
                              :label ,(concat (propertize (format "%s: " expression) 'face 'font-lock-variable-name-face)
