@@ -29,7 +29,9 @@
 
 (defmacro dap-variables-test--compare (name conf expanded &optional docstring)
   "Make an ert test asserting that CONF, expanded, is EXPANDED.
-NAME is the name used in `ert-deftest', as an unquoted symbol."
+NAME is the name used in `ert-deftest', as an unquoted symbol.
+DOCSTRING, if set, specifies the docstring to use for
+`ert-deftest'."
   `(ert-deftest ,name () ,@docstring
      (let ((prev ,conf))
        (should (equal (dap-variables-expand-in-launch-configuration prev)
@@ -52,6 +54,19 @@ NAME is the name used in `ert-deftest', as an unquoted symbol."
 (dap-variables-test--compare
  dap-variables-test-vec-yields-vec
  ["${$}" "\\${$}"] ["$" "${$}"])
+
+(dap-variables-test--compare
+ dap-variables-test-lambda-untouched
+ (list :startup-fn (lambda () "foo/bar"))
+ (list :startup-fn (lambda () "foo/bar"))
+ "Functions should be passed trough, without modification.")
+
+(ert-deftest dap-variables-test-lambda-stays-lambda ()
+  "A lambda should still stay a lambda, and be callable."
+  (should
+   (string= (funcall (nth 1 (dap-variables-expand-in-launch-configuration
+                             (list :startup-fn (lambda () "Doc." "foo/bar")))))
+            "foo/bar")))
 
 (provide 'dap-variables-test)
 ;;; dap-variables-test.el ends here
