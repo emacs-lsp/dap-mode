@@ -1151,7 +1151,8 @@ RESULT to use for the callback."
         (dap--send-message
          (dap--make-request "evaluate"
                             (list :expression expression
-                                  :frameId active-frame-id))
+                                  :frameId active-frame-id
+                                  :context "hover"))
          (-lambda ((&hash "success" "message" "body"))
            (dap-overlays--display-interactive-eval-result
             (if success (gethash "result" body) message)

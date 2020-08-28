@@ -65,7 +65,8 @@ INPUT is the current input."
         (dap--send-message
          (dap--make-request "evaluate"
                             (list :expression input
-                                  :frameId active-frame-id))
+                                  :frameId active-frame-id
+                                  :context "repl"))
          (-lambda ((&hash "success" "message" "body"))
            (-when-let (buffer (get-buffer dap-ui--repl-buffer))
              (with-current-buffer buffer
