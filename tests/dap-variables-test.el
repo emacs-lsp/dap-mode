@@ -56,9 +56,9 @@ DOCSTRING, if set, specifies the docstring to use for
  ["${$}" "\\${$}"] ["$" "${$}"])
 
 (dap-variables-test--compare
- dap-variables-test-lambda-untouched
- (list :startup-fn (lambda () "foo/bar"))
- (list :startup-fn (lambda () "foo/bar"))
+ dap-variables-test-function-untouched
+ (list :startup-fn #'identity)
+ (list :startup-fn #'identity)
  "Functions should be passed trough, without modification.")
 
 (ert-deftest dap-variables-test-lambda-stays-lambda ()
