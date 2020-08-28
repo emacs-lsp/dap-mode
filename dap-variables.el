@@ -268,11 +268,11 @@ Otherwise, return VALUE"
         (t value)))
 
 (defun dap-variables-find-matching (var variable-alist)
-  "Return the VALUE whose REGEX matches VAR, or nil.
-VARIABLE-ALIST is a list of the form (REGEX . VARIABLE). This
-function modifies the `match-data'. REGEX may contain captures,
-which may be accessed with regular (`match-string' <n> VAR) or
-`match-data'."
+  "Return the corresponding VALUE to the REGEX matching VAR.
+Return nil if no matching VALUE is found. VARIABLE-ALIST is a
+list of the form (REGEX . VARIABLE). This function modifies the
+`match-data'. REGEX may contain captures, which may be accessed
+with regular (`match-string' <n> VAR) or `match-data'."
   (cdr (cl-find-if (lambda (x) (string-match (car x) var)) variable-alist)))
 
 (defun dap-variables-expand-alist-variable (var variable-alist)
@@ -329,17 +329,21 @@ argument. If it returns nil, no expansion is performed."
   "Non-destructively expand all variables in all strings of CONF.
 VAR-CALLBACK is called on each variable. Its result, if it is not
 nil, is used as the replacement. Otherwise, nothing is replaced."
-  (cond ((and (listp conf) (-all? #'consp conf))
-         (-map (-lambda ((k . v))
-                 (cons k (dap-variables-walk-launch-configuration
-                          v var-callback))) conf))
-        ((listp conf)
-         (apply #'nconc
-                (cl-loop
-                 for (k v) on conf by #'cddr collect
-                 (list k (dap-variables-walk-launch-configuration
-                          v var-callback)))))
+  ;; dotted pair that is not a list (e.g.: ("JUNIT_CLASS_PATH" . "foo"))
+  (cond ((and (consp conf) (not (listp (cdr conf))))
+         (cons (car conf) (dap-variables-walk-launch-configuration
+                           (cdr conf) var-callback)))
+        ((listp conf) (cl-loop for x in conf collect
+                               (dap-variables-walk-launch-configuration
+                                x var-callback)))
+        ((vectorp conf) ;; also yield a vector
+         (vconcat (cl-loop for x across conf collect
+                           (dap-variables-walk-launch-configuration
+                            x var-callback))))
+
         ((stringp conf) (dap-variables-expand-in-string conf var-callback))
+
+        ;; base case: just yield tree. NOTE: also handles keyword arguments.
         (t conf)))
 
 (defun dap-variables--call-pre-expand-variable (var)
