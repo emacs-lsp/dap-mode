@@ -60,7 +60,32 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
                                    :target nil
                                    :cwd nil))
 
-
+(defun dap-gdb-lldb--populate-gdbserver (conf)
+  "Populate CONF with the required arguments."
+  (-> conf
+      (dap--put-if-absent :dap-server-path dap-gdb-lldb-debug-program)
+      (dap--put-if-absent :type "gdbserver")
+      (dap--put-if-absent :name "GDB Server")
+      (dap--put-if-absent :request "attach")
+      (dap--put-if-absent :gdbpath "gdb")
+      (dap--put-if-absent :cwd default-directory)
+      (dap--put-if-absent :target (read-string "target?(host:port) "))
+      (dap--put-if-absent :remote :json-true)
+      ))
+
+(dap-register-debug-provider "gdbserver" 'dap-gdb-lldb--populate-gdbserver)
+(dap-register-debug-template "GDBServer Connect Configuration"
+                             (list :type "gdbserver"
+                                   :name "GDBServer::Connect"
+                                   :target nil ;;host:port
+                                   :cwd nil
+                                   :executable nil ;;usually not needed as symbols can be donwloaded from gdbserver
+                                   :autorun nil
+                                   :debugger_args nil
+                                   :env nil
+                                   :showDevDebugOutput :json-false
+                                   :printCalls :json-false
+                                   ))
 
 (defcustom dap-gdb-lldb-path-lldb `("node" ,(expand-file-name (f-join dap-gdb-lldb-path "extension/out/src/lldb.js")))
   "The path to the LLDB debugger."
