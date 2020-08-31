@@ -18,15 +18,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-(require 'lsp-mode)
-(require 'json)
-(require 'f)
-(require 'rx)
-
 ;;; Commentary:
 ;; Extend dap-mode with support for launch.json files
 
 ;;; Code:
+
+(require 'lsp-mode)
+(require 'json)
+(require 'f)
+(require 'rx)
 
 (defun dap-launch-remove-comments ()
   "Remove all C-style comments in the current buffer.
