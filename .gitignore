@@ -5,3 +5,5 @@
 .settings
 target
 /dap-autoloads.el
+/ert-profile
+/ert-profile~
