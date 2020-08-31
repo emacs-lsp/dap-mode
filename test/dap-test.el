@@ -19,8 +19,11 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+;; Implement dap-mode's `ert'-based test-suite.
 
-;;
+;; To run it, execute the shell command 'cask exec ert-runner' at the project's
+;; root, after installing the project's dependencies invoking 'cask install' the
+;; same way.
 
 ;;; Code:
 
