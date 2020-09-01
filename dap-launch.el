@@ -39,7 +39,8 @@ supported."
           (rx
            (or (group
                 (or (: "//" (* nonl) eol)
-                    (: "/*" (* (or (not ?*) (: (+ ?*) (not ?/)))) (+ ?*) ?/)))
+                    (: "/*" (* (or (not (any ?*))
+                                   (: (+ ?*) (not (any ?/))))) (+ ?*) ?/)))
                (: "\"" (* (or (not (any ?\\ ?\")) (: ?\\ nonl))) "\"")))
           nil t)
     ;; we matched a comment
@@ -63,7 +64,7 @@ supported."
              (json-object-type 'plist)
              (json-array-type 'list))
     (with-temp-buffer
-      ;; note: insert-file-contents does not move point
+      ;; NOTE: insert-file-contents does not move point
       (insert-file-contents launch-json)
       (dap-launch-remove-comments)
       ;; dap-launch-remove-comments does move point
