@@ -329,8 +329,10 @@ argument. If it returns nil, no expansion is performed."
   "Non-destructively expand all variables in all strings of CONF.
 VAR-CALLBACK is called on each variable. Its result, if it is not
 nil, is used as the replacement. Otherwise, nothing is replaced."
-  ;; dotted pair that is not a list (e.g.: ("JUNIT_CLASS_PATH" . "foo"))
-  (cond ((and (consp conf) (not (listp (cdr conf))))
+  ;; do not modify functions (lambdas, closures...)
+  (cond ((functionp conf) conf)
+        ;; dotted pair that is not a list (e.g.: ("JUNIT_CLASS_PATH" . "foo"))
+        ((and (consp conf) (not (listp (cdr conf))))
          (cons (car conf) (dap-variables-walk-launch-configuration
                            (cdr conf) var-callback)))
         ((listp conf) (cl-loop for x in conf collect

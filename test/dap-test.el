@@ -162,10 +162,10 @@
 NAME is the name used in `ert-deftest', as an unquoted symbol.
 DOCSTRING, if set, specifies the docstring to use for
 `ert-deftest'."
-  `(ert-deftest ,name () ,@docstring
-     (let ((prev ,conf))
-       (should (equal (dap-variables-expand-in-launch-configuration prev)
-                      ,expanded)))))
+  `(ert-deftest
+       ,name () ,@docstring
+       (should (equal (dap-variables-expand-in-launch-configuration ,conf)
+                      ,expanded))))
 
 (dap-variables--define-compare-test
  dap-variables-test-conspair
@@ -190,6 +190,12 @@ DOCSTRING, if set, specifies the docstring to use for
  (list :startup-fn #'identity)
  (list :startup-fn #'identity)
  "Functions should be passed trough, without modification.")
+
+(dap-variables--define-compare-test
+ dap-variables-test-lambda-untouched
+ (list :startup-fn (lambda () "Doc." "${$}"))
+ (list :startup-fn (lambda () "Doc." "${$}"))
+ "Lambdas should be passed trough, without modification.")
 
 (ert-deftest dap-variables-test-lambda-stays-lambda ()
   "A lambda should still stay a lambda, and be callable."
