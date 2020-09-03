@@ -48,6 +48,14 @@
   :group 'dap-mode
   :type 'boolean)
 
+(defcustom dap-external-terminal '("xterm" "-hold" "{command}" "-display" "{title}")
+  "The external command to execute.
+
+{command} will be replaced with the program to execute.
+{display} will be replaced with window title."
+  :group 'dap-mode
+  :type '(repeat string))
+
 (defcustom dap-output-buffer-filter '("stdout" "stderr")
   "If non-nil, a list of output types to display in the debug output buffer."
   :group 'dap-mode
@@ -904,6 +912,28 @@ PARAMS are the event params.")
          (cl-pushnew source (dap--debug-session-loaded-sources debug-session))
          (run-hook-with-args 'dap-loaded-sources-changed-hook debug-session)))
       (_ (dap-handle-event (intern event-type) debug-session body)))))
+
+
+
+(defun dap--start-process (debug-session parsed-msg)
+  (-let* (((&hash "arguments" (&hash? "args" "cwd"  "title" "kind")
+                  "seq")
+           parsed-msg)
+          (default-directory cwd))
+    (if (string= "_external" kind)
+        (let ((name (or title (concat (dap--debug-session-name debug-session) "- terminal"))))
+          (apply #'start-process
+                 name
+                 name
+                 (-map (lambda (part)
+                         (->> part
+                              (s-replace "{display}" name)
+                              (s-replace "{command}" (s-join " " args))))
+                       dap-external-terminal)))
+      (async-shell-command (s-join " " args) ())
+      (dap--send-message (dap--make-response seq)
+                         (dap--resp-handler)
+                         debug-session))))
 
 (defun dap--create-filter-function (debug-session)
   "Create filter function for DEBUG-SESSION."
