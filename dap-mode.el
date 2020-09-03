@@ -214,7 +214,9 @@ The hook will be called with the session file and the new set of breakpoint loca
   (loaded-sources nil)
   (program-proc)
   ;; Optional metadata to set and get it.
-  (metadata (make-hash-table :test 'eql)))
+  (metadata (make-hash-table :test 'eql))
+  ;; when t the output already has been displayed for this buffer.
+  (output-displayed))
 
 (cl-defstruct dap--parser
   (waiting-for-response nil)
@@ -776,7 +778,12 @@ will be reversed."
 
   (run-hook-with-args 'dap-stack-frame-changed-hook debug-session)
   (run-hook-with-args 'dap-terminated-hook debug-session)
-  (dap--refresh-breakpoints))
+  (dap--refresh-breakpoints)
+
+  (when-let ((cleanup-fn (plist-get
+                          (dap--debug-session-launch-args debug-session)
+                          :cleanup-function)))
+    (funcall cleanup-fn debug-session)))
 
 (defun dap--output-buffer-format-with-category (category output)
   "Formats a string suitable for printing to the output buffer using CATEGORY and OUTPUT."
@@ -807,7 +814,11 @@ will be reversed."
         (save-excursion
           (dap--insert-at-point-max str))
       (dap--insert-at-point-max str))
-    (setq-local buffer-read-only t)))
+    (setq-local buffer-read-only t))
+  (when (and dap-auto-show-output
+             (not (dap--debug-session-output-displayed debug-session)))
+    (setf (dap--debug-session-output-displayed debug-session) t)
+    (save-excursion (dap-go-to-output-buffer t))))
 
 (cl-defgeneric dap-handle-event (event-type session params)
   "Extension point for handling custom events.
@@ -1233,7 +1244,7 @@ before starting the debug process."
   (setq launch-args (dap-variables-expand-in-launch-configuration launch-args))
   (-let* (((&plist :name :skip-debug-session :cwd :program-to-start
                    :wait-for-port :type :request :port
-                   :environment-variables :hostName host) launch-args)
+                   :startup-function :environment-variables :hostName host) launch-args)
           (session-name (dap--calculate-unique-name name (dap--get-sessions)))
           (default-directory (or cwd default-directory))
           program-process)
@@ -1241,13 +1252,14 @@ before starting the debug process."
     (plist-put launch-args :name session-name)
 
     (when program-to-start
-
       (setf program-process
             (get-buffer-process
              (compilation-start program-to-start 'dap-server-log-mode
                                 (lambda (_) (concat "*" session-name " server log*"))))))
     (when wait-for-port
       (dap--wait-for-port host port dap-connect-retry-count dap-connect-retry-interval))
+
+    (when startup-function (funcall startup-function launch-args))
 
     (unless skip-debug-session
       (let ((debug-session (dap--create-session launch-args)))
@@ -1263,16 +1275,17 @@ before starting the debug process."
 
               (dap--set-sessions (cons debug-session debug-sessions)))
             (dap--send-message
-             (dap--make-request request launch-args)
+             (dap--make-request request (-> launch-args
+                                            (copy-list)
+                                            (dap--plist-delete :cleanup-function)
+                                            (dap--plist-delete :startup-function)))
              (dap--session-init-resp-handler debug-session)
              debug-session)))
          debug-session)
 
         (dap--set-cur-session debug-session)
         (push (cons session-name launch-args) dap--debug-configuration)
-        (run-hook-with-args 'dap-session-created-hook debug-session))
-      (when (and dap-auto-show-output)
-        (save-excursion (dap-go-to-output-buffer))))))
+        (run-hook-with-args 'dap-session-created-hook debug-session)))))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
   "Establish markers for FILE-BREAKPOINTS in FILE."
@@ -1544,14 +1557,14 @@ normally with `dap-debug'"
        cl-rest
        dap-debug))
 
-(defun dap-go-to-output-buffer ()
+(defun dap-go-to-output-buffer (&optional no-select)
   "Go to output buffer."
   (interactive)
   (let ((win (display-buffer-in-side-window
               (dap--debug-session-output-buffer (dap--cur-session-or-die))
               `((side . bottom) (slot . 5) (window-width . 0.20)))))
     (set-window-dedicated-p win t)
-    (select-window win)
+    (unless no-select (select-window win))
     (fit-window-to-buffer nil dap-output-window-max-height dap-output-window-min-height)))
 
 (defun dap-delete-session (debug-session)
