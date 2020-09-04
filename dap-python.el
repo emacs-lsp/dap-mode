@@ -182,7 +182,7 @@ as the pyenv version then also return nil. This works around https://github.com/
   "Populate CONF with the required arguments."
   (let* ((host "localhost")
          (debug-port (dap--find-available-port))
-         (python-executable (dap-python--pyenv-executable-find dap-python-executable))
+         (python-executable (plist-get conf :python-exec-path))
          (python-args (or (plist-get conf :args) ""))
          (program (or (plist-get conf :target-module)
                       (plist-get conf :program)
@@ -239,6 +239,7 @@ as the pyenv version then also return nil. This works around https://github.com/
                                    :module nil
                                    :program nil
                                    :request "launch"
+				   :python-exec-path (dap-python--pyenv-executable-find dap-python-executable)
                                    :name "Python :: Run file (buffer)"))
 
 (dap-register-debug-template "Python :: Run pytest (buffer)"
@@ -248,6 +249,7 @@ as the pyenv version then also return nil. This works around https://github.com/
                                    :program nil
                                    :module "pytest"
                                    :request "launch"
+				   :python-exec-path (dap-python--pyenv-executable-find dap-python-executable)
                                    :name "Python :: Run pytest (buffer)"))
 
 (dap-register-debug-provider "python-test-at-point" 'dap-python--populate-test-at-point)
@@ -256,6 +258,7 @@ as the pyenv version then also return nil. This works around https://github.com/
 				   :args ""
 				   :module "pytest"
 				   :request "launch"
+				   :python-exec-path (dap-python--pyenv-executable-find dap-python-executable)
 				   :name "Python :: Run pytest (at point)"))
 
 (provide 'dap-python)
