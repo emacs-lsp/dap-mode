@@ -1276,7 +1276,7 @@ before starting the debug process."
               (dap--set-sessions (cons debug-session debug-sessions)))
             (dap--send-message
              (dap--make-request request (-> launch-args
-                                            (copy-list)
+                                            (cl-copy-list)
                                             (dap--plist-delete :cleanup-function)
                                             (dap--plist-delete :startup-function)))
              (dap--session-init-resp-handler debug-session)
