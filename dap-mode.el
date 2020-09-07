@@ -1232,7 +1232,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
                                  (get-buffer-window-list))))
                        (current-buffer)))
 
-(defun dap-start-debugging (launch-args)
+(defun dap-start-debugging-noexpand (launch-args)
   "Start debug session with LAUNCH-ARGS.
 Special arguments:
 
@@ -1241,7 +1241,6 @@ should be started after the :port argument is taken.
 
 :program-to-start - when set it will be started using `compilation-start'
 before starting the debug process."
-  (setq launch-args (dap-variables-expand-in-launch-configuration launch-args))
   (-let* (((&plist :name :skip-debug-session :cwd :program-to-start
                    :wait-for-port :type :request :port
                    :startup-function :environment-variables :hostName host) launch-args)
@@ -1286,6 +1285,13 @@ before starting the debug process."
         (dap--set-cur-session debug-session)
         (push (cons session-name launch-args) dap--debug-configuration)
         (run-hook-with-args 'dap-session-created-hook debug-session)))))
+
+(defun dap-start-debugging (conf)
+  "Like `dap-start-debugging-noexpand', but expand variables.
+CONF's variables are expanded before being passed to
+`dap-start-debugging'."
+  (dap-start-debugging-noexpand
+   (dap-variables-expand-in-launch-configuration conf)))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
   "Establish markers for FILE-BREAKPOINTS in FILE."
@@ -1498,15 +1504,22 @@ after selecting configuration template."
                                                'cl-first nil t)
                          cl-rest
                          copy-tree)))
-  (let ((launch-args (or (-some-> (plist-get debug-args :type)
+  ;; NOTE: the launch configuration must be expanded *before* being passed to a
+  ;; debug provider. This is because some debug providers (e.g. dap-python) pass
+  ;; some fields of DEBUG-ARGS as shell arguments in :program-to-launch and try
+  ;; very hard to quote them. Because of this, `dap-start-debugging' cannot
+  ;; expand them properly. Any python configuration that uses variables in :args
+  ;; will fail.
+  (let* ((debug-args (dap-variables-expand-in-launch-configuration debug-args))
+         (launch-args (or (-some-> (plist-get debug-args :type)
                            (gethash dap--debug-providers)
                            (funcall debug-args))
                          (user-error "Have you loaded the `%s' specific dap package?"
                                      (or (plist-get debug-args :type)
                                          (user-error "%s does not specify :type" debug-args))))))
     (if (functionp launch-args)
-        (funcall launch-args #'dap-start-debugging)
-      (dap-start-debugging launch-args))))
+        (funcall launch-args #'dap-start-debugging-noexpand)
+      (dap-start-debugging-noexpand launch-args))))
 
 (defun dap-debug-edit-template (&optional debug-args)
   "Edit registered template DEBUG-ARGS.
