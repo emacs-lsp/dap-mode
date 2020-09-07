@@ -188,6 +188,9 @@ as the pyenv version then also return nil. This works around https://github.com/
                       (plist-get conf :program)
                       (buffer-file-name)))
          (module (plist-get conf :module)))
+    ;; support :args ["foo" "bar"]
+    (when (sequencep python-args)
+      (setq python-args (mapconcat #'shell-quote-argument python-args " ")))
 
     (plist-put conf :program-to-start
                (format "%s%s -m ptvsd --wait --host %s --port %s %s %s %s"
@@ -213,6 +216,9 @@ as the pyenv version then also return nil. This works around https://github.com/
          (python-args (or (plist-get conf :args) ""))
          (program (concat (buffer-file-name) (dap-python--test-at-point)))
          (module (plist-get conf :module)))
+    ;; support :args ["foo" "bar"]
+    (when (sequencep python-args)
+      (setq python-args (mapconcat #'shell-quote-argument python-args " ")))
 
     (plist-put conf :program-to-start
                (format "%s%s -m ptvsd --wait --host %s --port %s %s %s %s"
