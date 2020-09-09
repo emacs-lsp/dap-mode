@@ -69,9 +69,9 @@ With prefix, FORCED to redownload the extension."
                              (list :type "cppdbg"
                                    :request "launch"
                                    :name "cpptools::Run Configuration"
-                                   :target nil
-                                   :program nil
-                                   :cwd nil))
+                                   :MIMode "gdb"
+                                   :program "${workspaceFolder}/ replace with your binary"
+                                   :cwd "${workspaceFolder}"))
 
 (provide 'dap-cpptools)
 ;;; dap-cpptools.el ends here
