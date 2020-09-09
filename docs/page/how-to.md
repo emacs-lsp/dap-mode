@@ -33,3 +33,15 @@ You may want to activate minor modes, e.g. `read-only-mode`, when the debugger i
                                           (when (dap--session-running session)
                                             (+dap-running-session-mode 1))))
 ```
+
+## Stop and delete sessions
+
+To kill a running debug session (and its inferior process), use the command `M-x
+dap-disconnect`. This will still show it as a dead (grayed out) debug session in
+`dap-ui-sessions`, and you will still be able to browse its output. If you want
+to kill the debug session and remove it from the session list, use `M-x
+dap-delete-session` instead. The latter command removes the last debug session
+(dead or alive) from the session list: if you run `dap-disconnect`, the last
+session will be a dead one, which you would remove by running `M-x
+dap-delete-session`. Sessions can be selectively deleted by putting the cursor
+on one of the sessions in `dap-ui-sessions` and pressing `D`.
