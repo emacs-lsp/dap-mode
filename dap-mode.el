@@ -905,7 +905,6 @@ PARAMS are the event params.")
          (run-hook-with-args 'dap-loaded-sources-changed-hook debug-session)))
       (_ (dap-handle-event (intern event-type) debug-session body)))))
 
-
 (defun dap--create-filter-function (debug-session)
   "Create filter function for DEBUG-SESSION."
   (let ((parser (dap--debug-session-parser debug-session))
@@ -929,11 +928,11 @@ PARAMS are the event params.")
                                 (message "Unable to find handler for %s." (pp parsed-msg))))
                   ("request" (-let* (((&hash "arguments"
                                              (&hash? "args" "cwd")
-                                             "seq")
+                                             "seq" "command")
                                       parsed-msg)
                                      (default-directory cwd))
                                (async-shell-command (s-join " " args))
-                               (dap--send-message (dap--make-response seq)
+                               (dap--send-message (dap--make-response seq command)
                                                   (dap--resp-handler)
                                                   debug-session))))))
             (dap--parser-read parser msg)))))
@@ -954,10 +953,11 @@ PARAMS are the event params.")
     (list :command command
           :type "request")))
 
-(defun dap--make-response (id &optional _args)
+(defun dap--make-response (id command)
   "Make request with ID and arguments ARGS."
   (list :request_seq id
         :success t
+        :command command
         :type "response"))
 
 (defun dap--initialize-message (adapter-id)
@@ -1277,7 +1277,12 @@ before starting the debug process."
              (dap--make-request request (-> launch-args
                                             (cl-copy-list)
                                             (dap--plist-delete :cleanup-function)
-                                            (dap--plist-delete :startup-function)))
+                                            (dap--plist-delete :startup-function)
+                                            (dap--plist-delete :dap-server-path)
+                                            (dap--plist-delete :environment-variables)
+                                            (dap--plist-delete :wait-for-port)
+                                            (dap--plist-delete :skip-debug-session)
+                                            (dap--plist-delete :program-to-start)))
              (dap--session-init-resp-handler debug-session)
              debug-session)))
          debug-session)
