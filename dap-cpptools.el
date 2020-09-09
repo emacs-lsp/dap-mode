@@ -42,7 +42,10 @@
   :group 'dap-cpptools
   :type 'string)
 
-(defcustom dap-cpptools-debug-program `(,(concat dap-cpptools-debug-path "/extension/debugAdapters/OpenDebugAD7"))
+(defcustom dap-cpptools-debug-program
+  `(,(concat dap-cpptools-debug-path
+             (concat "/extension/debugAdapters/OpenDebugAD7"
+                     (if (eq system-type 'win32) ".exe" ""))))
   "The path to the go debugger."
   :group 'dap-cpptools
   :type '(repeat string))
@@ -53,6 +56,12 @@ With prefix, FORCED to redownload the extension."
   (interactive "P")
   (unless (and (not forced) (file-exists-p dap-cpptools-debug-path))
     (dap-utils--get-extension dap-cpptools-download-url dap-cpptools-debug-path)
+    (let* ((adapter-binary (cl-first dap-cpptools-debug-program))
+           (mono (f-join (f-parent adapter-binary) "mono.linux-x86_64")))
+      (set-file-modes adapter-binary #o0700)
+      (when (f-exists? mono)
+        (set-file-modes mono #o0700)))
+
     (message "%s: Downloading done!" "dap-cpptools")))
 
 (defun dap-cpptools--populate-args (conf)
