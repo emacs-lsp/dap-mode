@@ -245,7 +245,6 @@ as the pyenv version then also return nil. This works around https://github.com/
                                    :program nil
                                    :request "launch"
                                    :name "Python :: Run file (buffer)"))
-
 (dap-register-debug-template "Python :: Run pytest (buffer)"
                              (list :type "python"
                                    :args ""
