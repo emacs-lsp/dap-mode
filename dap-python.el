@@ -70,17 +70,17 @@ This works around https://github.com/pyenv/pyenv-which-ext."
     (executable-find command)))
 
 (cl-defstruct dap-python--point
-  (line (:type integer) :named t)
-  (character (:type integer) :named t))
+  (line '(:type integer) :named t)
+  (character '(:type integer) :named t))
 
 (cl-defstruct dap-python--location
-  (start (:type dap-python--point) :named t)
-  (end (:type dap-python--point) :named t))
+  (start '(:type dap-python--point) :named t)
+  (end '(:type dap-python--point) :named t))
 
 (cl-defstruct dap-python--symbol
-  (name (:type string) :named t)
-  (type (:type string) :named t)
-  (location (:type dap-python--location) :named t))
+  (name '(:type string) :named t)
+  (type '(:type string) :named t)
+  (location '(:type dap-python--location) :named t))
 
 (cl-defgeneric dap-python--equal (lhs rhs)
   (:documentation "Check if lhs and rhs are equal"))
