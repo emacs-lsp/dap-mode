@@ -1615,7 +1615,10 @@ If the current session it will be terminated."
                               ;; done before CLEANUP-FN, as otherwise the
                               ;; process' buffer will be killed before it,
                               ;; potentially causing weirdness.
-                              (kill-process proc))
+                              (when (process-live-p proc)
+                                ;; The server might have already died due to the
+                                ;; disconnect.
+                                (kill-process proc)))
                             (funcall cleanup-fn)))
                          debug-session))))
 
