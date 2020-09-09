@@ -59,14 +59,13 @@ as the pyenv version then also return nil. This works around https://github.com/
               (pyenv-version-names (split-string (string-trim (shell-command-to-string "pyenv version-name")) ":"))
               (executable nil)
               (i 0))
-          (if (not (string-match "not found" pyenv-string))
-              (while (and (not executable)
-                          (< i (length pyenv-version-names)))
-                (if (string-match (elt pyenv-version-names i) (string-trim pyenv-string))
-                    (setq executable (string-trim pyenv-string)))
-                (if (string-match (elt pyenv-version-names i) "system")
-                    (setq executable (string-trim (executable-find command))))
-                (setq i (1+ i))))
+          (unless (string-match "not found" pyenv-string)
+            (while (and (not executable) (< i (length pyenv-version-names)))
+              (when (string-match (elt pyenv-version-names i) (string-trim pyenv-string))
+                (setq executable (string-trim pyenv-string)))
+              (when (string-match (elt pyenv-version-names i) "system")
+                (setq executable (string-trim (executable-find command))))
+              (setq i (1+ i))))
           executable))
     (executable-find command)))
 
@@ -140,28 +139,28 @@ as the pyenv version then also return nil. This works around https://github.com/
 (defun dap-python--test-p (lsp-symbol)
   (let ((name (dap-python--symbol-name lsp-symbol)))
     (and (dap-python--equal (dap-python--symbol-type lsp-symbol) "Function")
-	 (s-starts-with? "test_" name))))
+         (s-starts-with? "test_" name))))
 
 (defun dap-python--test-class-p (test-symbol lsp-symbol)
   (when (dap-python--equal (dap-python--symbol-type lsp-symbol) "Class")
-      (let* ((class-location (dap-python--symbol-location lsp-symbol))
-	     (class-start-line (-> class-location dap-python--location-start dap-python--point-line))
-	     (class-end-line (-> class-location dap-python--location-end dap-python--point-line))
-	     (test-start-line (-> test-symbol dap-python--symbol-location dap-python--location-start dap-python--point-line)))
-	(and (> test-start-line class-start-line)
-	     (< test-start-line class-end-line)))))
+    (let* ((class-location (dap-python--symbol-location lsp-symbol))
+           (class-start-line (-> class-location dap-python--location-start dap-python--point-line))
+           (class-end-line (-> class-location dap-python--location-end dap-python--point-line))
+           (test-start-line (-> test-symbol dap-python--symbol-location dap-python--location-start dap-python--point-line)))
+      (and (> test-start-line class-start-line)
+           (< test-start-line class-end-line)))))
 
 (defun dap-python--nearest-test (lsp-symbols)
   (let* ((reversed (reverse lsp-symbols))
-	 (test-symbol (-first 'dap-python--test-p reversed))
-	 (class-symbol (-first (-partial 'dap-python--test-class-p test-symbol) reversed)))
+         (test-symbol (-first 'dap-python--test-p reversed))
+         (class-symbol (-first (-partial 'dap-python--test-class-p test-symbol) reversed)))
     (if (eq nil class-symbol)
-	(concat "::" (dap-python--symbol-name test-symbol))
-        (concat "::" (dap-python--symbol-name class-symbol) "::" (dap-python--symbol-name test-symbol)))))
+        (concat "::" (dap-python--symbol-name test-symbol))
+      (concat "::" (dap-python--symbol-name class-symbol) "::" (dap-python--symbol-name test-symbol)))))
 
 (defun dap-python--cursor-position ()
   (make-dap-python--point :line (line-number-at-pos)
-			  :character (current-column)))
+                          :character (current-column)))
 
 (defun dap-python--test-at-point ()
   (->> (lsp--get-document-symbols)
@@ -258,11 +257,11 @@ as the pyenv version then also return nil. This works around https://github.com/
 
 (dap-register-debug-provider "python-test-at-point" 'dap-python--populate-test-at-point)
 (dap-register-debug-template "Python :: Run pytest (at point)"
-			     (list :type "python-test-at-point"
-				   :args ""
-				   :module "pytest"
-				   :request "launch"
-				   :name "Python :: Run pytest (at point)"))
+                             (list :type "python-test-at-point"
+                                   :args ""
+                                   :module "pytest"
+                                   :request "launch"
+                                   :name "Python :: Run pytest (at point)"))
 
 (provide 'dap-python)
 ;;; dap-python.el ends here
