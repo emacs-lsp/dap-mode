@@ -19,7 +19,6 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'cl-lib)
-(require 'dash)
 (require 'lsp-mode)
 
 ;;; Commentary:
@@ -66,10 +65,6 @@ if that file has no extension, return the empty string."
   "Return the directory the buffer's file is in."
   (file-name-directory buffer-file-name))
 
-(defun dap-variables--buffer-current-line ()
-  "Return the line the cursor is on in the current buffer."
-  (number-to-string (line-number-at-pos)))
-
 (defun dap-variables--buffer-selected-text ()
   "Return the text selected in the current buffer.
 If no text is selected, return the empty string."
@@ -87,28 +82,57 @@ Only for use in `dap-launch-configuration-variables'."
                     envvar var)
           ""))))
 
+(defface dap-variables-pid-face '((t :inherit font-lock-function-name-face))
+  "Face processed ids are shown in for ${command:pickProcess}.
+Each entry in that function consists of the process args followed
+by the PID, in parentheses \(). Only the PID \(not the
+parentheses) is shown with that face."
+  :group 'dap-faces)
+
+(defun dap-variables--pick-process ()
+  "Prompt the user to select a system process and return it.
+The return value is the process' PID, as an integer."
+  (let* ((pids (list-system-processes))
+         (pids-propertized (cl-loop for pid in pids collect
+                                    (propertize (number-to-string pid) 'face
+                                                'dap-variables-pid-face)))
+         (proc-attrs (mapcar #'process-attributes pids))
+         (proc-names (mapcar (apply-partially #'alist-get 'args) proc-attrs))
+         (entries (cl-mapcar (apply-partially #'format "%s (%s)")
+                             proc-names pids-propertized))
+         (message-pid-alist (cl-mapcar #'cons entries pids))
+
+         ;; History doesn't make sense here since PIDs are usually very unstable
+         ;; (sometimes randomized for security and because processes spawn and
+         ;; die). NOTE: the list does not update itself live, which is why we
+         ;; don't require-match: the user may find out the PID after running
+         ;; `dap-debug'.
+         (chosen-entry (completing-read "Select a PID: " message-pid-alist)))
+    (cdr (assoc chosen-entry message-pid-alist #'string=))))
+
 (defvar dap-variables-launch-configuration-variables
   ;; list taken from https://code.visualstudio.com/docs/editor/variables-reference
-  '(("^workspaceFolderBasename$" . dap-variables--project-basename)
-    ("^workspaceFolder$" . lsp-workspace-root)
-    ("^relativeFileDirname$" . dap-variables--project-relative-dirname)
-    ("^relativeFile$" . dap-variables--project-relative-file)
-    ("^fileBasenameNoExtension$" . dap-variables--buffer-basename-sans-extension)
-    ("^fileBasename$" . dap-variables--buffer-basename)
-    ("^fileDirname$" . dap-variables--buffer-dirname)
-    ("^fileExtname$" . dap-variables--buffer-extension)
-    ("^lineNumber$" . dap-variables--buffer-current-line)
-    ("^selectedText$" . dap-variables--buffer-selected-text)
-    ("^file$" . buffer-file-name)
-    ("^env:\\(.*\\)$" . dap-variables--launch-configuration-var-getenv)
+  '(("\\`workspaceFolderBasename\\'" . dap-variables--project-basename)
+    ("\\`workspaceFolder\\'" . lsp-workspace-root)
+    ("\\`relativeFileDirname\\'" . dap-variables--project-relative-dirname)
+    ("\\`relativeFile\\'" . dap-variables--project-relative-file)
+    ("\\`fileBasenameNoExtension\\'" . dap-variables--buffer-basename-sans-extension)
+    ("\\`fileBasename\\'" . dap-variables--buffer-basename)
+    ("\\`fileDirname\\'" . dap-variables--buffer-dirname)
+    ("\\`fileExtname\\'" . dap-variables--buffer-extension)
+    ("\\`lineNumber\\'" . line-number-at-pos)
+    ("\\`selectedText\\'" . dap-variables--buffer-selected-text)
+    ("\\`file\\'" . buffer-file-name)
+    ("\\`env:\\(.*\\)\\'" . dap-variables--launch-configuration-var-getenv)
     ;; technically not in VSCode, but I still wanted to add a way to escape $
-    ("^\\$$" . "$")
+    ("\\`\\$\\'" . "$")
     ;; the following variables are valid in VSCode, but have no meaning in
     ;; Emacs, and are as such unsupported.
     ;; ("cwd") ;; the task runner's current working directory,
     ;;         ;; not `default-directory'
     ;; ("execPath")
     ;; ("defaultBuildTask")
+    ("\\`command:pickProcess\\'" . dap-variables--pick-process)
     )
   "Alist of (REGEX . VALUE) pairs listing variables usable in launch.json files.
 This list is iterated from the top to bottom when expanding variables in the strings of the selected launch configuration
@@ -259,13 +283,26 @@ initialize something for expansion.")
 
 (defun dap-variables--eval-poly-type (value var)
   "Get the value from VALUE depending on its type.
-If it is a function, and VAR is not nil, call VALUE and pass VAR as an argument.
-If it is a symbol, return its value.
-Otherwise, return VALUE"
-  (cond ((and var (functionp value)) (funcall value var))
-        ((functionp value) (funcall value))
-        ((symbolp value) (symbol-value value))
-        (t value)))
+VALUE is evaluated in two stages:
+
+1. If it is a function, call it using `funcall', passing VAR as
+argument if and only if VAR is not nil. If VALUE is a symbol and
+that symbol does not have an associated function, yield that
+symbol's value.
+
+2. If the result of the first stage is a number, make it a
+string, yielding stage 1's result otherwise."
+  (let ((pre-res
+         (pcase value
+           ((pred functionp) (if var (funcall value var) (funcall value)))
+           ((pred symbolp) (symbol-value value))
+           (_ value))))
+    ;; stage two expansion: VALUE as a function could have returned something,
+    ;; or a number was stored in the symbol.
+    (pcase pre-res
+      ((pred numberp) (number-to-string pre-res))
+      ;; by using a pcase here, this function becomes more extensible.
+      (_ pre-res))))
 
 (defun dap-variables-find-matching (var variable-alist)
   "Return the corresponding VALUE to the REGEX matching VAR.
@@ -323,7 +360,17 @@ argument. If it returns nil, no expansion is performed."
             (replace-match "$") ;; escaped \\$, since match-string 2 is nil
             )))
 
-      (buffer-string))))
+      ;; caused issues with ws-butler in combination with
+      ;; ${command:pickProcess}. Even though `dap-variables--eval-poly-type'
+      ;; returned a property-less string, the result of this function was a
+      ;; strangely propertized string:
+      ;; (dap-variables-expand-in-launch-configuration "${command:pickProcess}")
+      ;; -> #("1" 0 1 (ws-butler-chg chg)).
+      ;;
+      ;; The different handling of narrowing in `buffer-substring-no-properties'
+      ;; and `buffer-string' won't lead to any problems because this function
+      ;; uses a temp-buffer and does not use narrowing.
+      (buffer-substring-no-properties (point-min) (point-max)))))
 
 (defun dap-variables-walk-launch-configuration (conf var-callback)
   "Non-destructively expand all variables in all strings of CONF.
