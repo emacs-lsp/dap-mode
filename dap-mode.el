@@ -1595,7 +1595,7 @@ If the current session it will be terminated."
                             (dap--set-sessions))
                        (when (eq (dap--cur-session) debug-session)
                          (dap--switch-to-session nil))
-                       (-when-let (buffer (dap--debug-session-output-buffer debug-session))
+                       (when-let (buffer (dap--debug-session-output-buffer debug-session))
                          (kill-buffer buffer))
                        (dap--refresh-breakpoints))))
     (if (not (dap--session-running debug-session))
@@ -1603,24 +1603,29 @@ If the current session it will be terminated."
       (dap--send-message (dap--make-request "disconnect"
                                             (list :restart :json-false))
                          (dap--resp-handler
-                          (lambda (_resp) (funcall cleanup-fn)))
+                          (lambda (_resp)
+                            ;; its still alive, so kill its debugger off,
+                            ;; causing the process sentinel from
+                            ;; `dap--create-session' to do its thing. NOTE that
+                            ;; this need not be done if the process isn't alive
+                            ;; (case above), so this was moved here, as a minor
+                            ;; optimization.
+                            (when-let (proc (dap--debug-session-program-proc debug-session))
+                              ;; ensure that `dap-terminated-hook' runs; must be
+                              ;; done before CLEANUP-FN, as otherwise the
+                              ;; process' buffer will be killed before it,
+                              ;; potentially causing weirdness.
+                              (kill-process proc))
+                            (funcall cleanup-fn)))
                          debug-session))))
 
 (defun dap-delete-all-sessions ()
   "Terminate/remove all sessions."
   (interactive)
-  (--each (dap--get-sessions)
-    (when (dap--session-running it)
-      (condition-case _err
-          (dap--send-message (dap--make-request "disconnect"
-                                                (list :restart :json-false))
-                             (dap--resp-handler)
-                             it)
-        (error))))
-
-  (dap--set-sessions ())
-  (dap--switch-to-session nil)
-  (dap--refresh-breakpoints))
+  ;; NOTE: this will call `dap-terminated-hook' for each live session; this is
+  ;; correct because `dap-terminated-hook' must be called after each session
+  ;; terminates.
+  (mapc #'dap-delete-session (dap--get-sessions)))
 
 (defun dap-breakpoint-delete-all ()
   "Delete all breakpoints."
