@@ -47,7 +47,8 @@ applied with lower priority than the syntax highlighting."
         :min-height 10)
   "The properties which will be used for creating the `posframe'.")
 
-(defconst dap-mouse-buffer "*dap-mouse*")
+(defconst dap-mouse-buffer "*dap-mouse*"
+  "Buffer name for `dap-mouse'.")
 
 (defun dap-mouse--hide-popup? ()
   (let ((buffer-under-mouse (window-buffer (cl-first (window-list (cl-first (mouse-position))))))
@@ -57,7 +58,9 @@ applied with lower priority than the syntax highlighting."
              (eq buffer-under-mouse popup-buffer)))))
 
 (defcustom dap-mouse-popup-timeout 0.3
-  "The time to wait after command before hiding the popup.")
+  "The time to wait after command before hiding the popup."
+  :type 'float
+  :group 'dap-mouse)
 
 ;;;###autoload
 (define-minor-mode dap-tooltip-mode
