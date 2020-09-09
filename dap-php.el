@@ -53,22 +53,22 @@
       (dap--put-if-absent :name "Php Debug")))
 
 (dap-register-debug-provider "php" 'dap-php--populate-start-file-args)
+
 (dap-register-debug-template "Php Run Configuration"
                              (list :type "php"
                                    :cwd nil
                                    :request "launch"
                                    :name "Php Debug"
                                    :args '("--server=4711")
-                                   :sourceMaps t
-                                   ))
+                                   :sourceMaps t))
+
 (dap-register-debug-template "Php Stop On Entry"
                              (list :type "php"
                                    :cwd nil
                                    :request "launch"
                                    :name "Php SOE Debug"
                                    :stopOnEntry t
-                                   :sourceMaps t
-                                   ))
+                                   :sourceMaps t))
 
 (provide 'dap-php)
 ;;; dap-php.el ends here
