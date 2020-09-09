@@ -360,6 +360,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#vscode-cpptools" class="md-nav__link">
+    vscode-cpptools
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#elixir" class="md-nav__link">
     Elixir
   </a>
@@ -650,6 +657,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#vscode-cpptools" class="md-nav__link">
+    vscode-cpptools
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#elixir" class="md-nav__link">
     Elixir
   </a>
@@ -901,6 +915,27 @@ and Swift.</p>
 <a href="https://github.com/apple/swift-lldb">https://github.com/apple/swift-lldb</a> and put the compiled LLDB
 library/framework in the "extensions" folder.</p>
 </li>
+</ol>
+<h2 id="vscode-cpptools">vscode-cpptools<a class="headerlink" href="#vscode-cpptools" title="Permanent link">#</a></h2>
+<ol>
+<li>Installation</li>
+</ol>
+<p>You only need to run <code>dap-cpptools-setup</code> to setup automatically and then
+you are good start debugging.</p>
+<div class="codehilite"><pre><span></span><code>  <span class="o">-</span> <span class="n">Clone</span> <span class="k">and</span> <span class="n">follow</span> <span class="n">the</span> <span class="n">instructions</span> <span class="k">to</span> <span class="n">compile</span> <span class="n">lldb</span><span class="o">-</span><span class="n">vscode</span> <span class="k">from</span>
+    <span class="o">&lt;</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">llvm</span><span class="o">/</span><span class="n">llvm</span><span class="o">-</span><span class="n">project</span><span class="o">/</span><span class="n">tree</span><span class="o">/</span><span class="n">master</span><span class="o">/</span><span class="n">lldb</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">lldb</span><span class="o">-</span><span class="n">vscode</span><span class="o">&gt;</span>
+
+  <span class="o">-</span> <span class="n">Put</span> <span class="k">in</span> <span class="n">your</span> <span class="n">emacs</span> <span class="n">configuration</span><span class="p">.</span>
+
+    <span class="o">```</span> <span class="n">elisp</span>
+    <span class="p">(</span><span class="n">require</span> <span class="err">&#39;</span><span class="n">dap</span><span class="o">-</span><span class="n">cpptools</span><span class="p">)</span>
+    <span class="o">```</span>
+</code></pre></div>
+
+
+<ol>
+<li>Usage <code>dap-debug-edit-template</code> and select template "cpptools" prefixed
+    configuration.</li>
 </ol>
 <h2 id="elixir">Elixir<a class="headerlink" href="#elixir" title="Permanent link">#</a></h2>
 <p>Make sure that you have properly configured <code>Elixir</code> and that you have
