@@ -336,6 +336,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#stop-and-delete-sessions" class="md-nav__link">
+    Stop and delete sessions
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -537,6 +544,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#stop-and-delete-sessions" class="md-nav__link">
+    Stop and delete sessions
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -587,6 +601,17 @@
                                           <span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nv">dap--session-running</span> <span class="nv">session</span><span class="p">)</span>
                                             <span class="p">(</span><span class="nv">+dap-running-session-mode</span> <span class="mi">1</span><span class="p">))))</span>
 </code></pre></div>
+
+<h2 id="stop-and-delete-sessions">Stop and delete sessions<a class="headerlink" href="#stop-and-delete-sessions" title="Permanent link">#</a></h2>
+<p>To kill a running debug session (and its inferior process), use the command <code>M-x
+dap-disconnect</code>. This will still show it as a dead (grayed out) debug session in
+<code>dap-ui-sessions</code>, and you will still be able to browse its output. If you want
+to kill the debug session and remove it from the session list, use <code>M-x
+dap-delete-session</code> instead. The latter command removes the last debug session
+(dead or alive) from the session list: if you run <code>dap-disconnect</code>, the last
+session will be a dead one, which you would remove by running <code>M-x
+dap-delete-session</code>. Sessions can be selectively deleted by putting the cursor
+on one of the sessions in <code>dap-ui-sessions</code> and pressing <code>D</code>.</p>
                 
                   
                     
