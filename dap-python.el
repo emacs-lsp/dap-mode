@@ -50,9 +50,9 @@ For example you may set it to `xterm -e' which will pop xterm console when you a
 
 (defun dap-python--pyenv-executable-find (command)
   "Find executable taking pyenv shims into account.
-If the executable is a system executable and not in the same path
-as the pyenv version then also return nil. This works around https://github.com/pyenv/pyenv-which-ext
-"
+If the executable is a system executable and not in the same path as the pyenv
+ version then also return nil.
+This works around https://github.com/pyenv/pyenv-which-ext."
   (if (executable-find "pyenv")
       (progn
         (let ((pyenv-string (shell-command-to-string (concat "pyenv which " command)))
