@@ -37,7 +37,6 @@
 (require 'compile)
 (require 'gdb-mi)
 (require 'lsp-treemacs)
-(require 'dap-ui-repl)
 (require 'posframe)
 
 (defcustom dap-ui-breakpoints-ui-list-displayed-hook nil
