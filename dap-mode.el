@@ -63,6 +63,54 @@ See also `dap-default-terminal-kind'."
   :group 'dap-mode
   :type '(repeat string))
 
+(defun dap--make-terminal-buffer (title debug-session)
+  "Generate an internal terminal buffer.
+The name is derived from TITLE and DEBUG-SESSION. This function
+should be used in `dap-internal-terminal-*'."
+  (generate-new-buffer
+   (format "*%s %s*"
+           (dap--debug-session-name debug-session)
+           (if title (concat "- " title) "console"))))
+
+(defun dap-internal-terminal-vterm (command title debug-session)
+  (with-current-buffer (dap--make-terminal-buffer title debug-session)
+    (require 'vterm)
+    (declare-function vterm-mode "vterm" (&optional arg))
+    (let ((vterm-shell command)
+          (vterm-kill-buffer-on-exit nil))
+      (vterm-mode 1)
+      ;; TODO: integrate into dap-ui
+      (display-buffer (current-buffer)))))
+
+(defun dap-internal-terminal-shell (command title debug-session)
+  (let ((buf (dap--make-terminal-buffer title debug-session)))
+    (async-shell-command command buf buf)))
+
+(defun dap-internal-terminal-auto (command title debug-session)
+  "Run COMMAND with an auto-detected terminal.
+If `vterm' is loaded or auto-loaded, use vterm. Otherwise, use
+`async-shell-command'."
+  (if (fboundp 'vterm-mode)
+      (dap-internal-terminal-vterm command title debug-session)
+    (dap-internal-terminal-shell command title debug-session)))
+
+(defcustom dap-internal-terminal #'dap-internal-terminal-auto
+  "Terminal used with :console \"integratedTerminal\".
+It is a function that shall take three arguments: the command to
+run, as a string, the title from the debug adapter (may be nil)
+and the debug session and it should execute COMMAND. Aside from
+that, it can do anything and is itself responsible for displaying
+any buffers, ....
+
+If you are looking at implementing your own such function, see
+also `dap--make-terminal-buffer'."
+  :group 'dap-mode
+  :type '(radio
+          (const :tag "auto-detect" :value dap-internal-terminal-auto)
+          (const :tag "vterm" :value dap-internal-terminal-vterm)
+          (const :tag "asnyc-shell" :value dap-internal-terminal-shell)
+          (function :tag "Custom function")))
+
 (defcustom dap-output-buffer-filter '("stdout" "stderr")
   "If non-nil, a list of output types to display in the debug output buffer."
   :group 'dap-mode
@@ -936,40 +984,24 @@ PARAMS are the event params.")
     (pcase (or kind dap-default-terminal-kind)
       ("external"
        (let* ((name (or title (concat (dap--debug-session-name debug-session)
-                                      "- terminal")))
-              (proc
-               (apply #'start-process name name
-                      (-map (lambda (part)
-                              (->> part
-                                   (s-replace "{display}" name)
-                                   (s-replace "{command}" command-to-run)))
-                            dap-external-terminal))))
+                                      "- terminal"))))
+         (apply #'start-process name name
+                (-map (lambda (part)
+                        (->> part
+                             (s-replace "{display}" name)
+                             (s-replace "{command}" command-to-run)))
+                      dap-external-terminal))
          ;; NOTE: we cannot know the process id of the started application.
          (dap--send-message (dap--make-success-response seq "runInTerminal")
                             ;; NOTE: assuming that the terminal starts the
                             ;; application without another subshell
                             (dap--resp-handler) debug-session)))
        ("integrated"
-        (let ((name
-               (format "*%s*"
-                       (or title
-                           (format "%s - vterm"
-                                   (dap--debug-session-name debug-session))))))
-          ;; TODO: make configurable using a defcustom that points to some other
-          ;; function. We must support term, ansi-term, etc..., since not
-          ;; everyone has vterm (Windows users?).
-          (with-current-buffer (generate-new-buffer name)
-            (require 'vterm)
-            (let ((vterm-shell command-to-run)
-                  (vterm-kill-buffer-on-exit nil))
-              (vterm-mode))
-            ;; Allows integration with various Emacs window managers like
-            ;; Spacemacs' popwin.
-            (display-buffer (current-buffer)))
-          ;; NOTE: we don't know the PID of the shell that ran the process and
-          ;; we don't know the PID of the started process.
-          (dap--send-message (dap--make-success-response seq "runInTerminal")
-                             (dap--resp-handler) debug-session)))
+        (funcall dap-internal-terminal command-to-run title debug-session)
+        ;; NOTE: we don't know the PID of the shell that ran the process and we
+        ;; don't know the PID of the started process.
+        (dap--send-message (dap--make-success-response seq "runInTerminal")
+                             (dap--resp-handler) debug-session))
        (_ (dap--send-message (dap--make-error-response
                               seq "runInTerminal"
                               nil (format "unknown terminal kind %s" kind))
