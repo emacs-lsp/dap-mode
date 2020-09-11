@@ -48,11 +48,18 @@
   :group 'dap-mode
   :type 'boolean)
 
-(defcustom dap-external-terminal '("xterm" "-hold" "{command}" "-display" "{title}")
-  "The external command to execute.
+(defcustom dap-external-terminal '("xterm" "-display" "{title}"
+                                   "-hold" "-e" "sh" "-c" "exec {command}")
+  "Command to launch the external terminal for debugging.
+When specifying that the program be run in an external terminal,
+this command is used to launch it. It shall be a list of strings,
+the first of which is the program to run and the rest of which
+are arguments to pass to it. Special expansion is performed:
 
 {command} will be replaced with the program to execute.
-{display} will be replaced with window title."
+{display} will be replaced with window title.
+
+See also `dap-default-terminal-kind'."
   :group 'dap-mode
   :type '(repeat string))
 
@@ -913,9 +920,12 @@ PARAMS are the event params.")
          (run-hook-with-args 'dap-loaded-sources-changed-hook debug-session)))
       (_ (dap-handle-event (intern event-type) debug-session body)))))
 
-(defcustom dap-default-terminal-kind "internal"
+(defcustom dap-default-terminal-kind "integrated"
   "Default terminal type used for :console."
-  :type 'string
+  :type '(radio
+          (const :tag "Terminal within Emacs" :value "integrated")
+          (const :tag "External terminal program (`dap-external-terminal')"
+                 :value "external"))
   :group 'dap-mode)
 
 (defun dap--start-process (debug-session parsed-msg)
@@ -935,29 +945,35 @@ PARAMS are the event params.")
                                    (s-replace "{command}" command-to-run)))
                             dap-external-terminal))))
          ;; NOTE: we cannot know the process id of the started application.
-         (dap--send-message (dap--make-response seq :shellProccessId
-                                                (proccess-id proc))
+         (dap--send-message (dap--make-success-response seq "runInTerminal")
                             ;; NOTE: assuming that the terminal starts the
                             ;; application without another subshell
-                            (dap--resp-handler)
-                            debug-session))
-       ("internal"
-        (let ((name (or title (conat "*" (dap--debug-session-name debug-session)
-                                     "- vterm*")))
-              (vterm-shell command-to-run))
+                            (dap--resp-handler) debug-session)))
+       ("integrated"
+        (let ((name
+               (format "*%s*"
+                       (or title
+                           (format "%s - vterm"
+                                   (dap--debug-session-name debug-session))))))
           ;; TODO: make configurable using a defcustom that points to some other
           ;; function. We must support term, ansi-term, etc..., since not
           ;; everyone has vterm (Windows users?).
-          (with-current-buffer (get-buffer-create name)
-            (vterm-mode)
+          (with-current-buffer (generate-new-buffer name)
+            (require 'vterm)
+            (let ((vterm-shell command-to-run)
+                  (vterm-kill-buffer-on-exit nil))
+              (vterm-mode))
             ;; Allows integration with various Emacs window managers like
             ;; Spacemacs' popwin.
             (display-buffer (current-buffer)))
           ;; NOTE: we don't know the PID of the shell that ran the process and
           ;; we don't know the PID of the started process.
-          (dap--send-message (dap--make-response seq)
-                             (dap--resp-handler)
-                             debug-session)))))))
+          (dap--send-message (dap--make-success-response seq "runInTerminal")
+                             (dap--resp-handler) debug-session)))
+       (_ (dap--send-message (dap--make-error-response
+                              seq "runInTerminal"
+                              nil (format "unknown terminal kind %s" kind))
+                             (dap--resp-handler) debug-session)))))
 
 (defun dap--create-filter-function (debug-session)
   "Create filter function for DEBUG-SESSION."
@@ -999,12 +1015,25 @@ PARAMS are the event params.")
     (list :command command
           :type "request")))
 
-(defun dap--make-response (id command)
-  "Make request with ID and arguments ARGS."
-  (list :request_seq id
-        :success t
-        :command command
-        :type "response"))
+(defun dap--make-response (id command success &optional body message)
+  (nconc (list :type "response" :request_seq id :success success
+               :command command)
+         (when message (list :message message))
+         (when body (list :body body))))
+
+(defun dap--make-success-response (id command &optional body message)
+  "Make a successful DAP response.
+The result is aplist usable with `json-encode'. ID, COMMAND, BODY
+and MESSAGE correspond to \"request_seq\", \"command\", \"body\"
+and \"message\". Consult the DAP protocol specification for
+details."
+  (dap--make-response id command t body message))
+
+(defun dap--make-error-response (id command &optional body message)
+  "Like `dap--make-success-response', but for failure.
+In the future, this function may do logging, call `user-error',
+etc...."
+  (dap--make-response id command nil body message))
 
 (defun dap--initialize-message (adapter-id)
   "Create initialize message.
