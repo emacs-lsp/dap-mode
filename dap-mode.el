@@ -926,15 +926,7 @@ PARAMS are the event params.")
                                                         debug-session
                                                         (gethash "command" parsed-msg)))
                                 (message "Unable to find handler for %s." (pp parsed-msg))))
-                  ("request" (-let* (((&hash "arguments"
-                                             (&hash? "args" "cwd")
-                                             "seq" "command")
-                                      parsed-msg)
-                                     (default-directory cwd))
-                               (async-shell-command (s-join " " args))
-                               (dap--send-message (dap--make-response seq command)
-                                                  (dap--resp-handler)
-                                                  debug-session))))))
+                  ("request" (dap--start-process debug-session parsed-msg)))))
             (dap--parser-read parser msg)))))
 
 (defun dap--create-output-buffer (session-name)
