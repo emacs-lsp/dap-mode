@@ -982,32 +982,42 @@ PARAMS are the event params.")
   (-let* (((&hash "arguments" (&hash? "args" "cwd" "title" "kind") "seq")
            parsed-msg)
           (default-directory cwd)
-          (command-to-run (string-join args " ")))
-    (pcase (or kind dap-default-terminal-kind)
-      ("external"
+          (command-to-run (string-join args " "))
+          (kind (or kind dap-default-terminal-kind)))
+    (or
+     (when (string= kind "external")
        (let* ((name (or title (concat (dap--debug-session-name debug-session)
                                       "- terminal"))))
-         (apply #'start-process name name
-                (-map (lambda (part)
-                        (->> part
-                             (s-replace "{display}" name)
-                             (s-replace "{command}" command-to-run)))
-                      dap-external-terminal))
-         ;; NOTE: we cannot know the process id of the started application.
-         (dap--send-message (dap--make-success-response seq "runInTerminal")
-                            ;; NOTE: assuming that the terminal starts the
-                            ;; application without another subshell
-                            (dap--resp-handler) debug-session)))
-       ("integrated"
-        (funcall dap-internal-terminal command-to-run title debug-session)
-        ;; NOTE: we don't know the PID of the shell that ran the process and we
-        ;; don't know the PID of the started process.
-        (dap--send-message (dap--make-success-response seq "runInTerminal")
-                             (dap--resp-handler) debug-session))
-       (_ (dap--send-message (dap--make-error-response
-                              seq "runInTerminal"
-                              nil (format "unknown terminal kind %s" kind))
-                             (dap--resp-handler) debug-session)))))
+         (with-demoted-errors "dap-debug: failed to start external terminal: %s"
+           (apply #'start-process name name
+                  (-map (lambda (part)
+                          (->> part
+                               (s-replace "{display}" name)
+                               (s-replace "{command}" command-to-run)))
+                        dap-external-terminal))
+           ;; NOTE: we cannot know the process id of the started
+           ;; application.
+           (dap--send-message (dap--make-success-response
+                               seq "runInTerminal")
+                              ;; NOTE: assuming that the terminal starts the
+                              ;; application without another subshell
+                              (dap--resp-handler) debug-session)
+           ;; success; don't use the integrated terminal
+           t)))
+     ;; integrated terminal *or* the external terminal could not be executed
+     ;; (file error).
+     (when (or (string= kind "integrated") (string= kind "external"))
+       (funcall dap-internal-terminal command-to-run title debug-session)
+       ;; NOTE: we don't know the PID of the shell that ran the process and we
+       ;; don't know the PID of the started process.
+       (dap--send-message (dap--make-success-response seq "runInTerminal")
+                          (dap--resp-handler) debug-session)
+       ;; success
+       t)
+     (dap--send-message (dap--make-error-response
+                         seq "runInTerminal"
+                         nil (format "unknown terminal kind %s" kind))
+                        (dap--resp-handler) debug-session))))
 
 (defun dap--create-filter-function (debug-session)
   "Create filter function for DEBUG-SESSION."
