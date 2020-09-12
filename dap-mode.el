@@ -48,7 +48,7 @@
   :group 'dap-mode
   :type 'boolean)
 
-(defcustom dap-external-terminal '("xterm" "-display" "{title}"
+(defcustom dap-external-terminal '("xterm" "-T" "{title}"
                                    "-hold" "-e" "sh" "-c" "exec {command}")
   "Command to launch the external terminal for debugging.
 When specifying that the program be run in an external terminal,
