@@ -78,7 +78,7 @@ should be used in `dap-internal-terminal-*'."
     (declare-function vterm-mode "vterm" (&optional arg))
     (let ((vterm-shell command)
           (vterm-kill-buffer-on-exit nil))
-      (vterm-mode 1)
+      (vterm-mode)
       ;; TODO: integrate into dap-ui
       (display-buffer (current-buffer)))))
 
@@ -90,7 +90,9 @@ should be used in `dap-internal-terminal-*'."
   "Run COMMAND with an auto-detected terminal.
 If `vterm' is loaded or auto-loaded, use vterm. Otherwise, use
 `async-shell-command'."
-  (if (fboundp 'vterm-mode)
+  ;; NOTE: 'vterm is autoloaded. This means that (fboundp 'vterm) will yield t
+  ;; even before vterm is loaded.
+  (if (fboundp 'vterm)
       (dap-internal-terminal-vterm command title debug-session)
     (dap-internal-terminal-shell command title debug-session)))
 
