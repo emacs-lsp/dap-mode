@@ -988,7 +988,9 @@ PARAMS are the event params.")
      (when (string= kind "external")
        (let* ((name (or title (concat (dap--debug-session-name debug-session)
                                       "- terminal"))))
-         (with-demoted-errors "dap-debug: failed to start external terminal: %s"
+         (with-demoted-errors "dap-debug: failed to start \
+external terminal: %s. Set `dap-external-terminal' to the correct
+value or install the terminal configured (probably xterm)."
            (apply #'start-process name name
                   (-map (lambda (part)
                           (->> part
