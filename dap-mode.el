@@ -905,7 +905,6 @@ PARAMS are the event params.")
          (run-hook-with-args 'dap-loaded-sources-changed-hook debug-session)))
       (_ (dap-handle-event (intern event-type) debug-session body)))))
 
-
 (defun dap--create-filter-function (debug-session)
   "Create filter function for DEBUG-SESSION."
   (let ((parser (dap--debug-session-parser debug-session))
@@ -929,11 +928,11 @@ PARAMS are the event params.")
                                 (message "Unable to find handler for %s." (pp parsed-msg))))
                   ("request" (-let* (((&hash "arguments"
                                              (&hash? "args" "cwd")
-                                             "seq")
+                                             "seq" "command")
                                       parsed-msg)
                                      (default-directory cwd))
                                (async-shell-command (s-join " " args))
-                               (dap--send-message (dap--make-response seq)
+                               (dap--send-message (dap--make-response seq command)
                                                   (dap--resp-handler)
                                                   debug-session))))))
             (dap--parser-read parser msg)))))
@@ -954,10 +953,11 @@ PARAMS are the event params.")
     (list :command command
           :type "request")))
 
-(defun dap--make-response (id &optional _args)
+(defun dap--make-response (id command)
   "Make request with ID and arguments ARGS."
   (list :request_seq id
         :success t
+        :command command
         :type "response"))
 
 (defun dap--initialize-message (adapter-id)
@@ -1277,7 +1277,12 @@ before starting the debug process."
              (dap--make-request request (-> launch-args
                                             (cl-copy-list)
                                             (dap--plist-delete :cleanup-function)
-                                            (dap--plist-delete :startup-function)))
+                                            (dap--plist-delete :startup-function)
+                                            (dap--plist-delete :dap-server-path)
+                                            (dap--plist-delete :environment-variables)
+                                            (dap--plist-delete :wait-for-port)
+                                            (dap--plist-delete :skip-debug-session)
+                                            (dap--plist-delete :program-to-start)))
              (dap--session-init-resp-handler debug-session)
              debug-session)))
          debug-session)
@@ -1590,7 +1595,7 @@ If the current session it will be terminated."
                             (dap--set-sessions))
                        (when (eq (dap--cur-session) debug-session)
                          (dap--switch-to-session nil))
-                       (-when-let (buffer (dap--debug-session-output-buffer debug-session))
+                       (when-let (buffer (dap--debug-session-output-buffer debug-session))
                          (kill-buffer buffer))
                        (dap--refresh-breakpoints))))
     (if (not (dap--session-running debug-session))
@@ -1598,24 +1603,32 @@ If the current session it will be terminated."
       (dap--send-message (dap--make-request "disconnect"
                                             (list :restart :json-false))
                          (dap--resp-handler
-                          (lambda (_resp) (funcall cleanup-fn)))
+                          (lambda (_resp)
+                            ;; its still alive, so kill its debugger off,
+                            ;; causing the process sentinel from
+                            ;; `dap--create-session' to do its thing. NOTE that
+                            ;; this need not be done if the process isn't alive
+                            ;; (case above), so this was moved here, as a minor
+                            ;; optimization.
+                            (when-let (proc (dap--debug-session-program-proc debug-session))
+                              ;; ensure that `dap-terminated-hook' runs; must be
+                              ;; done before CLEANUP-FN, as otherwise the
+                              ;; process' buffer will be killed before it,
+                              ;; potentially causing weirdness.
+                              (when (process-live-p proc)
+                                ;; The server might have already died due to the
+                                ;; disconnect.
+                                (kill-process proc)))
+                            (funcall cleanup-fn)))
                          debug-session))))
 
 (defun dap-delete-all-sessions ()
   "Terminate/remove all sessions."
   (interactive)
-  (--each (dap--get-sessions)
-    (when (dap--session-running it)
-      (condition-case _err
-          (dap--send-message (dap--make-request "disconnect"
-                                                (list :restart :json-false))
-                             (dap--resp-handler)
-                             it)
-        (error))))
-
-  (dap--set-sessions ())
-  (dap--switch-to-session nil)
-  (dap--refresh-breakpoints))
+  ;; NOTE: this will call `dap-terminated-hook' for each live session; this is
+  ;; correct because `dap-terminated-hook' must be called after each session
+  ;; terminates.
+  (mapc #'dap-delete-session (dap--get-sessions)))
 
 (defun dap-breakpoint-delete-all ()
   "Delete all breakpoints."

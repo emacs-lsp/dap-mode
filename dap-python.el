@@ -139,28 +139,28 @@ This works around https://github.com/pyenv/pyenv-which-ext."
 (defun dap-python--test-p (lsp-symbol)
   (let ((name (dap-python--symbol-name lsp-symbol)))
     (and (dap-python--equal (dap-python--symbol-type lsp-symbol) "Function")
-         (s-starts-with? "test_" name))))
+	       (s-starts-with? "test_" name))))
 
 (defun dap-python--test-class-p (test-symbol lsp-symbol)
   (when (dap-python--equal (dap-python--symbol-type lsp-symbol) "Class")
     (let* ((class-location (dap-python--symbol-location lsp-symbol))
-           (class-start-line (-> class-location dap-python--location-start dap-python--point-line))
-           (class-end-line (-> class-location dap-python--location-end dap-python--point-line))
-           (test-start-line (-> test-symbol dap-python--symbol-location dap-python--location-start dap-python--point-line)))
-      (and (> test-start-line class-start-line)
-           (< test-start-line class-end-line)))))
+	         (class-start-line (-> class-location dap-python--location-start dap-python--point-line))
+	         (class-end-line (-> class-location dap-python--location-end dap-python--point-line))
+	         (test-start-line (-> test-symbol dap-python--symbol-location dap-python--location-start dap-python--point-line)))
+	    (and (> test-start-line class-start-line)
+	         (< test-start-line class-end-line)))))
 
 (defun dap-python--nearest-test (lsp-symbols)
   (let* ((reversed (reverse lsp-symbols))
-         (test-symbol (-first 'dap-python--test-p reversed))
-         (class-symbol (-first (-partial 'dap-python--test-class-p test-symbol) reversed)))
+	       (test-symbol (-first 'dap-python--test-p reversed))
+	       (class-symbol (-first (-partial 'dap-python--test-class-p test-symbol) reversed)))
     (if (eq nil class-symbol)
-        (concat "::" (dap-python--symbol-name test-symbol))
+	      (concat "::" (dap-python--symbol-name test-symbol))
       (concat "::" (dap-python--symbol-name class-symbol) "::" (dap-python--symbol-name test-symbol)))))
 
 (defun dap-python--cursor-position ()
   (make-dap-python--point :line (line-number-at-pos)
-                          :character (current-column)))
+			                    :character (current-column)))
 
 (defun dap-python--test-at-point ()
   (->> (lsp--get-document-symbols)
@@ -177,64 +177,57 @@ This works around https://github.com/pyenv/pyenv-which-ext."
   (interactive)
   (dap-debug (dap-python--template "Python :: Run pytest (at point)")))
 
+(defcustom dap-python-debugger 'ptvsd
+  "Specify which debugger to use for `dap-python'.
+Can be either 'ptvsd or 'debugpy. Note that this setting can be
+overriden in individual `dap-python' launch configurations."
+  :type '(choice (const 'ptvsd) (const 'debugpy))
+  :group 'dap-python)
+
 (defun dap-python--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
-  (let* ((host "localhost")
-         (debug-port (dap--find-available-port))
-         (python-executable (dap-python--pyenv-executable-find dap-python-executable))
-         (python-args (or (plist-get conf :args) ""))
+  (let* ((python-executable (dap-python--pyenv-executable-find dap-python-executable))
+         (python-args (plist-get conf :args))
          (program (or (plist-get conf :target-module)
                       (plist-get conf :program)
                       (buffer-file-name)))
-         (module (plist-get conf :module)))
-    ;; support :args ["foo" "bar"]
-    (when (sequencep python-args)
-      (setq python-args (mapconcat #'shell-quote-argument python-args " ")))
-
-    (plist-put conf :program-to-start
-               (format "%s%s -m ptvsd --wait --host %s --port %s %s %s %s"
-                       (or dap-python-terminal "")
-                       (shell-quote-argument python-executable)
-                       host
-                       debug-port
-                       (if module (concat "-m " (shell-quote-argument module)) "")
-                       (shell-quote-argument program)
-                       python-args))
+         (module (plist-get conf :module))
+         (debugger (plist-get conf :debugger)))
+    (cl-remf conf :debugger)
+    (pcase (or debugger dap-python-debugger)
+      ('ptvsd
+       (let ((host "localhost")
+             (debug-port (dap--find-available-port)))
+         ;; support :args ["foo" "bar"]; NOTE: :args can be nil; however, nil is
+         ;; a list, so it will be mapconcat'ed, yielding the empty string.
+         (when (sequencep python-args)
+           (setq python-args (mapconcat #'shell-quote-argument python-args " ")))
+         (plist-put conf :program-to-start
+                    (format "%s%s -m ptvsd --wait --host %s --port %s%s %s %s"
+                            (or dap-python-terminal "")
+                            (shell-quote-argument python-executable)
+                            host
+                            debug-port
+                            (if module (concat " -m " (shell-quote-argument module)) "")
+                            (shell-quote-argument program)
+                            python-args))
+         (plist-put conf :debugServer debug-port)
+         (plist-put conf :port debug-port)
+         (plist-put conf :hostName host)
+         (plist-put conf :host host)))
+      ('debugpy
+       (plist-put conf :dap-server-path
+                  (list python-executable "-m" "debugpy.adapter"))))
     (plist-put conf :program program)
-    (plist-put conf :debugServer debug-port)
-    (plist-put conf :port debug-port)
-    (plist-put conf :hostName host)
-    (plist-put conf :host host)
     conf))
 
 (defun dap-python--populate-test-at-point (conf)
   "Populate CONF with the required arguments."
-  (let* ((host "localhost")
-         (debug-port (dap--find-available-port))
-         (python-executable (dap-python--pyenv-executable-find dap-python-executable))
-         (python-args (or (plist-get conf :args) ""))
-         (program (concat (buffer-file-name) (dap-python--test-at-point)))
-         (module (plist-get conf :module)))
-    ;; support :args ["foo" "bar"]
-    (when (sequencep python-args)
-      (setq python-args (mapconcat #'shell-quote-argument python-args " ")))
+  (plist-put conf :target-module (concat (buffer-file-name)
+                                         (dap-python--test-at-point)))
+  (plist-put conf :cwd (lsp-workspace-root))
 
-    (plist-put conf :program-to-start
-               (format "%s%s -m ptvsd --wait --host %s --port %s %s %s %s"
-                       (or dap-python-terminal "")
-                       (shell-quote-argument python-executable)
-                       host
-                       debug-port
-                       (if module (concat "-m " (shell-quote-argument module)) "")
-                       (shell-quote-argument program)
-                       python-args))
-    (plist-put conf :program program)
-    (plist-put conf :debugServer debug-port)
-    (plist-put conf :port debug-port)
-    (plist-put conf :hostName host)
-    (plist-put conf :host host)
-    (plist-put conf :cwd (lsp-workspace-root))
-    conf))
+  (dap-python--populate-start-file-args (conf)))
 
 (dap-register-debug-provider "python" 'dap-python--populate-start-file-args)
 (dap-register-debug-template "Python :: Run file (buffer)"
@@ -256,11 +249,11 @@ This works around https://github.com/pyenv/pyenv-which-ext."
 
 (dap-register-debug-provider "python-test-at-point" 'dap-python--populate-test-at-point)
 (dap-register-debug-template "Python :: Run pytest (at point)"
-                             (list :type "python-test-at-point"
-                                   :args ""
-                                   :module "pytest"
-                                   :request "launch"
-                                   :name "Python :: Run pytest (at point)"))
+			                       (list :type "python-test-at-point"
+				                           :args ""
+				                           :module "pytest"
+				                           :request "launch"
+				                           :name "Python :: Run pytest (at point)"))
 
 (provide 'dap-python)
 ;;; dap-python.el ends here
