@@ -988,17 +988,19 @@ PARAMS are the event params.")
           (kind (or kind dap-default-terminal-kind)))
     (or
      (when (string= kind "external")
-       (let* ((name (or title (concat (dap--debug-session-name debug-session)
-                                      "- terminal"))))
-         (with-demoted-errors "dap-debug: failed to start \
-external terminal: %s. Set `dap-external-terminal' to the correct
+       (let ((name (or title (concat (dap--debug-session-name debug-session)
+                                     "- terminal"))))
+         (when
+             (with-demoted-errors "dap-debug: failed to start \
+external terminal: %S. Set `dap-external-terminal' to the correct
 value or install the terminal configured (probably xterm)."
-           (apply #'start-process name name
-                  (-map (lambda (part)
-                          (->> part
-                               (s-replace "{display}" name)
-                               (s-replace "{command}" command-to-run)))
-                        dap-external-terminal))
+               (apply #'start-process name name
+                      (-map (lambda (part)
+                              (->> part
+                                   (s-replace "{display}" name)
+                                   (s-replace "{command}" command-to-run)))
+                            dap-external-terminal))
+               t)
            ;; NOTE: we cannot know the process id of the started
            ;; application.
            (dap--send-message (dap--make-success-response
@@ -1019,8 +1021,8 @@ value or install the terminal configured (probably xterm)."
        ;; success
        t)
      (dap--send-message (dap--make-error-response
-                         seq "runInTerminal"
-                         nil (format "unknown terminal kind %s" kind))
+                         seq "runInTerminal" nil
+                         (format "unknown terminal kind %s" kind))
                         (dap--resp-handler) debug-session))))
 
 (defun dap--create-filter-function (debug-session)
