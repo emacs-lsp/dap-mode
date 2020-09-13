@@ -76,6 +76,8 @@ should be used in `dap-internal-terminal-*'."
   (with-current-buffer (dap--make-terminal-buffer title debug-session)
     (require 'vterm)
     (declare-function vterm-mode "vterm" (&optional arg))
+    (defvar vterm-shell)
+    (defvar vterm-kill-buffer-on-exit)
     (let ((vterm-shell command)
           (vterm-kill-buffer-on-exit nil))
       (vterm-mode)
@@ -241,7 +243,7 @@ The hook will be called with the session file and the new set of breakpoint loca
   "Retry interval for dap connect.")
 
 (defun dash-expand:&dap-session (key source)
-  `(,(intern-soft (format "dap--debug-session-%s" (eval key) )) ,source))
+  `(,(intern-soft (format "dap--debug-session-%s" (eval key))) ,source))
 
 (cl-defstruct dap--debug-session
   (name nil)
@@ -1222,6 +1224,7 @@ DEBUG-SESSION is the active debug session."
         (run-hooks 'dap-breakpoints-changed-hook)))))
 
 (defun dap--breakpoint-filter-enabled (filter type default)
+  (defvar dap-exception-breakpoints) ;; NOTE: always called with dap-ui loaded
   (alist-get filter
              (alist-get type dap-exception-breakpoints nil nil #'equal)
              default
@@ -1834,10 +1837,12 @@ point is set."
   :init-value nil
   :global t
   :group 'dap-mode
+  (declare-function dap-ui-mode "dap-ui" (&optional arg))
+  (declare-function dap-ui-many-windows-mode "dap-ui" (&optional arg))
   (cond
    (dap-auto-configure-mode
     (dap-mode 1)
-    (dap-ui-mode 1)
+    (dap-ui-mode 1) ;; NOTE: `dap-ui-mode' is auto-loaded
     (seq-doseq (feature dap-auto-configure-features)
       (when-let (mode (alist-get feature dap-features->modes))
         (if (consp mode)
