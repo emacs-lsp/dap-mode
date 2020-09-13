@@ -48,6 +48,73 @@
   :group 'dap-mode
   :type 'boolean)
 
+(defcustom dap-external-terminal '("xterm" "-T" "{title}"
+                                   "-hold" "-e" "sh" "-c" "exec {command}")
+  "Command to launch the external terminal for debugging.
+When specifying that the program be run in an external terminal,
+this command is used to launch it. It shall be a list of strings,
+the first of which is the program to run and the rest of which
+are arguments to pass to it. Special expansion is performed:
+
+{command} will be replaced with the program to execute.
+{display} will be replaced with window title.
+
+See also `dap-default-terminal-kind'."
+  :group 'dap-mode
+  :type '(repeat string))
+
+(defun dap--make-terminal-buffer (title debug-session)
+  "Generate an internal terminal buffer.
+The name is derived from TITLE and DEBUG-SESSION. This function
+should be used in `dap-internal-terminal-*'."
+  (generate-new-buffer
+   (format "*%s %s*"
+           (dap--debug-session-name debug-session)
+           (if title (concat "- " title) "console"))))
+
+(defun dap-internal-terminal-vterm (command title debug-session)
+  (with-current-buffer (dap--make-terminal-buffer title debug-session)
+    (require 'vterm)
+    (declare-function vterm-mode "vterm" (&optional arg))
+    (defvar vterm-shell)
+    (defvar vterm-kill-buffer-on-exit)
+    (let ((vterm-shell command)
+          (vterm-kill-buffer-on-exit nil))
+      (vterm-mode)
+      ;; TODO: integrate into dap-ui
+      (display-buffer (current-buffer)))))
+
+(defun dap-internal-terminal-shell (command title debug-session)
+  (let ((buf (dap--make-terminal-buffer title debug-session)))
+    (async-shell-command command buf buf)))
+
+(defun dap-internal-terminal-auto (command title debug-session)
+  "Run COMMAND with an auto-detected terminal.
+If `vterm' is loaded or auto-loaded, use vterm. Otherwise, use
+`async-shell-command'."
+  ;; NOTE: 'vterm is autoloaded. This means that (fboundp 'vterm) will yield t
+  ;; even before vterm is loaded.
+  (if (fboundp 'vterm)
+      (dap-internal-terminal-vterm command title debug-session)
+    (dap-internal-terminal-shell command title debug-session)))
+
+(defcustom dap-internal-terminal #'dap-internal-terminal-auto
+  "Terminal used with :console \"integratedTerminal\".
+It is a function that shall take three arguments: the command to
+run, as a string, the title from the debug adapter (may be nil)
+and the debug session and it should execute COMMAND. Aside from
+that, it can do anything and is itself responsible for displaying
+any buffers, ....
+
+If you are looking at implementing your own such function, see
+also `dap--make-terminal-buffer'."
+  :group 'dap-mode
+  :type '(radio
+          (const :tag "auto-detect" :value dap-internal-terminal-auto)
+          (const :tag "vterm" :value dap-internal-terminal-vterm)
+          (const :tag "asnyc-shell" :value dap-internal-terminal-shell)
+          (function :tag "Custom function")))
+
 (defcustom dap-output-buffer-filter '("stdout" "stderr")
   "If non-nil, a list of output types to display in the debug output buffer."
   :group 'dap-mode
@@ -176,7 +243,7 @@ The hook will be called with the session file and the new set of breakpoint loca
   "Retry interval for dap connect.")
 
 (defun dash-expand:&dap-session (key source)
-  `(,(intern-soft (format "dap--debug-session-%s" (eval key) )) ,source))
+  `(,(intern-soft (format "dap--debug-session-%s" (eval key))) ,source))
 
 (cl-defstruct dap--debug-session
   (name nil)
@@ -905,6 +972,57 @@ PARAMS are the event params.")
          (run-hook-with-args 'dap-loaded-sources-changed-hook debug-session)))
       (_ (dap-handle-event (intern event-type) debug-session body)))))
 
+(defcustom dap-default-terminal-kind "integrated"
+  "Default terminal type used for :console."
+  :type '(radio
+          (const :tag "Terminal within Emacs" :value "integrated")
+          (const :tag "External terminal program (`dap-external-terminal')"
+                 :value "external"))
+  :group 'dap-mode)
+
+(defun dap--start-process (debug-session parsed-msg)
+  (-let* (((&hash "arguments" (&hash? "args" "cwd" "title" "kind") "seq")
+           parsed-msg)
+          (default-directory cwd)
+          (command-to-run (string-join args " "))
+          (kind (or kind dap-default-terminal-kind)))
+    (or
+     (when (string= kind "external")
+       (let* ((name (or title (concat (dap--debug-session-name debug-session)
+                                      "- terminal"))))
+         (with-demoted-errors "dap-debug: failed to start \
+external terminal: %s. Set `dap-external-terminal' to the correct
+value or install the terminal configured (probably xterm)."
+           (apply #'start-process name name
+                  (-map (lambda (part)
+                          (->> part
+                               (s-replace "{display}" name)
+                               (s-replace "{command}" command-to-run)))
+                        dap-external-terminal))
+           ;; NOTE: we cannot know the process id of the started
+           ;; application.
+           (dap--send-message (dap--make-success-response
+                               seq "runInTerminal")
+                              ;; NOTE: assuming that the terminal starts the
+                              ;; application without another subshell
+                              (dap--resp-handler) debug-session)
+           ;; success; don't use the integrated terminal
+           t)))
+     ;; integrated terminal *or* the external terminal could not be executed
+     ;; (file error).
+     (when (or (string= kind "integrated") (string= kind "external"))
+       (funcall dap-internal-terminal command-to-run title debug-session)
+       ;; NOTE: we don't know the PID of the shell that ran the process and we
+       ;; don't know the PID of the started process.
+       (dap--send-message (dap--make-success-response seq "runInTerminal")
+                          (dap--resp-handler) debug-session)
+       ;; success
+       t)
+     (dap--send-message (dap--make-error-response
+                         seq "runInTerminal"
+                         nil (format "unknown terminal kind %s" kind))
+                        (dap--resp-handler) debug-session))))
+
 (defun dap--create-filter-function (debug-session)
   "Create filter function for DEBUG-SESSION."
   (let ((parser (dap--debug-session-parser debug-session))
@@ -926,15 +1044,7 @@ PARAMS are the event params.")
                                                         debug-session
                                                         (gethash "command" parsed-msg)))
                                 (message "Unable to find handler for %s." (pp parsed-msg))))
-                  ("request" (-let* (((&hash "arguments"
-                                             (&hash? "args" "cwd")
-                                             "seq" "command")
-                                      parsed-msg)
-                                     (default-directory cwd))
-                               (async-shell-command (s-join " " args))
-                               (dap--send-message (dap--make-response seq command)
-                                                  (dap--resp-handler)
-                                                  debug-session))))))
+                  ("request" (dap--start-process debug-session parsed-msg)))))
             (dap--parser-read parser msg)))))
 
 (defun dap--create-output-buffer (session-name)
@@ -953,12 +1063,25 @@ PARAMS are the event params.")
     (list :command command
           :type "request")))
 
-(defun dap--make-response (id command)
-  "Make request with ID and arguments ARGS."
-  (list :request_seq id
-        :success t
-        :command command
-        :type "response"))
+(defun dap--make-response (id command success &optional body message)
+  (nconc (list :type "response" :request_seq id :success success
+               :command command)
+         (when message (list :message message))
+         (when body (list :body body))))
+
+(defun dap--make-success-response (id command &optional body message)
+  "Make a successful DAP response.
+The result is aplist usable with `json-encode'. ID, COMMAND, BODY
+and MESSAGE correspond to \"request_seq\", \"command\", \"body\"
+and \"message\". Consult the DAP protocol specification for
+details."
+  (dap--make-response id command t body message))
+
+(defun dap--make-error-response (id command &optional body message)
+  "Like `dap--make-success-response', but for failure.
+In the future, this function may do logging, call `user-error',
+etc...."
+  (dap--make-response id command nil body message))
 
 (defun dap--initialize-message (adapter-id)
   "Create initialize message.
@@ -1101,6 +1224,7 @@ DEBUG-SESSION is the active debug session."
         (run-hooks 'dap-breakpoints-changed-hook)))))
 
 (defun dap--breakpoint-filter-enabled (filter type default)
+  (defvar dap-exception-breakpoints) ;; NOTE: always called with dap-ui loaded
   (alist-get filter
              (alist-get type dap-exception-breakpoints nil nil #'equal)
              default
@@ -1713,10 +1837,12 @@ point is set."
   :init-value nil
   :global t
   :group 'dap-mode
+  (declare-function dap-ui-mode "dap-ui" (&optional arg))
+  (declare-function dap-ui-many-windows-mode "dap-ui" (&optional arg))
   (cond
    (dap-auto-configure-mode
     (dap-mode 1)
-    (dap-ui-mode 1)
+    (dap-ui-mode 1) ;; NOTE: `dap-ui-mode' is auto-loaded
     (seq-doseq (feature dap-auto-configure-features)
       (when-let (mode (alist-get feature dap-features->modes))
         (if (consp mode)
