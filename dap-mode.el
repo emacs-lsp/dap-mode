@@ -988,19 +988,25 @@ PARAMS are the event params.")
           (kind (or kind dap-default-terminal-kind)))
     (or
      (when (string= kind "external")
-       (let ((name (or title (concat (dap--debug-session-name debug-session)
-                                     "- terminal"))))
+       (let* ((name (or title (concat (dap--debug-session-name debug-session)
+                                     "- terminal")))
+              (terminal-argv
+               (cl-loop for part in dap-external-terminal collect
+                        (->> part (s-replace "{display}" name)
+                             (s-replace "{command}" command-to-run)))))
          (when
-             (with-demoted-errors "dap-debug: failed to start \
-external terminal: %S. Set `dap-external-terminal' to the correct
-value or install the terminal configured (probably xterm)."
-               (apply #'start-process name name
-                      (-map (lambda (part)
-                              (->> part
-                                   (s-replace "{display}" name)
-                                   (s-replace "{command}" command-to-run)))
-                            dap-external-terminal))
-               t)
+             (condition-case-unless-debug err
+                 (progn (apply #'start-process name name terminal-argv) t)
+               (error (lsp--warn
+                       "dap-debug: failed to start external
+terminal: %S (launch command was: \"%s\"). Set
+`dap-external-terminal' to the correct value or install the
+terminal configured (probably xterm)."
+                       (error-message-string err)
+                       (mapconcat #'shell-quote-argument terminal-argv " "))
+                      ;; we did *not* succeed; use the integrated terminal
+                      ;; instead
+                      nil))
            ;; NOTE: we cannot know the process id of the started
            ;; application.
            (dap--send-message (dap--make-success-response
