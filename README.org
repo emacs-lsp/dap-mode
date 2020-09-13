@@ -53,4 +53,5 @@
   - [[https://github.com/kiennq][Kien Nguyen]] - NodeJS debugger, Edge debuggers, automatic extension installation.
   - [[https://github.com/Ladicle][Aya Igarashi]] - Go debugger integration.
   - [[https://github.com/nbfalcon][Nikita Bloshchanevich]] - launch.json support (+ variable expansion), debugpy
-    support, various bug fixes.
+    support, (with some groundwork by yyoncho) runInTerminal support, various
+    bug fixes.
