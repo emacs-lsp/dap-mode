@@ -217,6 +217,27 @@ overriden in individual `dap-python' launch configurations."
          (plist-put conf :hostName host)
          (plist-put conf :host host)))
       ('debugpy
+       ;; If certain properties are nil, issues will arise, as debugpy expects
+       ;; them to unspecified instead. Some templates in this file set such
+       ;; properties (e.g. :module) to nil instead of leaving them undefined. To
+       ;; support them, sanitize CONF before passing it on.
+       (when (or (null python-args) (stringp python-args))
+         (cl-remf conf :args))
+       (when (stringp python-args)
+         (let ((args (split-string-and-unquote python-args)))
+           (if args
+               (plist-put conf :args args)
+             ;; :args "" -> :args nil -> {"args": null}; to handle that edge
+             ;; case, use the empty vector instead.
+             (plist-put conf :args []))))
+       (unless program
+         (cl-remf conf :target-module)
+         (cl-remf conf :program))
+       (unless module
+         (cl-remf conf :module))
+       (unless (plist-get conf :cwd)
+         (cl-remf conf :cwd))
+
        (plist-put conf :dap-server-path
                   (list python-executable "-m" "debugpy.adapter"))))
     (plist-put conf :program program)
