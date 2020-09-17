@@ -28,35 +28,44 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'dap-utils)
 
 (defcustom dap-lldb-debug-program `(,(expand-file-name "~/.vscode/extensions/llvm-org.lldb-vscode-0.1.0/bin/lldb-vscode"))
   "The path to the LLDB debugger."
   :group 'dap-lldb
   :type '(repeat string))
 
-(defcustom dap-lldb-debugged-program-function 'buffer-file-name
-  "The function to get the path of the file to be debugged."
-  :group 'dap-lldb
-  :type 'symbol)
-
 (defun dap-lldb--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
+  (if (equal (plist-get conf :request) "launch")
+      (dap--put-if-absent conf :program
+                          (read-file-name
+                           "Select file to debug."))
+    (dap--put-if-absent conf :initCommands
+                        (list (concat "process attach --pid "
+                                      (dap-get-process-id-executed-in-eshell
+                                       (read-file-name
+                                        "Select file to debug."))))))
+
   (-> conf
       (dap--put-if-absent :dap-server-path dap-lldb-debug-program)
       (dap--put-if-absent :type "lldb")
       (dap--put-if-absent :cwd default-directory)
-      (dap--put-if-absent :program (if (commandp dap-lldb-debugged-program-function)
-                                       (call-interactively dap-lldb-debugged-program-function)
-                                     (funcall dap-lldb-debugged-program-function)))
       (dap--put-if-absent :name "LLDB Debug")))
 
 (eval-after-load "dap-mode"
   '(progn
      (dap-register-debug-provider "lldb" 'dap-lldb--populate-start-file-args)
-     (dap-register-debug-template "LLDB Run Configuration"
+     (dap-register-debug-template "LLDB Run"
                              (list :type "lldb"
                                    :cwd nil
                                    :request "launch"
+                                   :program nil
+                                   :name "LLDB::Run"))
+     (dap-register-debug-template "LLDB Run In Eshell"
+                             (list :type "lldb"
+                                   :cwd nil
+                                   :request "attach"
                                    :program nil
                                    :name "LLDB::Run"))))
 
