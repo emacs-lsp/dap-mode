@@ -85,11 +85,13 @@ PATH is the download destination path."
                    (f-join dap-utils-extension-path "github" (concat owner "." repo)))))
     (dap-utils--get-extension url dest)))
 
-(defmacro dap-utils-vscode-setup-function (dapfile publisher name &optional path)
+(defmacro dap-utils-vscode-setup-function (dapfile publisher name &optional path version callback)
   "Helper to create DAPFILE setup function for vscode debug extension.
 PUBLISHER is the vscode extension publisher.
 NAME is the vscode extension name.
-PATH is the download destination dir."
+PATH is the download destination dir.
+if VERSION is nil, use latest version from vscode marketplace.
+If CALLBACK is non nil, call it after download the extension."
   (let* ((extension-name (concat publisher "." name))
          (dest (or path
                    (f-join dap-utils-extension-path "vscode" extension-name)))
@@ -100,8 +102,10 @@ With prefix, FORCED to redownload the extension." extension-name)))
          ,help-string
          (interactive "P")
          (unless (and (not forced) (file-exists-p ,dest))
-           (dap-utils-get-vscode-extension ,publisher ,name nil ,dest)
+           (dap-utils-get-vscode-extension ,publisher ,name ,version ,dest)
            (message "%s: Downloading done!" ,dapfile)))
+       (when ,callback
+         (funcall ,callback))
        (unless (file-exists-p ,dest)
          (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
                   ,dapfile ,extension-name ,dapfile)))))
