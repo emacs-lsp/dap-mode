@@ -79,11 +79,11 @@ The slash is expected at the end."
 (defun dap-netcore--populate-args (conf)
   "Populate CONF with arguments to launch or attach netcoredbg."
   (dap--put-if-absent conf :dap-server-path (list (dap-netcore--debugger-locate-or-install) "--interpreter=vscode"))
-  (setq conf (pcase (plist-get conf :mode)
-               ("launch"
-                (dap--put-if-absent conf :program (expand-file-name (read-file-name "Select an executable:"))))
-               ("attach"
-                (dap--put-if-absent conf :processId (string-to-number (read-string "Enter PID: " "2345")))))))
+  (pcase (plist-get conf :mode)
+    ("launch"
+     (dap--put-if-absent conf :program (expand-file-name (read-file-name "Select an executable:"))))
+    ("attach"
+     (dap--put-if-absent conf :processId (string-to-number (read-string "Enter PID: " "2345"))))))
 
 
 (dap-register-debug-provider
