@@ -48,7 +48,10 @@ The slash is expected at the end."
 
 (defun dap-netcore--debugger-install ()
   "Download the latest version of netcoredbg and extract it to `dap-netcore-install-dir'."
-  (let* ((temp-file (make-temp-file "netcoredbg" nil ".tar.gz"))
+  (let* ((temp-file (make-temp-file "netcoredbg" nil
+                                    (if (eq system-type 'windows-nt)
+                                        ".zip"
+                                      ".tar.gz")))
          (install-dir-full (expand-file-name dap-netcore-install-dir))
          (unzip-script (pcase system-type
                          (`windows-nt (format "powershell -noprofile -noninteractive -nologo -ex bypass Expand-Archive -path '%s' -dest '%s'" temp-file install-dir-full))
@@ -64,7 +67,7 @@ The slash is expected at the end."
                     (_ ""))))
     (expand-file-name (concat "netcoredbg" file-ext) (concat dap-netcore-install-dir "netcoredbg"))))
 
-(defun dap-netcore--debugger-locate ()
+(defun dap-netcore--debugger-locate-or-install ()
   "Return the location of netcoredbg."
   (let ((dbg (dap-netcore--debugger-cmd)))
     (unless (file-exists-p dbg)
@@ -73,20 +76,31 @@ The slash is expected at the end."
         (error "Cannot start debugger configuration without netcoredbg")))
     dbg))
 
-(defun dap-netcore--populate-default-args (conf)
-  "Populate CONF with the default arguments."
-  (dap--put-if-absent conf :program (read-file-name "Select an executable:" (concat (lsp-workspace-root) "bin/Debug")))
-  (dap--put-if-absent conf :dap-server-path (list (dap-netcore--debugger-locate) "--interpreter=vscode")))
+(defun dap-netcore--populate-args (conf)
+  "Populate CONF with arguments to launch or attach netcoredbg."
+  (dap--put-if-absent conf :dap-server-path (list (dap-netcore--debugger-locate-or-install) "--interpreter=vscode"))
+  (pcase (plist-get conf :mode)
+    ("launch"
+     (dap--put-if-absent conf :program (expand-file-name (read-file-name "Select an executable:"))))
+    ("attach"
+     (dap--put-if-absent conf :processId (string-to-number (read-string "Enter PID: " "2345"))))))
+
 
 (dap-register-debug-provider
  "coreclr"
- 'dap-netcore--populate-default-args)
+ 'dap-netcore--populate-args)
+
+(dap-register-debug-template ".Net Core Attach (Console)"
+                             (list :type "coreclr"
+                                   :request "attach"
+                                   :mode "attach"
+                                   :name "NetCoreDbg::Attach"))
 
 (dap-register-debug-template ".Net Core Launch (Console)"
                              (list :type "coreclr"
                                    :request "launch"
-                                   :name "NetCoreDbg::Launch"
-                                   :stopAtEntry t))
+                                   :mode "launch"
+                                   :name "NetCoreDbg::Launch"))
 
 (provide 'dap-netcore)
 ;;; dap-netcore.el ends here
