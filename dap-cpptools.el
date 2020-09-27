@@ -44,8 +44,9 @@
 
 (defcustom dap-cpptools-debug-program
   `(,(concat dap-cpptools-debug-path
-             (concat "/extension/debugAdapters/OpenDebugAD7"
-                     (if (eq system-type 'windows-nt) ".exe" ""))))
+             (if (eq system-type 'windows-nt)
+                 "/extension/debugAdapters/bin/OpenDebugAD7.exe"
+               "/extension/debugAdapters/OpenDebugAD7")))
   "The path to the go debugger."
   :group 'dap-cpptools
   :type '(repeat string))
