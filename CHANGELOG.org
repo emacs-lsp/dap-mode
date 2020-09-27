@@ -2,6 +2,8 @@
 #+STARTUP: content
 
 * Changelog
+** 0.7
+   - [Breaking change] For ~dap-lldb.el~, change ~type~ to ~lldb-vscode~.
 ** 0.5
    - added support for running TestNG tests
    - added ~dap-auto-configure-mode~ as the new ~dap-mode~ integration point.

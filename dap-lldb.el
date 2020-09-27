@@ -43,7 +43,7 @@
   "Populate CONF with the required arguments."
   (-> conf
       (dap--put-if-absent :dap-server-path dap-lldb-debug-program)
-      (dap--put-if-absent :type "lldb")
+      (dap--put-if-absent :type "lldb-vscode")
       (dap--put-if-absent :cwd default-directory)
       (dap--put-if-absent :program (if (commandp dap-lldb-debugged-program-function)
                                        (call-interactively dap-lldb-debugged-program-function)
@@ -52,9 +52,9 @@
 
 (eval-after-load "dap-mode"
   '(progn
-     (dap-register-debug-provider "lldb" 'dap-lldb--populate-start-file-args)
-     (dap-register-debug-template "LLDB Run Configuration"
-                             (list :type "lldb"
+     (dap-register-debug-provider "lldb-vscode" 'dap-lldb--populate-start-file-args)
+     (dap-register-debug-template "LLDB (VS Code) :: Run Configuration"
+                             (list :type "lldb-vscode"
                                    :cwd nil
                                    :request "launch"
                                    :program nil
