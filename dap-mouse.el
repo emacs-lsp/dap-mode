@@ -25,7 +25,9 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'dap-ui)
 (require 'lsp-mode)
+(require 'lsp-treemacs)
 (require 'tooltip)
 
 (defface  dap-mouse-eval-thing-face

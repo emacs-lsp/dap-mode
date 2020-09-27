@@ -72,12 +72,13 @@ should be used in `dap-internal-terminal-*'."
            (dap--debug-session-name debug-session)
            (if title (concat "- " title) "console"))))
 
+(declare-function vterm-mode "ext:vterm" (&optional arg))
+(defvar vterm-shell)
+(defvar vterm-kill-buffer-on-exit)
+
 (defun dap-internal-terminal-vterm (command title debug-session)
   (with-current-buffer (dap--make-terminal-buffer title debug-session)
     (require 'vterm)
-    (declare-function vterm-mode "vterm" (&optional arg))
-    (defvar vterm-shell)
-    (defvar vterm-kill-buffer-on-exit)
     (let ((vterm-shell command)
           (vterm-kill-buffer-on-exit nil))
       (vterm-mode)
@@ -242,8 +243,9 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defvar dap-connect-retry-interval 0.02
   "Retry interval for dap connect.")
 
-(defun dash-expand:&dap-session (key source)
-  `(,(intern-soft (format "dap--debug-session-%s" (eval key))) ,source))
+(eval-when-compile
+  (defun dash-expand:&dap-session (key source)
+    `(,(intern-soft (format "dap--debug-session-%s" (eval key))) ,source)))
 
 (cl-defstruct dap--debug-session
   (name nil)

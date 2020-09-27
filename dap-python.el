@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'dap-mode)
 
 (defcustom dap-python-default-debug-port 32000
@@ -71,12 +72,12 @@ https://github.com/pyenv/pyenv-which-ext."
     (executable-find command)))
 
 (cl-defstruct dap-python--point
-  (line nil :type integer :named t)
-  (character nil :type integer :named t))
+  (line nil :type integer)
+  (character nil :type integer))
 
 (cl-defstruct dap-python--location
-  (start nil :type dap-python--point :named t)
-  (end nil :type dap-python--point :named t))
+  (start nil :type dap-python--point)
+  (end nil :type dap-python--point))
 
 (cl-defstruct dap-python--symbol
   (name nil :type string)
