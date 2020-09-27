@@ -36,8 +36,8 @@
 -nologo -ex bypass Expand-Archive -path '%s' -dest '%s'"
   "Powershell script to unzip vscode extension package file.")
 
-(defcustom dap-utils-unzip-script (cond ((executable-find "unzip") dap-utils--ext-unzip-script)
-                                        ((executable-find "powershell") dap-utils--ext-pwsh-script)
+(defcustom dap-utils-unzip-script (cond ((executable-find "powershell") dap-utils--ext-pwsh-script)
+                                        ((executable-find "unzip") dap-utils--ext-unzip-script)
                                         (t nil))
   "The script to unzip vscode extension package file."
   :group 'dap-utils
