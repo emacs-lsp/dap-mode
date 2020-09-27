@@ -1631,6 +1631,7 @@ list are called and their results (which must be lists) are
 concatenated. The user can then choose one of them from the
 resulting list.")
 
+;;;###autoload
 (defun dap-debug (debug-args)
   "Run debug configuration DEBUG-ARGS.
 
@@ -1649,11 +1650,11 @@ after selecting configuration template."
   ;; will fail.
   (let* ((debug-args (dap-variables-expand-in-launch-configuration debug-args))
          (launch-args (or (-some-> (plist-get debug-args :type)
-                           (gethash dap--debug-providers)
-                           (funcall debug-args))
-                         (user-error "Have you loaded the `%s' specific dap package?"
-                                     (or (plist-get debug-args :type)
-                                         (user-error "%s does not specify :type" debug-args))))))
+                            (gethash dap--debug-providers)
+                            (funcall debug-args))
+                          (user-error "Have you loaded the `%s' specific dap package?"
+                                      (or (plist-get debug-args :type)
+                                          (user-error "%s does not specify :type" debug-args))))))
     (if (functionp launch-args)
         (funcall launch-args #'dap-start-debugging-noexpand)
       (dap-start-debugging-noexpand launch-args))))
