@@ -49,10 +49,10 @@ For example you may set it to `xterm -e' which will pop xterm console when you a
   :type 'string)
 
 (defun dap-python--pyenv-executable-find (command)
-  "Find executable taking pyenv shims into account.
+  "Find executable COMMAND, taking pyenv shims into account.
 If the executable is a system executable and not in the same path
-as the pyenv version then also return nil. This works around https://github.com/pyenv/pyenv-which-ext
-"
+as the pyenv version then also return nil. This works around
+https://github.com/pyenv/pyenv-which-ext."
   (if (executable-find "pyenv")
       (progn
         (let ((pyenv-string (shell-command-to-string (concat "pyenv which " command)))
@@ -71,17 +71,17 @@ as the pyenv version then also return nil. This works around https://github.com/
     (executable-find command)))
 
 (cl-defstruct dap-python--point
-  (line (:type integer) :named t)
-  (character (:type integer) :named t))
+  (line nil :type integer :named t)
+  (character nil :type integer :named t))
 
 (cl-defstruct dap-python--location
-  (start (:type dap-python--point) :named t)
-  (end (:type dap-python--point) :named t))
+  (start nil :type dap-python--point :named t)
+  (end nil :type dap-python--point :named t))
 
 (cl-defstruct dap-python--symbol
-  (name (:type string) :named t)
-  (type (:type string) :named t)
-  (location (:type dap-python--location) :named t))
+  (name nil :type string)
+  (type nil :type string)
+  (location nil :type dap-python--location))
 
 (cl-defgeneric dap-python--equal (lhs rhs)
   (:documentation "Check if lhs and rhs are equal"))
@@ -249,7 +249,7 @@ overriden in individual `dap-python' launch configurations."
                                          (dap-python--test-at-point)))
   (plist-put conf :cwd (lsp-workspace-root))
 
-  (dap-python--populate-start-file-args (conf)))
+  (dap-python--populate-start-file-args conf))
 
 (dap-register-debug-provider "python" 'dap-python--populate-start-file-args)
 (dap-register-debug-template "Python :: Run file (buffer)"
