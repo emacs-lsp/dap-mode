@@ -1,0 +1,29 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  unix-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        emacs-version:
+          - 26.1
+          - 26.2
+          - 26.3
+          - 27.1
+          - snapshot
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matrix.emacs-version }}
+
+      - uses: conao3/setup-cask@master
+        with:
+          version: 0.8.4
+
+      - name: Run tests
+        run: make ci

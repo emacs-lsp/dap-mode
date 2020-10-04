@@ -334,6 +334,7 @@ DEBUG-SESSION is the debug session triggering the event."
   :init-value nil
   :global t
   :keymap dap-ui-mode-map
+  :group 'dap-ui
   :require 'dap-ui
   (cond
    (dap-ui-mode
