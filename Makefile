@@ -25,6 +25,8 @@ byte-compile:
 	--eval '(setq treemacs-no-load-time-warnings t)' \
 	-f batch-byte-compile $(DAP-GENERAL) $(DAP-CLIENTS)
 
+ci: clean build byte-compile test
+
 clean:
 	rm -rf .cask *.elc
 
