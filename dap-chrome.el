@@ -60,7 +60,8 @@
                 (dap--put-if-absent :webRoot (lsp-workspace-root))))
      ("file" (dap--put-if-absent conf :file
                                  (read-file-name "Select the file to open in the browser:"
-                                                 nil (buffer-file-name) t))))
+                                                 nil (buffer-file-name) t)))
+     (_ conf))
    :mode))
 
 (dap-register-debug-provider "chrome" #'dap-chrome--populate-start-file-args)
