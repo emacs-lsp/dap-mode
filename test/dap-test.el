@@ -123,13 +123,13 @@
     (should (dap-python--equal actual expected))
     (should (dap-python--equal (dap-python--nearest-test expected) "::TestClass::test_foo"))))
 
-(defun dap-launch-test--delete-string-comments (s)
+(defun dap-launch-test--sanitize-json (s)
   "Delete all comments in S."
   (with-temp-buffer
     (insert s)
     (goto-char (point-min))
 
-    (dap-launch-remove-comments)
+    (dap-launch-sanitize-json)
     (buffer-string)))
 
 (ert-deftest dap-launch-test--delete-comments ()
@@ -139,7 +139,7 @@
 /* \" // non-string */
 \"// string\"
 \"/*string*/\"")
-         (post-exp (dap-launch-test--delete-string-comments orig)))
+         (post-exp (dap-launch-test--sanitize-json orig)))
     (should (string= post-exp "
 
 
@@ -147,13 +147,26 @@
 \"// string\"
 \"/*string*/\""))))
 
+(ert-deftest dap-launch-test--delete-commas ()
+  (let ((orig "{
+  \"abc\": 123,
+}")
+        (post-exp (dap-launch-test--sanitize-json orig)))
+    (should (string= post-exp "{
+  \"abc\": 123
+}"))))
+
 (ert-deftest dap-launch-test--comment-in-string ()
   (let ((orig "\"// orig\""))
-    (should (string= orig (dap-launch-test--delete-string-comments orig)))))
+    (should (string= orig (dap-launch-test--sanitize-json orig)))))
 
 (ert-deftest dap-launch-test--comment-star ()
   (let ((orig "/* * **/"))
-    (should (string-empty-p (dap-launch-test--delete-string-comments orig)))))
+    (should (string-empty-p (dap-launch-test--sanitize-json orig)))))
+
+(ert-deftest dap-launch-test--comma-in-string ()
+  (let ((orig "\"abc, ]\""))
+    (should (string= orig (dap-launch-test--sanitize-json orig)))))
 
 
 (defmacro dap-variables--define-compare-test (name conf expanded
