@@ -148,7 +148,7 @@
 \"/*string*/\""))))
 
 (ert-deftest dap-launch-test--delete-commas ()
-  (let ((orig "{
+  (let* ((orig "{
   \"abc\": 123,
 }")
         (post-exp (dap-launch-test--sanitize-json orig)))

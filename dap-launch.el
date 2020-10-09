@@ -28,7 +28,7 @@
 (require 'f)
 (require 'rx)
 
-(defun dap-launch-sanitize-json()
+(defun dap-launch-sanitize-json ()
   "Remove all C-style comments and trailing commas in the current buffer.
 Comments in strings are ignored. The buffer is modified in place.
 Replacement starts at point, and strings before it are ignored,
