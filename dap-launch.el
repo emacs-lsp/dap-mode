@@ -41,7 +41,7 @@ supported."
                 (or (: "//" (* nonl) eol)
                     (: "/*" (* (or (not (any ?*))
                                    (: (+ ?*) (not (any ?/))))) (+ ?*) ?/)
-                    (: "," (group (* (any blank ?\C-j)) (any ?\} ?\] )))))
+                    (: "," (group (* (any blank ?\C-j)) (any ?\} ?\])))))
                (: "\"" (* (or (not (any ?\\ ?\")) (: ?\\ nonl))) "\"")))
           nil t)
     ;; we matched a comment
