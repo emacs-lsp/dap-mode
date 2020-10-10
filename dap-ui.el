@@ -787,11 +787,7 @@ DEBUG-SESSION specifies the debug session which will be used to
 issue requests.
 
 VARIABLES-REFERENCE specifies the handle returned by the debug
-adapter for acquiring nested variables.
-
-This function must not be used to render primitive variables
-whose results were returned directly \(\"variablesReference\" =
-0\)."
+adapter for acquiring nested variables and must not be 0."
   (when (dap--session-running debug-session)
     (->>
      variables-reference
@@ -810,11 +806,12 @@ whose results were returned directly \(\"variablesReference\" =
                :session ,debug-session
                :variables-reference ,variables-reference
                :name ,name
-               ,@(list :actions '(["Set value" dap-ui-set-variable-value]))
+               :actions '(["Set value" dap-ui-set-variable-value])
                :key ,name
-               :children ,(-partial #'dap-ui-render-variables
-                                    debug-session variables-reference)))))))
-
+               ,@(unless (zerop variables-reference)
+                   (list :children
+                         (-partial #'dap-ui-render-variables debug-session
+                                   variables-reference)))))))))
 (defvar dap-ui--locals-timer nil)
 
 (defun dap-ui-locals--refresh (&rest _)

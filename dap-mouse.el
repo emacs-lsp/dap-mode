@@ -210,8 +210,7 @@ This function must return nil if it doesn't handle EVENT."
              (when (get-buffer dap-mouse-buffer)
                (kill-buffer dap-mouse-buffer))
              (-let [(&hash "result" "variablesReference" variables-reference) var]
-               (if (= variables-reference 0)
-                   (message result)     ; primitive value -> posframe awkward
+               (unless (and (zerop variables-reference) (string-empty-p result))
                  (apply #'posframe-show dap-mouse-buffer
                         :position start
                         :accept-focus t
@@ -221,9 +220,11 @@ This function must return nil if it doesn't handle EVENT."
                     `((:key ,expression
                        :label ,result
                        :icon dap-field
-                       :children ,(-partial #'dap-ui-render-variables
-                                            debug-session
-                                            variables-reference)))
+                       ,@(unless (zerop variables-reference)
+                           (list :children
+                                 (-partial #'dap-ui-render-variables
+                                           debug-session
+                                           variables-reference)))))
                     "" nil (buffer-name)))))
              (add-hook 'post-command-hook 'dap-tooltip-post-tooltip)))
          debug-session))))
