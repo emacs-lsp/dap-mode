@@ -318,11 +318,12 @@ The hook will be called with the session file and the new set of breakpoint loca
   (lsp-workspace-get-metadata "default-session"))
 
 (defun dap--resp-handler (&optional success-callback)
-  "Generate response handler.
+  "Generate a response handler, for use in `dap--send-message'.
 
-The handler will call `error' on failure.
-SUCCESS-CALLBACK will be called if it is provided and if the call
-has succeeded."
+If the request is successful, call SUCCESS-CALLBACK with the
+entire resulting messsage.
+
+The handler will call `error' on failure."
   (-lambda ((result &as &hash "success" "message"))
     (if success
         (when success-callback (funcall success-callback result))

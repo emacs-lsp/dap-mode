@@ -780,6 +780,19 @@ DEBUG-SESSION is the debug session triggering the event."
    session))
 
 (defun dap-ui-render-variables (debug-session variables-reference _node)
+  "Render hierarchical variables for treemacs.
+Usable as the :children argument, when DEBUG-SESSION and
+VARIABLES-REFERENCE are applyied partially.
+
+DEBUG-SESSION specifies the debug session which will be used to
+issue requests.
+
+VARIABLES-REFERENCE specifies the handle returned by the debug
+adapter for acquiring nested variables.
+
+This function must not be used to render primitive variables
+whose results were returned directly \(\"variablesReference\" =
+0\)."
   (when (dap--session-running debug-session)
     (->>
      variables-reference
@@ -794,17 +807,15 @@ DEBUG-SESSION is the debug session triggering the event."
                                (propertize (s-truncate dap-ui-variable-length
                                                        (s-replace "\n" "\\n" value))
                                            'help-echo value))
-                      :icon dap-variable
-                      :value ,value
-                      :session ,debug-session
-                      :variables-reference ,variables-reference
-                      :name ,name
-                      ,@(list :actions '(["Set value" dap-ui-set-variable-value]))
-                      :key ,name
-                      ,@(when (and variables-reference (not (zerop variables-reference)))
-                          (list :children (-partial #'dap-ui-render-variables
-                                                    debug-session
-                                                    variables-reference)))))))))
+               :icon dap-variable
+               :value ,value
+               :session ,debug-session
+               :variables-reference ,variables-reference
+               :name ,name
+               ,@(list :actions '(["Set value" dap-ui-set-variable-value]))
+               :key ,name
+               :children ,(-partial #'dap-ui-render-variables
+                                    debug-session variables-reference)))))))
 
 (defvar dap-ui--locals-timer nil)
 

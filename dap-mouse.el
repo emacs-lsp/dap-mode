@@ -197,32 +197,34 @@ This function must return nil if it doesn't handle EVENT."
                             (list :expression expression
                                   :frameId active-frame-id
                                   :context "hover"))
-         (-lambda ((&hash "message" "body" (var &as &hash? "result")))
-           (when (= request-id dap-tooltip--request)
-             (if result
-                 (progn
-                   (add-text-properties start end
-                                        '(mouse-face dap-mouse-eval-thing-face))
-                   (when (get-buffer dap-mouse-buffer)
-                     (kill-buffer dap-mouse-buffer))
-                   (apply #'posframe-show dap-mouse-buffer
-                          :position start
-                          :accept-focus t
-                          dap-mouse-posframe-properties)
-                   (with-current-buffer (get-buffer-create dap-mouse-buffer)
-                     (lsp-treemacs-render
-                      (-let [(&hash "result" "variablesReference" variables-reference) var]
-                        `((:key ,expression
-                                :label ,result
-                                :icon dap-field
-                                :children ,(dap-ui-render-variables
-                                            debug-session
-                                            variables-reference nil))))
-                      ""
-                      nil
-                      (buffer-name)))
-                   (add-hook 'post-command-hook 'dap-tooltip-post-tooltip))
-               (message message))))
+         (dap--resp-handler
+          (-lambda ((&hash "body" (var &as &hash? "result")))
+            (when (and (= request-id dap-tooltip--request)
+                       ;; REVIEW apparently ptsvd sends empty results?
+                       (not (string-empty-p result)))
+              (add-text-properties
+               start end '(mouse-face dap-mouse-eval-thing-face))
+              (when (get-buffer dap-mouse-buffer)
+                (kill-buffer dap-mouse-buffer))
+              (-let [(&hash "result" "variablesReference" variables-reference) var]
+                (if (= variables-reference 0)
+                    (message result)    ; primitive value -> posframe awkward
+                  ;; REVIEW I inherited this code; why kill the buffer first,
+                  ;; then show it, and then initialize it?
+                  (apply #'posframe-show dap-mouse-buffer
+                         :position start
+                         :accept-focus t
+                         dap-mouse-posframe-properties)
+                  (with-current-buffer (get-buffer-create dap-mouse-buffer)
+                    (lsp-treemacs-render
+                     `((:key ,expression
+                        :label ,result
+                        :icon dap-field
+                        :children ,(-partial #'dap-ui-render-variables
+                                             debug-session
+                                             variables-reference)))
+                     "" nil (buffer-name)))))
+              (add-hook 'post-command-hook 'dap-tooltip-post-tooltip))))
          debug-session))))
   "")
 
