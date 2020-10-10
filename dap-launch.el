@@ -41,7 +41,8 @@ supported."
                 (or (: "//" (* nonl) eol)
                     (: "/*" (* (or (not (any ?*))
                                    (: (+ ?*) (not (any ?/))))) (+ ?*) ?/)
-                    (: "," (group (* (any blank ?\C-j)) (any ?\} ?\])))))
+                    (: "," (group (* (any blank space ?\v ?\u2028 ?\u2029))
+                                  (any ?\} ?\])))))
                (: "\"" (* (or (not (any ?\\ ?\")) (: ?\\ nonl))) "\"")))
           nil t)
     ;; we matched a comment
