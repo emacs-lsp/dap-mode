@@ -197,7 +197,9 @@ This function must return nil if it doesn't handle EVENT."
                             (list :expression expression
                                   :frameId active-frame-id
                                   :context "hover"))
-         (-lambda ((&hash "success" "body" (var &as &hash? "result")))
+         (-lambda ((&hash "success" "body"
+                          (&hash? "result"
+                                  "variablesReference" variables-reference)))
            (when (and success
                       ;; REVIEW: hover failure will yield weird errors involving
                       ;; process filters, so I resorted to this hack; we should
@@ -209,23 +211,22 @@ This function must return nil if it doesn't handle EVENT."
              ;; then show it, and then initialize it?
              (when (get-buffer dap-mouse-buffer)
                (kill-buffer dap-mouse-buffer))
-             (-let [(&hash "result" "variablesReference" variables-reference) var]
-               (unless (and (zerop variables-reference) (string-empty-p result))
-                 (apply #'posframe-show dap-mouse-buffer
-                        :position start
-                        :accept-focus t
-                        dap-mouse-posframe-properties)
-                 (with-current-buffer (get-buffer-create dap-mouse-buffer)
-                   (lsp-treemacs-render
-                    `((:key ,expression
-                       :label ,result
-                       :icon dap-field
-                       ,@(unless (zerop variables-reference)
-                           (list :children
-                                 (-partial #'dap-ui-render-variables
-                                           debug-session
-                                           variables-reference)))))
-                    "" nil (buffer-name)))))
+             (unless (and (zerop variables-reference) (string-empty-p result))
+               (apply #'posframe-show dap-mouse-buffer
+                      :position start
+                      :accept-focus t
+                      dap-mouse-posframe-properties)
+               (with-current-buffer (get-buffer-create dap-mouse-buffer)
+                 (lsp-treemacs-render
+                  `((:key ,expression
+                     :label ,result
+                     :icon dap-field
+                     ,@(unless (zerop variables-reference)
+                         (list :children
+                               (-partial #'dap-ui-render-variables
+                                         debug-session
+                                         variables-reference)))))
+                  "" nil (buffer-name))))
              (add-hook 'post-command-hook 'dap-tooltip-post-tooltip)))
          debug-session))))
   "")
