@@ -775,8 +775,7 @@ DEBUG-SESSION is the debug session triggering the event."
                       (list :variablesReference variables-reference
                             :name name
                             :value (read-string (format "Enter value for %s: " name ) value)))
-   ;; FIXME: create properly callback here
-   #'ignore
+   (dap--resp-handler)
    session))
 
 (defun dap-ui-render-variables (debug-session variables-reference _node)
@@ -799,7 +798,6 @@ whose results were returned directly \(\"variablesReference\" =
      (dap-request debug-session "variables" :variablesReference)
      (gethash "variables")
      (-map (-lambda ((&hash "value" "name"
-                            "indexedVariables" _indexed-variables
                             "variablesReference" variables-reference))
              `(:label ,(concat (propertize (format "%s" name)
                                            'face 'font-lock-variable-name-face)
