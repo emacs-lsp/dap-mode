@@ -194,7 +194,8 @@ overriden in individual `dap-python' launch configurations."
                       (plist-get conf :program)
                       (buffer-file-name)))
          (module (plist-get conf :module))
-         (debugger (plist-get conf :debugger)))
+         (debugger (plist-get conf :debugger))
+         (targetPid (plist-get conf :processId)))
     (cl-remf conf :debugger)
     (pcase (or debugger dap-python-debugger)
       ('ptvsd
@@ -205,14 +206,17 @@ overriden in individual `dap-python' launch configurations."
          (when (sequencep python-args)
            (setq python-args (mapconcat #'shell-quote-argument python-args " ")))
          (plist-put conf :program-to-start
-                    (format "%s%s -m ptvsd --wait --host %s --port %s%s %s %s"
+                    (format "%s%s -m ptvsd --wait --host %s --port %s %s"
                             (or dap-python-terminal "")
                             (shell-quote-argument python-executable)
                             host
                             debug-port
-                            (if module (concat " -m " (shell-quote-argument module)) "")
-                            (shell-quote-argument program)
-                            python-args))
+                            (if targetPid
+                                (format "--pid %s" targetPid)
+                              (format "%s %s %s"
+                                      (if module (concat " -m " (shell-quote-argument module)) "")
+                                      (shell-quote-argument program)
+                                      python-args))))
          (plist-put conf :debugServer debug-port)
          (plist-put conf :port debug-port)
          (plist-put conf :hostName host)
@@ -238,7 +242,8 @@ overriden in individual `dap-python' launch configurations."
          (cl-remf conf :module))
        (unless (plist-get conf :cwd)
          (cl-remf conf :cwd))
-
+       (unless targetPid
+         (cl-remf conf :listen))
        (plist-put conf :dap-server-path
                   (list python-executable "-m" "debugpy.adapter"))))
     (plist-put conf :program program)
@@ -261,6 +266,12 @@ overriden in individual `dap-python' launch configurations."
                                    :program nil
                                    :request "launch"
                                    :name "Python :: Run file (buffer)"))
+
+(dap-register-debug-template "Python :: Attach to running process"
+                             (list :type "python"
+                                   :request "attach"
+                                   :processId "${command:pickProcess}"
+                                   :name "Python :: Attach to running process"))
 
 (dap-register-debug-template "Python :: Run pytest (buffer)"
                              (list :type "python"
