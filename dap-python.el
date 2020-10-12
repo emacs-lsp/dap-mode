@@ -207,7 +207,7 @@ overriden in individual `dap-python' launch configurations."
            (setq python-args (mapconcat #'shell-quote-argument python-args " ")))
          (plist-put conf :program-to-start
                     (format "%s%s -m ptvsd --wait --host %s --port %s %s"
-                            (or dap-python-terminal "")
+                            (or (and dap-python-terminal (concat dap-python-terminal " ") ""))
                             (shell-quote-argument python-executable)
                             host
                             debug-port
