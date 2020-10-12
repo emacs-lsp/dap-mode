@@ -123,7 +123,7 @@ settings.
     always be specified using its *pid*.
 
     **Note**: on Linux this is achieved using the [ptrace syscall](https://www.man7.org/linux/man-pages/man2/ptrace.2.html "ptrace syscall man page")
-    wrapped inside the gdb tool. Which mean below additional steps are also need to be done as well:
+    wrapped inside the GDB tool, which means that for distributions that enable YAMA (e.g. Ubuntu) some additional steps may be necessary:
       - Install GDB.
       - Turn on classic ptrace permission
         ```bash
@@ -131,7 +131,7 @@ settings.
         ```
         Or starting the debugger under root user
         ```elisp
-        setq dap-python-terminal "sudo "
+        (setq dap-python-terminal "sudo ")
         ```
 
 ## Ruby
