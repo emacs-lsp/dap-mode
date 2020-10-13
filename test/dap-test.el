@@ -149,12 +149,26 @@
 
 (ert-deftest dap-launch-test--delete-commas ()
   (let* ((orig "{
-  \"abc\": 123,
+    \"conf\": [
+        {
+          \"a\": \"b\",\t\v\u00A0
+        },
+        {
+          \"b\": \"c\",\xD\u2028\u2029
+        },\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006
+    ],\u2007\u2008\u2009\u200A\u202F\u205F\u3000
 }")
-        (post-exp (dap-launch-test--sanitize-json orig)))
-    (should (string= post-exp "{
-  \"abc\": 123
-}"))))
+         (expected "{
+    \"conf\": [
+        {
+          \"a\": \"b\"\t\v\u00A0
+        },
+        {
+          \"b\": \"c\"\xD\u2028\u2029
+        }\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006
+    ]\u2007\u2008\u2009\u200A\u202F\u205F\u3000
+}"))
+    (should (string= (dap-launch-test--sanitize-json orig) expected))))
 
 (ert-deftest dap-launch-test--comment-in-string ()
   (let ((orig "\"// orig\""))
