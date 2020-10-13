@@ -1920,3 +1920,98 @@ point is set."
 ;; Local Variables:
 ;; flycheck-disabled-checkers: (emacs-lisp-checkdoc)
 ;; End:
+;; (let ((default-directory "/home/kyoncho/Sources/lsp/lsp-mode/"))
+;;   (when-let ((section (get-buffer-create "sections")))
+;;     (kill-buffer "sections"))
+;;   (with-current-buffer (get-buffer-create "sections")
+;;     (dap-status-mode 1)
+;;     (erase-buffer)
+;;     ;; (magit-insert-stashes)
+;;     (font-lock-mode 1)
+;;     (magit-insert-section (my "refs/stash" nil t))
+;;     (-let (((session &as &dap-session 'name 'thread-states)  (dap--cur-session)))
+;;       (magit-insert-section (dap-session-heading)
+;;         (magit-insert-heading (concat (propertize "Session Name: "
+;;                                                   'face 'font-lock-type-face)
+;;                                       (propertize name 'face 'magit-section-highlight) "\n\n")))
+;;       (magit-insert-section (session)
+;;         (magit-insert-section-body
+;;           (magit-insert-section (Threads)
+;;             (magit-insert-heading "Threads")
+;;             (magit-insert-section-body
+;;               (->> (dap-request session "threads")
+;;                    (gethash "threads")
+;;                    (-map (-lambda ((&hash "id" "name"))
+;;                            (let* ((status (s-capitalize (gethash id thread-states "running")))
+;;                                   (stopped? (not (string= (s-downcase status) "running"))))
+;;                              (magit-insert-section ((eval name))
+;;                                (magit-insert-heading
+;;                                  (concat " "
+;;                                          (propertize name
+;;                                                      'face (if (and (eq session (dap--cur-session))
+;;                                                                     (eq id (dap--debug-session-thread-id session)))
+;;                                                                'dap-ui-sessions-thread-active-face
+;;                                                              'dap-ui-sessions-thread-face))
+;;                                          (when status (propertize (concat "  " status) 'face 'lsp-lens-face))))
+;;                                (when stopped?
+;;                                  (magit-insert-section-body
+;;                                    (-map
+;;                                     (-lambda ((stack-frame &as &hash "name" "line" "source"))
+;;                                       (let* ((current-session (dap--cur-session))
+;;                                              (icon (if (and
+;;                                                         (equal session current-session)
+;;                                                         (eq id (dap--debug-session-thread-id current-session))
+;;                                                         (equal stack-frame (dap--debug-session-active-frame current-session)))
+;;                                                        'stack-stopped
+;;                                                      'stack)))
+;;                                         (magit-insert-section ((stack-frame))
+;;                                           (magit-insert-heading
+;;                                             (concat "  "
+;;                                                     (if source
+;;                                                         (concat (propertize
+;;                                                                  name
+;;                                                                  'face (if (and (eq session (dap--cur-session))
+;;                                                                                 (eq id (dap--debug-session-thread-id session))
+;;                                                                                 (equal name (-some->> current-session
+;;                                                                                               dap--debug-session-active-frame
+;;                                                                                               (gethash "name"))))
+;;                                                                            'dap-ui-sessions-thread-active-face
+;;                                                                          'dap-ui-sessions-thread-face))
+;;                                                                 (propertize (format " (%s:%s)" (or (gethash "name" source)
+;;                                                                                                    (gethash "path" source))
+;;                                                                                     line)
+;;                                                                             'face 'lsp-lens-face))
+;;                                                       (concat name (propertize "(Unknown source)" 'face 'lsp-lens-face))))))))
+;;                                     (gethash "stackFrames" (dap-request session "stackTrace" :threadId id))))))))))))
+;;           (magit-insert-section (my1 "refs/stash" nil t)
+;;             (magit-insert-heading "Locals"))
+;;           (magit-insert-section (my1 "refs/stash" nil t)
+;;             (magit-insert-heading "Expressions"))
+;;           (magit-insert-section (my1 "refs/stash" nil t)
+;;             (magit-insert-heading "Breakpoints")))))
+;;     (setq magit-root-section nil)
+;;     (display-buffer (current-buffer))))
+
+;; (progn (setq magit-section-set-visibility-hook nil)
+;;        (add-hook 'magit-section-set-visibility-hook (lambda (foo)
+;;                                                       'hide)))
+;; (-map
+;;  (-lambda ((&hash "id" "name"))
+;;    name)
+;;  (gethash "threads"
+;;           (dap-request
+;;            (dap--cur-session)
+;;            "threads")))
+
+;; #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+;;               ("threads"
+;;                (#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+;;                               ("id" 1 "name" "Thread [main]"))
+;;                   #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+;;                                 ("id" 2 "name" "Thread [Reference Handler]"))
+;;                   #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+;;                                 ("id" 3 "name" "Thread [Finalizer]"))
+;;                   #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+;;                                 ("id" 4 "name" "Thread [Signal Dispatcher]"))
+;;                   #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+;;                                 ("id" 5 "name" "Thread [Common-Cleaner]")))))
