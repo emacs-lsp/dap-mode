@@ -243,7 +243,7 @@ The hook will be called with the session file and the new set of breakpoint loca
 (defvar dap-connect-retry-interval 0.02
   "Retry interval for dap connect.")
 
-(eval-when-compile
+(eval-and-compile
   (defun dash-expand:&dap-session (key source)
     `(,(intern-soft (format "dap--debug-session-%s" (eval key))) ,source)))
 
