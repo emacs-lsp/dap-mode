@@ -75,7 +75,6 @@ should be used in `dap-internal-terminal-*'."
 (declare-function vterm-mode "ext:vterm" (&optional arg))
 (defvar vterm-shell)
 (defvar vterm-kill-buffer-on-exit)
-
 (defun dap-internal-terminal-vterm (command title debug-session)
   (with-current-buffer (dap--make-terminal-buffer title debug-session)
     (require 'vterm)
@@ -318,11 +317,12 @@ The hook will be called with the session file and the new set of breakpoint loca
   (lsp-workspace-get-metadata "default-session"))
 
 (defun dap--resp-handler (&optional success-callback)
-  "Generate response handler.
+  "Generate a response handler, for use in `dap--send-message'.
 
-The handler will call `error' on failure.
-SUCCESS-CALLBACK will be called if it is provided and if the call
-has succeeded."
+If the request is successful, call SUCCESS-CALLBACK with the
+entire resulting messsage.
+
+The handler will call `error' on failure."
   (-lambda ((result &as &hash "success" "message"))
     (if success
         (when success-callback (funcall success-callback result))
@@ -1842,14 +1842,14 @@ point is set."
 
 ;; Auto configure
 
+(declare-function dap-ui-mode "dap-ui" (&optional arg))
+(declare-function dap-ui-many-windows-mode "dap-ui" (&optional arg))
 ;;;###autoload
 (define-minor-mode dap-auto-configure-mode
   "Auto configure dap minor mode."
   :init-value nil
   :global t
   :group 'dap-mode
-  (declare-function dap-ui-mode "dap-ui" (&optional arg))
-  (declare-function dap-ui-many-windows-mode "dap-ui" (&optional arg))
   (cond
    (dap-auto-configure-mode
     (dap-mode 1)
@@ -1859,7 +1859,7 @@ point is set."
         (if (consp mode)
             (when (require (cdr mode) nil t)
               (funcall (car mode) 1))
-            (funcall mode 1))))
+          (funcall mode 1))))
     (dap-ui-many-windows-mode 1))
    (t
     (dap-mode -1)
@@ -1868,7 +1868,7 @@ point is set."
       (when-let (mode (alist-get feature dap-features->modes))
         (if (consp mode)
             (funcall (car mode) -1)
-            (funcall mode -1))))
+          (funcall mode -1))))
     (dap-ui-many-windows-mode -1))))
 
 (provide 'dap-mode)
