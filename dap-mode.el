@@ -1425,6 +1425,11 @@ before starting the debug process."
         (push (cons session-name launch-args) dap--debug-configuration)
         (run-hook-with-args 'dap-session-created-hook debug-session)))))
 
+(defun dap-variables-expand-in-launch-configuration (conf)
+  "Expand dap-mode launch configuration CONF."
+  (let ((dap-variables-project-root-function #'lsp-workspace-root))
+    (dap-variables-standard-expand-tree conf)))
+
 (defun dap-start-debugging (conf)
   "Like `dap-start-debugging-noexpand', but expand variables.
 CONF's variables are expanded before being passed to
@@ -1624,7 +1629,7 @@ If ORIGIN is t, return the original configuration without prepopulation"
 (defun dap-debug-template-configurations-provider ()
   dap-debug-template-configurations)
 
-(defvar dap-launch-configuration-providers
+(defconst dap-launch-configuration-providers
   '(dap-launch-find-parse-launch-json
     dap-debug-template-configurations-provider)
   "List of functions that can contribute launch configurations to dap-debug.
@@ -1684,7 +1689,7 @@ normally with `dap-debug'"
     (-let ((column (current-column))
            ((fst snd . rst) debug-args))
       (insert (format "%s %s" fst (prin1-to-string snd)))
-      (cl-loop for (k v) on rst by (function cddr)
+      (cl-loop for (k v) on rst by #'cddr
          do (if (not (equal k :program-to-start))
                 (progn
                   (insert "\n")
