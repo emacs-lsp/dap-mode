@@ -29,6 +29,7 @@
 
 (require 'ert)
 (require 'dap-mode)
+(require 'dap-variables)
 
 (ert-deftest dap-mode--parser-read--multiple-messages ()
   (let* ((p (make-dap--parser))
@@ -191,7 +192,7 @@ DOCSTRING, if set, specifies the docstring to use for
 `ert-deftest'."
   `(ert-deftest
        ,name () ,@docstring
-       (should (equal (dap-variables-expand-in-launch-configuration ,conf)
+       (should (equal (dap-variables-standard-expand-tree ,conf)
                       ,expanded))))
 
 (dap-variables--define-compare-test

@@ -35,7 +35,6 @@
 (require 'ansi-color)
 (require 'posframe)
 
-(require 'dap-variables)
 (require 'dap-launch)
 
 (defcustom dap-breakpoints-file (expand-file-name (locate-user-emacs-file ".dap-breakpoints"))
@@ -1425,10 +1424,13 @@ before starting the debug process."
         (push (cons session-name launch-args) dap--debug-configuration)
         (run-hook-with-args 'dap-session-created-hook debug-session)))))
 
+(declare-function dap-variables-expand "dap-variables" (plist))
+(defvar dap-variables-project-root-function)
 (defun dap-variables-expand-in-launch-configuration (conf)
   "Expand dap-mode launch configuration CONF."
+  (require 'dap-variables)
   (let ((dap-variables-project-root-function #'lsp-workspace-root))
-    (dap-variables-standard-expand-tree conf)))
+    (dap-variables-expand conf)))
 
 (defun dap-start-debugging (conf)
   "Like `dap-start-debugging-noexpand', but expand variables.

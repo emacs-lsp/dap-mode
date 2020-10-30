@@ -27,15 +27,15 @@
 ;; `dap-variables' was created; it is now available as a library independent of
 ;; dap.
 ;;
-;; The main entry point is `dap-variables-standard-expand-tree', which handles
-;; most of VSCode's standard variables, and a few `dap-variables'-specific
-;; extensions, and is even customizable by the user.
+;; The main entry point is `dap-variables-expand', which handles most of
+;; VSCode's standard variables, and a few `dap-variables'-specific extensions,
+;; and is even customizable by the user. Additionally, it automatically handles
+;; platform-properties like "macos", "linux", .... If you don't want the latter
+;; feature, use `dap-variables-standard-expand-tree'.
 ;;
 ;; Additionally, `dap-variables-find-vscode-config' can be used to locate
 ;; VSCode-style per-project configuration files, which are usually JSON5 files
 ;; that contain variables.
-;;
-;; TODO: handle elevating os-specific properties like "macosx": {...}
 
 ;;; Code:
 
@@ -498,8 +498,7 @@ Respects `dap-variables-standard-variables',
                   dap-variables-post-walk-hook)))
     (prog1 newconf
       (run-hook-with-args 'dap-variables-post-expand-hook newconf))))
-
-;;; utilities
+
 (defun dap-variables-find-vscode-config (f root)
   "Find a project-specific VSCode configuration file.
 ROOT specifies the root of the project to search for F; search
@@ -508,6 +507,41 @@ for F in either ROOT/ or ROOT/.vscode/."
          (root-f (concat root f))
          (root-vscode (concat root (file-name-as-directory ".vscode") f)))
     (cl-some #'file-exists-p (list root-f root-vscode))))
+
+(defconst dap-variables-os-property-alist
+  '((windows-nt . :windows)
+    (gnu/linux . :linux)
+    (darwin . :macos))
+  "Alist mapping system types to os-specific properties.
+See `dap-variables-elevate-os-properties'.
+
+Alist (SYSTEM-TYPE . PROP) which maps a given `system-type' to a
+property that should hold a plist of attributes that should be
+set for that platform only in the plist above.")
+
+(defun dap-variables-elevate-os-properties (plist)
+  "Replace properties with their platform-specific counterparts.
+VSCode often allows specifying some properties for some platforms
+only, so there could be a launch.json \"linux\" section listing
+some properties to set when debugging from Linux, ....
+
+Transform PLIST so that those sections are added (removing
+previous values) at the top-level."
+  (let* ((new-list (cl-copy-list plist))
+         (platform-prop
+          (cdr (assoc system-type dap-variables-os-property-alist)))
+         (override (plist-get new-list platform-prop)))
+    (dolist (prop dap-variables-os-property-alist)
+      (cl-remf new-list (cdr prop)))
+    (cl-loop for (k _) on override by #'cddr do (cl-remf new-list k))
+    (append override new-list)))
+
+(defun dap-variables-expand (plist)
+  "Handle PLIST as if it were a VSCode *.json item.
+`dap-variables-elevate-os-properties' +
+`dap-variables-standard-expand-tree'."
+  (dap-variables-standard-expand-tree
+   (dap-variables-elevate-os-properties plist)))
 
 ;;; LocalWords: Nikita
 ;;; LocalWords: Bloshchanevich
