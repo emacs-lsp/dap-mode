@@ -77,7 +77,7 @@ Return the result. To expand each variable, VAR-CB is
 expansion is performed for that part of S."
   (replace-regexp-in-string
    (rx (or (: "\\" (group "$"))
-           (: "${" (group (* (or (not (any "\\}")) (: "\\" anychar)))) "}")))
+           (: "${" (group (* (or (not (any "\\}")) (: "\\" anything)))) "}")))
    (lambda (match)
      (let ((escaped-var (match-string 1 match))
            (var (match-string 2 match)))
