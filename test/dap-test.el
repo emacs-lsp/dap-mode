@@ -29,6 +29,7 @@
 
 (require 'ert)
 (require 'dap-mode)
+(require 'dap-variables)
 
 (ert-deftest dap-mode--parser-read--multiple-messages ()
   (let* ((p (make-dap--parser))
@@ -94,31 +95,31 @@
 
 (ert-deftest dap--python-test-class-method ()
   (let* ((document-symbols
-    (list
-     #s(dap-python--symbol "dataclass" "Function" #s(dap-python--location #s(dap-python--point 0 0) #s(dap-python--point 0 33)))
-     #s(dap-python--symbol "Foo" "Class" #s(dap-python--location #s(dap-python--point 4 0) #s(dap-python--point 6 0)))
-     #s(dap-python--symbol "value" "Variable" #s(dap-python--location #s(dap-python--point 5 4) #s(dap-python--point 5 14)))
-     #s(dap-python--symbol "Bar" "Class" #s(dap-python--location #s(dap-python--point 9 0) #s(dap-python--point 11 0)))
-     #s(dap-python--symbol "value" "Variable" #s(dap-python--location #s(dap-python--point 10 4) #s(dap-python--point 10 14)))
-     #s(dap-python--symbol "TestClass" "Class" #s(dap-python--location #s(dap-python--point 13 0) #s(dap-python--point 21 0)))
-     #s(dap-python--symbol "test_foo" "Function" #s(dap-python--location #s(dap-python--point 14 4) #s(dap-python--point 17 0)))
-     #s(dap-python--symbol "foo" "Variable" #s(dap-python--location #s(dap-python--point 15 8) #s(dap-python--point 15 24)))
-     #s(dap-python--symbol "test_bar" "Function" #s(dap-python--location #s(dap-python--point 18 4) #s(dap-python--point 21 0)))
-     #s(dap-python--symbol "bar" "Variable" #s(dap-python--location #s(dap-python--point 19 8) #s(dap-python--point 19 24)))))
+          (list
+           #s(dap-python--symbol "dataclass" "Function" #s(dap-python--location #s(dap-python--point 0 0) #s(dap-python--point 0 33)))
+           #s(dap-python--symbol "Foo" "Class" #s(dap-python--location #s(dap-python--point 4 0) #s(dap-python--point 6 0)))
+           #s(dap-python--symbol "value" "Variable" #s(dap-python--location #s(dap-python--point 5 4) #s(dap-python--point 5 14)))
+           #s(dap-python--symbol "Bar" "Class" #s(dap-python--location #s(dap-python--point 9 0) #s(dap-python--point 11 0)))
+           #s(dap-python--symbol "value" "Variable" #s(dap-python--location #s(dap-python--point 10 4) #s(dap-python--point 10 14)))
+           #s(dap-python--symbol "TestClass" "Class" #s(dap-python--location #s(dap-python--point 13 0) #s(dap-python--point 21 0)))
+           #s(dap-python--symbol "test_foo" "Function" #s(dap-python--location #s(dap-python--point 14 4) #s(dap-python--point 17 0)))
+           #s(dap-python--symbol "foo" "Variable" #s(dap-python--location #s(dap-python--point 15 8) #s(dap-python--point 15 24)))
+           #s(dap-python--symbol "test_bar" "Function" #s(dap-python--location #s(dap-python--point 18 4) #s(dap-python--point 21 0)))
+           #s(dap-python--symbol "bar" "Variable" #s(dap-python--location #s(dap-python--point 19 8) #s(dap-python--point 19 24)))))
 
-   (cursor #s(dap-python--point 15 4))
+         (cursor #s(dap-python--point 15 4))
 
-   (actual (dap-python--symbols-before-point cursor document-symbols))
+         (actual (dap-python--symbols-before-point cursor document-symbols))
 
-   (expected
-    (list
-     #s(dap-python--symbol "dataclass" "Function" #s(dap-python--location #s(dap-python--point 0 0) #s(dap-python--point 0 33)))
-     #s(dap-python--symbol "Foo" "Class" #s(dap-python--location #s(dap-python--point 4 0) #s(dap-python--point 6 0)))
-     #s(dap-python--symbol "value" "Variable" #s(dap-python--location #s(dap-python--point 5 4) #s(dap-python--point 5 14)))
-     #s(dap-python--symbol "Bar" "Class" #s(dap-python--location #s(dap-python--point 9 0) #s(dap-python--point 11 0)))
-     #s(dap-python--symbol "value" "Variable" #s(dap-python--location #s(dap-python--point 10 4) #s(dap-python--point 10 14)))
-     #s(dap-python--symbol "TestClass" "Class" #s(dap-python--location #s(dap-python--point 13 0) #s(dap-python--point 21 0)))
-     #s(dap-python--symbol "test_foo" "Function" #s(dap-python--location #s(dap-python--point 14 4) #s(dap-python--point 17 0))))))
+         (expected
+          (list
+           #s(dap-python--symbol "dataclass" "Function" #s(dap-python--location #s(dap-python--point 0 0) #s(dap-python--point 0 33)))
+           #s(dap-python--symbol "Foo" "Class" #s(dap-python--location #s(dap-python--point 4 0) #s(dap-python--point 6 0)))
+           #s(dap-python--symbol "value" "Variable" #s(dap-python--location #s(dap-python--point 5 4) #s(dap-python--point 5 14)))
+           #s(dap-python--symbol "Bar" "Class" #s(dap-python--location #s(dap-python--point 9 0) #s(dap-python--point 11 0)))
+           #s(dap-python--symbol "value" "Variable" #s(dap-python--location #s(dap-python--point 10 4) #s(dap-python--point 10 14)))
+           #s(dap-python--symbol "TestClass" "Class" #s(dap-python--location #s(dap-python--point 13 0) #s(dap-python--point 21 0)))
+           #s(dap-python--symbol "test_foo" "Function" #s(dap-python--location #s(dap-python--point 14 4) #s(dap-python--point 17 0))))))
 
     (should (dap-python--equal actual expected))
     (should (dap-python--equal (dap-python--nearest-test expected) "::TestClass::test_foo"))))
@@ -191,7 +192,7 @@ DOCSTRING, if set, specifies the docstring to use for
 `ert-deftest'."
   `(ert-deftest
        ,name () ,@docstring
-       (should (equal (dap-variables-expand-in-launch-configuration ,conf)
+       (should (equal (dap-variables-standard-expand-tree ,conf)
                       ,expanded))))
 
 (dap-variables--define-compare-test
@@ -223,6 +224,11 @@ DOCSTRING, if set, specifies the docstring to use for
  (list :startup-fn (lambda () "Doc." "${$}"))
  (list :startup-fn (lambda () "Doc." "${$}"))
  "Lambdas should be passed trough, without modification.")
+
+(dap-variables--define-compare-test
+ dap-variables-unknown-variable
+ (list "${test/unknownVariable}")
+ (list "${test/unknownVariable}"))
 
 (ert-deftest dap-variables-test-lambda-stays-lambda ()
   "A lambda should still stay a lambda, and be callable."

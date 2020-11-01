@@ -49,16 +49,13 @@ supported."
     (when (match-beginning 1)
       (replace-match (or (match-string 2) "")))))
 
+(declare-function dap-variables-find-vscode-config "dap-variables" (f root))
 (defun dap-launch-find-launch-json ()
-  "Return the location of the launch.json file in the current project."
-  (when-let ((project (lsp-workspace-root))
-             (launch-json (f-join project "launch.json"))
-             ;; launch.json files can also be found in a .vscode folder at the
-             ;; project root.
-             (launch-json-vscode (f-join project ".vscode" "launch.json")))
-    (cond ((file-exists-p launch-json-vscode) launch-json-vscode)
-          ((file-exists-p launch-json) launch-json)
-          (t nil))))
+  "Return the path to current project's launch.json file.
+Yields nil if it cannot be found or there is no project."
+  (when-let ((root (lsp-workspace-root)))
+    (require 'dap-variables)
+    (dap-variables-find-vscode-config "launch.json" root)))
 
 (defun dap-launch-get-launch-json ()
   "Parse the project's launch.json as json data and return the result."
