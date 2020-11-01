@@ -109,6 +109,31 @@ settings.
             :name "My App"))
     ```
 
+    `dap-python` supports also the "attach" mode to attach and debug a long running script.
+    A template named "Python :: Attach to running process" is also pre-registered for this purpose.
+    ```elisp
+    (dap-register-debug-template "Python :: Attach to running process"
+      (list :type "python"
+            :request "attach"
+            :processId "${command:pickProcess}"
+            :name "Python :: Attach to running process"))
+    ```
+    The `${command:pickProcess}` configuration variable used by default to facilitate the user
+    selecting the debug process by a completion popping up window. The real `processId` can
+    always be specified using its *pid*.
+
+    **Note**: on Linux this is achieved using the [ptrace syscall](https://www.man7.org/linux/man-pages/man2/ptrace.2.html "ptrace syscall man page")
+    wrapped inside the GDB tool, which means that for distributions that enable YAMA (e.g. Ubuntu) some additional steps may be necessary:
+      - Install GDB.
+      - Turn on classic ptrace permission
+        ```bash
+        sudo sh -c 'echo 0 > /proc/sys/kernel/yama/ptrace_scope'
+        ```
+        Or starting the debugger under root user
+        ```elisp
+        (setq dap-python-terminal "sudo ")
+        ```
+
 ## Ruby
 
   - Download and extract [VSCode Ruby
