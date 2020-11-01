@@ -506,7 +506,7 @@ for F in either ROOT/ or ROOT/.vscode/."
   (let* ((root (file-name-as-directory root))
          (root-f (concat root f))
          (root-vscode (concat root (file-name-as-directory ".vscode") f)))
-    (cl-some #'file-exists-p (list root-f root-vscode))))
+    (seq-find #'file-exists-p (list root-f root-vscode))))
 
 (defconst dap-variables-os-property-alist
   '((windows-nt . :windows)
