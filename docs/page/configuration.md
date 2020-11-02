@@ -95,8 +95,9 @@ settings.
 
     A template named "Python :: Run Configuration" will appear, which
     will execute the currently visited module. This will fall short
-    whenever you need to specify arguments, environment variables or
-    execute a setuptools based script. In such case, define a template:
+    whenever you need to specify arguments, environment variables,
+    enable debugging of 3rd modules or execute a setuptools based script.
+    In such case, define a template:
 
     ``` elisp
     (dap-register-debug-template "My App"
@@ -105,6 +106,7 @@ settings.
             :cwd nil
             :env '(("DEBUG" . "1"))
             :target-module (expand-file-name "~/src/myapp/.env/bin/myapp")
+            :justMyCode :json-false
             :request "launch"
             :name "My App"))
     ```

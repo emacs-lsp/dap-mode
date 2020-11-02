@@ -194,7 +194,9 @@ overriden in individual `dap-python' launch configurations."
                       (plist-get conf :program)
                       (buffer-file-name)))
          (module (plist-get conf :module))
-         (debugger (plist-get conf :debugger)))
+         (debugger (plist-get conf :debugger))
+         (justmycode (plist-get conf :justMyCode))
+         (debug-options (plist-get conf :debugOptions)))
     (cl-remf conf :debugger)
     (pcase (or debugger dap-python-debugger)
       ('ptvsd
@@ -216,7 +218,12 @@ overriden in individual `dap-python' launch configurations."
          (plist-put conf :debugServer debug-port)
          (plist-put conf :port debug-port)
          (plist-put conf :hostName host)
-         (plist-put conf :host host)))
+         (plist-put conf :host host)
+         (when (and (not (null justmycode))
+                    (equal justmycode :json-false))
+             (setq debug-options (cl-pushnew "DebugStdLib" debug-options :test #'equal))
+             (plist-put conf :debugOptions debug-options)
+             (cl-remf conf :justMyCode))))
       ('debugpy
        ;; If certain properties are nil, issues will arise, as debugpy expects
        ;; them to unspecified instead. Some templates in this file set such
@@ -238,7 +245,12 @@ overriden in individual `dap-python' launch configurations."
          (cl-remf conf :module))
        (unless (plist-get conf :cwd)
          (cl-remf conf :cwd))
-
+       (when (and debug-options
+                  (sequencep debug-options)
+                  (seq-contains debug-options "DebugStdLib")
+                  (null justmycode))
+         (warn "DebugStdLib is deprecated, use justMyCode, please consider to update your configuration.")
+         (plist-put conf :justMyCode :json-false))
        (plist-put conf :dap-server-path
                   (list python-executable "-m" "debugpy.adapter"))))
     (plist-put conf :program program)
