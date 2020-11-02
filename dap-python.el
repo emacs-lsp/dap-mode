@@ -114,11 +114,12 @@ https://github.com/pyenv/pyenv-which-ext."
        (dap-python--equal (dap-python--symbol-location lhs) (dap-python--symbol-location rhs))))
 
 (lsp-defun dap-python--parse-lsp-symbol
-  ((&SymbolInformation :name :kind
-                       :location (&Location :range (&Range :start (&Position :line start-line
-                                                                             :character start-character)
-                                                           :end (&Position :line end-line
-                                                                           :character end-character)))))
+  ((&DocumentSymbol
+    :name :kind
+    :selection-range (&Range :start (&Position :line start-line
+                                               :character start-character)
+                             :end (&Position :line end-line
+                                             :character end-character))))
   (make-dap-python--symbol
    :name name
    :type (alist-get kind lsp--symbol-kind)
@@ -154,10 +155,11 @@ https://github.com/pyenv/pyenv-which-ext."
 
 (defun dap-python--nearest-test (lsp-symbols)
   (let* ((reversed (reverse lsp-symbols))
-	       (test-symbol (-first 'dap-python--test-p reversed))
-	       (class-symbol (-first (-partial 'dap-python--test-class-p test-symbol) reversed)))
+         (test-symbol (or (-first 'dap-python--test-p reversed)
+                          (user-error "`dap-python': no test at point")))
+	 (class-symbol (-first (-partial 'dap-python--test-class-p test-symbol) reversed)))
     (if (eq nil class-symbol)
-	      (concat "::" (dap-python--symbol-name test-symbol))
+	(concat "::" (dap-python--symbol-name test-symbol))
       (concat "::" (dap-python--symbol-name class-symbol) "::" (dap-python--symbol-name test-symbol)))))
 
 (defun dap-python--cursor-position ()
@@ -166,7 +168,7 @@ https://github.com/pyenv/pyenv-which-ext."
 
 (defun dap-python--test-at-point ()
   (->> (lsp--get-document-symbols)
-       (mapcar 'dap-python--parse-lsp-symbol)
+       (mapcar #'dap-python--parse-lsp-symbol)
        (dap-python--symbols-before-point (dap-python--cursor-position))
        dap-python--nearest-test))
 
@@ -273,11 +275,11 @@ overriden in individual `dap-python' launch configurations."
 
 (dap-register-debug-provider "python-test-at-point" 'dap-python--populate-test-at-point)
 (dap-register-debug-template "Python :: Run pytest (at point)"
-			                       (list :type "python-test-at-point"
-				                           :args ""
-				                           :module "pytest"
-				                           :request "launch"
-				                           :name "Python :: Run pytest (at point)"))
+			     (list :type "python-test-at-point"
+				   :args ""
+				   :module "pytest"
+				   :request "launch"
+				   :name "Python :: Run pytest (at point)"))
 
 (provide 'dap-python)
 ;;; dap-python.el ends here
