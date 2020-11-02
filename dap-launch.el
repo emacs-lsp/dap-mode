@@ -25,8 +25,6 @@
 
 (require 'lsp-mode)
 (require 'json)
-(require 'f)
-(require 'rx)
 
 (defun dap-launch-sanitize-json ()
   "Remove all C-style comments and trailing commas in the current buffer.
