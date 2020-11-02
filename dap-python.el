@@ -154,13 +154,15 @@ https://github.com/pyenv/pyenv-which-ext."
 	         (< test-start-line class-end-line)))))
 
 (defun dap-python--nearest-test (lsp-symbols)
-  (let* ((reversed (reverse lsp-symbols))
-         (test-symbol (or (-first 'dap-python--test-p reversed)
-                          (user-error "`dap-python': no test at point")))
-	 (class-symbol (-first (-partial 'dap-python--test-class-p test-symbol) reversed)))
+  (cl-callf reverse lsp-symbols)
+  (when-let ((test-symbol (-first 'dap-python--test-p lsp-symbols))
+	     (class-symbol
+              (-first (-partial 'dap-python--test-class-p test-symbol)
+                      lsp-symbols)))
     (if (eq nil class-symbol)
 	(concat "::" (dap-python--symbol-name test-symbol))
-      (concat "::" (dap-python--symbol-name class-symbol) "::" (dap-python--symbol-name test-symbol)))))
+      (concat "::" (dap-python--symbol-name class-symbol)
+              "::" (dap-python--symbol-name test-symbol)))))
 
 (defun dap-python--cursor-position ()
   (make-dap-python--point :line (line-number-at-pos)
@@ -248,8 +250,9 @@ overriden in individual `dap-python' launch configurations."
 
 (defun dap-python--populate-test-at-point (conf)
   "Populate CONF with the required arguments."
-  (plist-put conf :target-module (concat (buffer-file-name)
-                                         (dap-python--test-at-point)))
+  (if-let ((test (dap-python--test-at-point)))
+      (plist-put conf :target-module (concat (buffer-file-name) test))
+    (user-error "`dap-python': no test at point"))
   (plist-put conf :cwd (lsp-workspace-root))
 
   (dap-python--populate-start-file-args conf))
