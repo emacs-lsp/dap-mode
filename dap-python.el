@@ -155,14 +155,14 @@ https://github.com/pyenv/pyenv-which-ext."
 
 (defun dap-python--nearest-test (lsp-symbols)
   (cl-callf reverse lsp-symbols)
-  (when-let ((test-symbol (-first 'dap-python--test-p lsp-symbols))
-	     (class-symbol
-              (-first (-partial 'dap-python--test-class-p test-symbol)
-                      lsp-symbols)))
-    (if (eq nil class-symbol)
-	(concat "::" (dap-python--symbol-name test-symbol))
-      (concat "::" (dap-python--symbol-name class-symbol)
-              "::" (dap-python--symbol-name test-symbol)))))
+  (when-let ((test-symbol (-first 'dap-python--test-p lsp-symbols)))
+    (let ((class-symbol
+           (-first (-partial 'dap-python--test-class-p test-symbol)
+                   lsp-symbols)))
+      (if (eq nil class-symbol)
+	  (concat "::" (dap-python--symbol-name test-symbol))
+        (concat "::" (dap-python--symbol-name class-symbol)
+                "::" (dap-python--symbol-name test-symbol))))))
 
 (defun dap-python--cursor-position ()
   (make-dap-python--point :line (line-number-at-pos)
