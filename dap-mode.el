@@ -315,17 +315,18 @@ The hook will be called with the session file and the new set of breakpoint loca
   "Get currently active `dap--debug-session'."
   (lsp-workspace-get-metadata "default-session"))
 
-(defun dap--resp-handler (&optional success-callback)
+(defun dap--resp-handler (&optional success-callback error-callback)
   "Generate a response handler, for use in `dap--send-message'.
 
 If the request is successful, call SUCCESS-CALLBACK with the
 entire resulting messsage.
 
-The handler will call `error' on failure."
+The handler will call ERROR-CALLBACK with the message or `error'
+on failure."
   (-lambda ((result &as &hash "success" "message"))
     (if success
         (when success-callback (funcall success-callback result))
-      (error message))))
+      (if error-callback (funcall error-callback message) (error message)))))
 
 (defun dap--session-init-resp-handler (debug-session &optional success-callback)
   "Returned handler will mark the DEBUG-SESSION as failed if call return error.

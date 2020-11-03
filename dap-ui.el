@@ -785,8 +785,8 @@ DEBUG-SESSION is the debug session triggering the event."
 
 (defun dap-ui-render-variables (debug-session variables-reference _node)
   "Render hierarchical variables for treemacs.
-Usable as the :children argument, when DEBUG-SESSION and
-VARIABLES-REFERENCE are applyied partially.
+Usable as the `treemacs' :children argument, when DEBUG-SESSION
+and VARIABLES-REFERENCE are applied partially.
 
 DEBUG-SESSION specifies the debug session which will be used to
 issue requests.
@@ -817,6 +817,54 @@ adapter for acquiring nested variables and must not be 0."
                    (list :children
                          (-partial #'dap-ui-render-variables debug-session
                                    variables-reference)))))))))
+
+(defun dap-ui-render-value
+    (debug-session expression value variables-reference)
+  "Render a hover result to the current buffer.
+VALUE is the evaluate result, DEBUG-SESSION the debug session as
+usual and EXPRESSION the expression that was originally
+evaluated. VARIABLES-REFERENCE is returned by the evaluate
+request."
+  (lsp-treemacs-render
+   `((:key ,expression
+      :label ,value
+      :icon dap-field
+      ,@(unless (zerop variables-reference)
+          (list :children
+                (-partial #'dap-ui-render-variables
+                          debug-session
+                          variables-reference)))))
+   "" nil (buffer-name)))
+
+(defun dap-ui-eval-in-buffer (expression)
+  "Like `dap-eval', but in a new treemacs buffer."
+  (interactive "sExpr: ")
+  (let ((debug-session (dap--cur-active-session-or-die)))
+    (if-let ((active-frame-id (-some->> debug-session
+                                dap--debug-session-active-frame
+                                (gethash "id"))))
+        (dap--send-message
+         (dap--make-request "evaluate"
+                            (list :expression expression
+                                  :frameId active-frame-id
+                                  :context "hover"))
+         (dap--resp-handler
+          (-lambda ((&hash "body" (&hash? "result" "variablesReference"
+                                          variables-reference)))
+            (with-current-buffer
+                (get-buffer-create (format "*evaluate %s*" expression))
+              (let ((inhibit-read-only t)) (erase-buffer))
+              (dap-ui-render-value debug-session expression result
+                                   variables-reference)
+              (display-buffer (current-buffer)))))
+         debug-session)
+      (error "`dap-eval-in-buffer': no stopped debug session"))))
+
+(defun dap-ui-eval-variable-in-buffer ()
+  "Evaluate the symbol at point in a new buffer."
+  (interactive)
+  (dap-ui-eval-in-buffer (thing-at-point 'symbol)))
+
 (defvar dap-ui--locals-timer nil)
 
 (defun dap-ui-locals--refresh (&rest _)
