@@ -235,9 +235,11 @@ overriden in individual `dap-python' launch configurations."
              ;; :args "" -> :args nil -> {"args": null}; to handle that edge
              ;; case, use the empty vector instead.
              (plist-put conf :args []))))
-       (unless program
-         (cl-remf conf :target-module)
-         (cl-remf conf :program))
+       (cl-remf conf :target-module)
+       (cl-remf conf :program)
+       (when program
+         (plist-put conf :program program))
+
        (unless module
          (cl-remf conf :module))
        (unless (plist-get conf :cwd)
@@ -245,7 +247,6 @@ overriden in individual `dap-python' launch configurations."
 
        (plist-put conf :dap-server-path
                   (list python-executable "-m" "debugpy.adapter"))))
-    (plist-put conf :program program)
     conf))
 
 (defun dap-python--normalize-args (args)
