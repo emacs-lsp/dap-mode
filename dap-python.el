@@ -248,7 +248,8 @@ strings, for the sake of launch.json feature parity."
          (cl-remf conf :cwd))
 
        (plist-put conf :dap-server-path
-                  (list python-executable "-m" "debugpy.adapter"))))
+                  (list python-executable "-m" "debugpy.adapter")))
+      (_ (error "`dap-python': unknown :debugger type %S" debugger)))
     conf))
 
 (defun dap-python--normalize-args (args)
