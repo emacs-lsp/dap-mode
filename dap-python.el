@@ -185,8 +185,10 @@ https://github.com/pyenv/pyenv-which-ext."
 
 (defcustom dap-python-debugger 'ptvsd
   "Specify which debugger to use for `dap-python'.
-Can be either 'ptvsd or 'debugpy. Note that this setting can be
-overriden in individual `dap-python' launch configurations."
+Can be either `ptvsd' or `debugpy.' Note that this setting can be
+overridden in individual `dap-python' launch configuration. The
+values of this variable or the :debugger field may also be
+strings, for the sake of launch.json feature parity."
   :type '(choice (const 'ptvsd) (const 'debugpy))
   :group 'dap-python)
 
@@ -201,7 +203,7 @@ overriden in individual `dap-python' launch configurations."
          (debugger (plist-get conf :debugger)))
     (cl-remf conf :debugger)
     (pcase (or debugger dap-python-debugger)
-      ('ptvsd
+      ((or 'ptvsd "ptvsd")
        (let ((host "localhost")
              (debug-port (dap--find-available-port)))
          ;; support :args ["foo" "bar"]; NOTE: :args can be nil; however, nil is
@@ -221,7 +223,7 @@ overriden in individual `dap-python' launch configurations."
          (plist-put conf :port debug-port)
          (plist-put conf :hostName host)
          (plist-put conf :host host)))
-      ('debugpy
+      ((or 'debugpy "debugpy")
        ;; If certain properties are nil, issues will arise, as debugpy expects
        ;; them to unspecified instead. Some templates in this file set such
        ;; properties (e.g. :module) to nil instead of leaving them undefined. To
