@@ -284,5 +284,8 @@ overriden in individual `dap-python' launch configurations."
 				   :request "launch"
 				   :name "Python :: Run pytest (at point)"))
 
+(cl-defmethod dap-handle-event ((_event-type (eql debugpyWaitingForServer)) _session _params))
+(cl-defmethod dap-handle-event ((_event-type (eql debugpyAttach)) _session _params))
+
 (provide 'dap-python)
 ;;; dap-python.el ends here
