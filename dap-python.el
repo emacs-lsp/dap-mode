@@ -248,10 +248,20 @@ overriden in individual `dap-python' launch configurations."
     (plist-put conf :program program)
     conf))
 
+(defun dap-python--normalize-args (args)
+  "Convert ARGS to a `list' of arguments.
+ARGS may be a string, a vector or a list."
+  (cl-typecase args
+    (string (split-string-and-unquote args))
+    (vector (cl-coerce args 'list))
+    (t args)))
+
 (defun dap-python--populate-test-at-point (conf)
   "Populate CONF with the required arguments."
   (if-let ((test (dap-python--test-at-point)))
-      (plist-put conf :target-module (concat (buffer-file-name) test))
+      (let ((args (dap-python--normalize-args (plist-get conf :args))))
+        (cl-remf conf :args)
+        (plist-put conf :args (cons (concat (buffer-file-name) test) args)))
     (user-error "`dap-python': no test at point"))
   (plist-put conf :cwd (lsp-workspace-root))
 
