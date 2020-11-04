@@ -142,16 +142,16 @@ https://github.com/pyenv/pyenv-which-ext."
 (defun dap-python--test-p (lsp-symbol)
   (let ((name (dap-python--symbol-name lsp-symbol)))
     (and (dap-python--equal (dap-python--symbol-type lsp-symbol) "Function")
-	       (s-starts-with? "test_" name))))
+               (s-starts-with? "test_" name))))
 
 (defun dap-python--test-class-p (test-symbol lsp-symbol)
   (when (dap-python--equal (dap-python--symbol-type lsp-symbol) "Class")
     (let* ((class-location (dap-python--symbol-location lsp-symbol))
-	         (class-start-line (-> class-location dap-python--location-start dap-python--point-line))
-	         (class-end-line (-> class-location dap-python--location-end dap-python--point-line))
-	         (test-start-line (-> test-symbol dap-python--symbol-location dap-python--location-start dap-python--point-line)))
-	    (and (> test-start-line class-start-line)
-	         (< test-start-line class-end-line)))))
+                 (class-start-line (-> class-location dap-python--location-start dap-python--point-line))
+                 (class-end-line (-> class-location dap-python--location-end dap-python--point-line))
+                 (test-start-line (-> test-symbol dap-python--symbol-location dap-python--location-start dap-python--point-line)))
+            (and (> test-start-line class-start-line)
+                 (< test-start-line class-end-line)))))
 
 (defun dap-python--nearest-test (lsp-symbols)
   (cl-callf reverse lsp-symbols)
@@ -159,14 +159,14 @@ https://github.com/pyenv/pyenv-which-ext."
     (let ((class-symbol
            (-first (-partial 'dap-python--test-class-p test-symbol)
                    lsp-symbols)))
-      (if (eq nil class-symbol)
-	  (concat "::" (dap-python--symbol-name test-symbol))
-        (concat "::" (dap-python--symbol-name class-symbol)
-                "::" (dap-python--symbol-name test-symbol))))))
+      (if class-symbol
+          (concat "::" (dap-python--symbol-name class-symbol)
+                  "::" (dap-python--symbol-name test-symbol))
+        (concat "::" (dap-python--symbol-name test-symbol))))))
 
 (defun dap-python--cursor-position ()
   (make-dap-python--point :line (line-number-at-pos)
-			                    :character (current-column)))
+                          :character (current-column)))
 
 (defun dap-python--test-at-point ()
   (->> (lsp--get-document-symbols)
@@ -292,11 +292,11 @@ ARGS may be a string, a vector or a list."
 
 (dap-register-debug-provider "python-test-at-point" 'dap-python--populate-test-at-point)
 (dap-register-debug-template "Python :: Run pytest (at point)"
-			     (list :type "python-test-at-point"
-				   :args ""
-				   :module "pytest"
-				   :request "launch"
-				   :name "Python :: Run pytest (at point)"))
+                             (list :type "python-test-at-point"
+                                   :args ""
+                                   :module "pytest"
+                                   :request "launch"
+                                   :name "Python :: Run pytest (at point)"))
 
 (cl-defmethod dap-handle-event ((_event-type (eql debugpyWaitingForServer)) _session _params))
 (cl-defmethod dap-handle-event ((_event-type (eql debugpyAttach)) _session _params))
