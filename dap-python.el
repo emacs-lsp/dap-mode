@@ -84,35 +84,6 @@ https://github.com/pyenv/pyenv-which-ext."
   (type nil :type string)
   (location nil :type dap-python--location))
 
-(cl-defgeneric dap-python--equal (lhs rhs)
-  (:documentation "Check if lhs and rhs are equal"))
-
-(cl-defmethod dap-python--equal ((lhs symbol) (rhs symbol))
-  (eq lhs rhs))
-
-(cl-defmethod dap-python--equal ((lhs integer) (rhs integer))
-  (eq lhs rhs))
-
-(cl-defmethod dap-python--equal ((lhs string) (rhs string))
-  (string-equal lhs rhs))
-
-(cl-defmethod dap-python--equal ((lhs list) (rhs list))
-  (and (dap-python--equal (length lhs) (length rhs))
-       (-reduce (lambda (x y) (and x y)) (-zip-with 'dap-python--equal lhs rhs))))
-
-(cl-defmethod dap-python--equal ((lhs dap-python--point) (rhs dap-python--point))
-  (and (dap-python--equal (dap-python--point-line lhs) (dap-python--point-line rhs))
-       (dap-python--equal (dap-python--point-character lhs) (dap-python--point-character rhs))))
-
-(cl-defmethod dap-python--equal ((lhs dap-python--location) (rhs dap-python--location))
-  (and (dap-python--equal (dap-python--location-start lhs) (dap-python--location-start rhs))
-       (dap-python--equal (dap-python--location-end lhs) (dap-python--location-end rhs))))
-
-(cl-defmethod dap-python--equal ((lhs dap-python--symbol) (rhs dap-python--symbol))
-  (and (dap-python--equal (dap-python--symbol-name lhs) (dap-python--symbol-name rhs))
-       (dap-python--equal (dap-python--symbol-type lhs) (dap-python--symbol-type rhs))
-       (dap-python--equal (dap-python--symbol-location lhs) (dap-python--symbol-location rhs))))
-
 (lsp-defun dap-python--parse-lsp-symbol
   ((&DocumentSymbol
     :name :kind
@@ -141,17 +112,17 @@ https://github.com/pyenv/pyenv-which-ext."
 
 (defun dap-python--test-p (lsp-symbol)
   (let ((name (dap-python--symbol-name lsp-symbol)))
-    (and (dap-python--equal (dap-python--symbol-type lsp-symbol) "Function")
-               (s-starts-with? "test_" name))))
+    (and (string= (dap-python--symbol-type lsp-symbol) "Function")
+         (s-starts-with? "test_" name))))
 
 (defun dap-python--test-class-p (test-symbol lsp-symbol)
-  (when (dap-python--equal (dap-python--symbol-type lsp-symbol) "Class")
+  (when (string= (dap-python--symbol-type lsp-symbol) "Class")
     (let* ((class-location (dap-python--symbol-location lsp-symbol))
-                 (class-start-line (-> class-location dap-python--location-start dap-python--point-line))
-                 (class-end-line (-> class-location dap-python--location-end dap-python--point-line))
-                 (test-start-line (-> test-symbol dap-python--symbol-location dap-python--location-start dap-python--point-line)))
-            (and (> test-start-line class-start-line)
-                 (< test-start-line class-end-line)))))
+           (class-start-line (-> class-location dap-python--location-start dap-python--point-line))
+           (class-end-line (-> class-location dap-python--location-end dap-python--point-line))
+           (test-start-line (-> test-symbol dap-python--symbol-location dap-python--location-start dap-python--point-line)))
+      (and (> test-start-line class-start-line)
+           (< test-start-line class-end-line)))))
 
 (defun dap-python--nearest-test (lsp-symbols)
   (cl-callf reverse lsp-symbols)
@@ -175,11 +146,14 @@ https://github.com/pyenv/pyenv-which-ext."
        dap-python--nearest-test))
 
 (defun dap-python--template (template-name)
-  (->> dap-debug-template-configurations
-       (-first (-lambda ((name)) (dap-python--equal name template-name)))
-       cdr))
+  "Return the debug template whose name is TEMPLATE-NAME.
+For the name, only the template's `car' is checked, not its
+`:name' property."
+  (--first (string= template-name it) dap-debug-template-configurations))
 
-(defun dap-python--debug-test-at-point ()
+(defalias 'dap-python--debug-test-at-point #'dap-python-debug-test-at-point)
+(defun dap-python-debug-test-at-point ()
+  "Debug the pytest test under the cursor."
   (interactive)
   (dap-debug (dap-python--template "Python :: Run pytest (at point)")))
 
