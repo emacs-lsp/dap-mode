@@ -433,15 +433,12 @@ This is in contrast to merely setting it to 0."
         (lsp-workspace-set-metadata "Breakpoints" breakpoints)
         breakpoints)))
 
-(defun dap--persist (file-name to-persist)
-  "Persist TO-PERSIST.
-
-FILE-NAME the file name.
-WORKSPACE will be used to calculate root folder."
+(defun dap--persist (file to-persist)
+  "Serialize TO-PERSIST to FILE."
   (with-demoted-errors
       "Failed to persist file: %S"
-    (make-directory (file-name-directory file-name) t)
-    (with-temp-file file-name
+    (make-directory (file-name-directory file) t)
+    (with-temp-file file
       (erase-buffer)
       (insert (prin1-to-string to-persist)))))
 
@@ -454,7 +451,7 @@ WORKSPACE will be used to calculate root folder."
   "Persist BREAKPOINTS."
   ;; filter markers before persisting the breakpoints (markers are not
   ;; writeable) and update the point based on the marker.
-  (-let [filtered-breakpoints (make-hash-table :test 'equal)]
+  (let ((filtered-breakpoints (make-hash-table :test 'equal)))
     (maphash (lambda (k v)
                (puthash k (-map (-lambda ((bkp &as &plist :marker :point))
                                   (-> bkp
@@ -991,7 +988,7 @@ PARAMS are the event params.")
     (or
      (when (string= kind "external")
        (let* ((name (or title (concat (dap--debug-session-name debug-session)
-                                     "- terminal")))
+                                      "- terminal")))
               (terminal-argv
                (cl-loop for part in dap-external-terminal collect
                         (->> part (s-replace "{display}" name)
@@ -1366,65 +1363,6 @@ DEBUG-SESSIONS - list of the currently active sessions."
                                  (get-buffer-window-list))))
                        (current-buffer)))
 
-(defun dap-start-debugging-noexpand (launch-args)
-  "Start debug session with LAUNCH-ARGS.
-Special arguments:
-
-:wait-for-port - boolean defines whether the debug configuration
-should be started after the :port argument is taken.
-
-:program-to-start - when set it will be started using `compilation-start'
-before starting the debug process."
-  (-let* (((&plist :name :skip-debug-session :cwd :program-to-start
-                   :wait-for-port :type :request :port
-                   :startup-function :environment-variables :hostName host) launch-args)
-          (session-name (dap--calculate-unique-name name (dap--get-sessions)))
-          (default-directory (or cwd default-directory))
-          program-process)
-    (mapc (-lambda ((env . value)) (setenv env value)) environment-variables)
-    (plist-put launch-args :name session-name)
-
-    (when program-to-start
-      (setf program-process
-            (get-buffer-process
-             (compilation-start program-to-start 'dap-server-log-mode
-                                (lambda (_) (concat "*" session-name " server log*"))))))
-    (when wait-for-port
-      (dap--wait-for-port host port dap-connect-retry-count dap-connect-retry-interval))
-
-    (when startup-function (funcall startup-function launch-args))
-
-    (unless skip-debug-session
-      (let ((debug-session (dap--create-session launch-args)))
-        (setf (dap--debug-session-program-proc debug-session) program-process)
-        (dap--send-message
-         (dap--initialize-message type)
-         (dap--session-init-resp-handler
-          debug-session
-          (lambda (initialize-result)
-            (-let [debug-sessions (dap--get-sessions)]
-
-              (setf (dap--debug-session-initialize-result debug-session) initialize-result)
-
-              (dap--set-sessions (cons debug-session debug-sessions)))
-            (dap--send-message
-             (dap--make-request request (-> launch-args
-                                            (cl-copy-list)
-                                            (dap--plist-delete :cleanup-function)
-                                            (dap--plist-delete :startup-function)
-                                            (dap--plist-delete :dap-server-path)
-                                            (dap--plist-delete :environment-variables)
-                                            (dap--plist-delete :wait-for-port)
-                                            (dap--plist-delete :skip-debug-session)
-                                            (dap--plist-delete :program-to-start)))
-             (dap--session-init-resp-handler debug-session)
-             debug-session)))
-         debug-session)
-
-        (dap--set-cur-session debug-session)
-        (push (cons session-name launch-args) dap--debug-configuration)
-        (run-hook-with-args 'dap-session-created-hook debug-session)))))
-
 (declare-function dap-variables-expand "dap-variables" (plist))
 (defvar dap-variables-project-root-function)
 (defun dap-variables-expand-in-launch-configuration (conf)
@@ -1432,13 +1370,6 @@ before starting the debug process."
   (require 'dap-variables)
   (let ((dap-variables-project-root-function #'lsp-workspace-root))
     (dap-variables-expand conf)))
-
-(defun dap-start-debugging (conf)
-  "Like `dap-start-debugging-noexpand', but expand variables.
-CONF's variables are expanded before being passed to
-`dap-start-debugging'."
-  (dap-start-debugging-noexpand
-   (dap-variables-expand-in-launch-configuration conf)))
 
 (defun dap--set-breakpoints-in-file (file file-breakpoints)
   "Establish markers for FILE-BREAKPOINTS in FILE."
@@ -1452,7 +1383,7 @@ CONF's variables are expanded before being passed to
       (run-hooks 'dap-breakpoints-changed-hook))))
 
 (defun dap--read-from-file (file)
-  "Read FILE content."
+  "Read a lisp expression from FILE."
   (with-temp-buffer
     (insert-file-contents file)
     (cl-first (read-from-string
@@ -1640,6 +1571,72 @@ When the user invokes dap-debug, all of the functions in this
 list are called and their results (which must be lists) are
 concatenated. The user can then choose one of them from the
 resulting list.")
+
+(defun dap-start-debugging (conf)
+  "Like `dap-start-debugging-noexpand', but expand variables.
+CONF's variables are expanded before being passed to
+`dap-start-debugging'."
+  (dap-start-debugging-noexpand
+   (dap-variables-expand-in-launch-configuration conf)))
+
+(defun dap-start-debugging-noexpand (launch-args)
+  "Start debug session with LAUNCH-ARGS.
+Special arguments:
+
+:wait-for-port - boolean defines whether the debug configuration
+should be started after the :port argument is taken.
+
+:program-to-start - when set it will be started using `compilation-start'
+before starting the debug process."
+  (-let* (((&plist :name :skip-debug-session :cwd :program-to-start
+                   :wait-for-port :type :request :port
+                   :startup-function :environment-variables :hostName host) launch-args)
+          (session-name (dap--calculate-unique-name name (dap--get-sessions)))
+          (default-directory (or cwd default-directory))
+          program-process)
+    (mapc (-lambda ((env . value)) (setenv env value)) environment-variables)
+    (plist-put launch-args :name session-name)
+
+    (when program-to-start
+      (setf program-process
+            (get-buffer-process
+             (compilation-start program-to-start 'dap-server-log-mode
+                                (lambda (_) (concat "*" session-name " server log*"))))))
+    (when wait-for-port
+      (dap--wait-for-port host port dap-connect-retry-count dap-connect-retry-interval))
+
+    (when startup-function (funcall startup-function launch-args))
+
+    (unless skip-debug-session
+      (let ((debug-session (dap--create-session launch-args)))
+        (setf (dap--debug-session-program-proc debug-session) program-process)
+        (dap--send-message
+         (dap--initialize-message type)
+         (dap--session-init-resp-handler
+          debug-session
+          (lambda (initialize-result)
+            (-let [debug-sessions (dap--get-sessions)]
+
+              (setf (dap--debug-session-initialize-result debug-session) initialize-result)
+
+              (dap--set-sessions (cons debug-session debug-sessions)))
+            (dap--send-message
+             (dap--make-request request (-> launch-args
+                                            (cl-copy-list)
+                                            (dap--plist-delete :cleanup-function)
+                                            (dap--plist-delete :startup-function)
+                                            (dap--plist-delete :dap-server-path)
+                                            (dap--plist-delete :environment-variables)
+                                            (dap--plist-delete :wait-for-port)
+                                            (dap--plist-delete :skip-debug-session)
+                                            (dap--plist-delete :program-to-start)))
+             (dap--session-init-resp-handler debug-session)
+             debug-session)))
+         debug-session)
+
+        (dap--set-cur-session debug-session)
+        (push (cons session-name launch-args) dap--debug-configuration)
+        (run-hook-with-args 'dap-session-created-hook debug-session)))))
 
 ;;;###autoload
 (defun dap-debug (debug-args)
