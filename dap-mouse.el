@@ -133,8 +133,6 @@ If there is an active selection - return it."
       (bounds-of-thing-at-point 'symbol))))
 
 (defvar-local dap-tooltip-bounds nil)
-(defvar-local dap-tooltip--request 0)
-
 (defun dap-tooltip-post-tooltip ()
   "Clean tooltip properties."
 
@@ -175,10 +173,8 @@ The result is displayed in a `treemacs' `posframe'. POS,
 defaulting to `point', specifies where the cursor is and
 consequently where to show the `posframe'."
   (interactive)
-  (cl-incf dap-tooltip--request)
   (let ((debug-session (dap--cur-session))
-        (mouse-point (or pos (point)))
-        (request-id dap-tooltip--request))
+        (mouse-point (or pos (point))))
     (when (and (dap--session-running debug-session)
                mouse-point)
       (-when-let* ((active-frame-id (-some->> debug-session
@@ -196,21 +192,20 @@ consequently where to show the `posframe'."
          (dap--resp-handler
           (-lambda ((&hash "body" (&hash? "result"
                                           "variablesReference" variables-reference)))
-            (when (= request-id dap-tooltip--request)
-              (add-text-properties
-               start end '(mouse-face dap-mouse-eval-thing-face))
-              ;; Show a dead buffer so that the `posframe' size is consistent.
-              (when (get-buffer dap-mouse-buffer)
-                (kill-buffer dap-mouse-buffer))
-              (unless (and (zerop variables-reference) (string-empty-p result))
-                (apply #'posframe-show dap-mouse-buffer
-                       :position start
-                       :accept-focus t
-                       dap-mouse-posframe-properties)
-                (with-current-buffer (get-buffer-create dap-mouse-buffer)
-                  (dap-ui-render-value debug-session expression
-                                       result variables-reference)))
-              (add-hook 'post-command-hook 'dap-tooltip-post-tooltip)))
+            (add-text-properties
+             start end '(mouse-face dap-mouse-eval-thing-face))
+            ;; Show a dead buffer so that the `posframe' size is consistent.
+            (when (get-buffer dap-mouse-buffer)
+              (kill-buffer dap-mouse-buffer))
+            (unless (and (zerop variables-reference) (string-empty-p result))
+              (apply #'posframe-show dap-mouse-buffer
+                     :position start
+                     :accept-focus t
+                     dap-mouse-posframe-properties)
+              (with-current-buffer (get-buffer-create dap-mouse-buffer)
+                (dap-ui-render-value debug-session expression
+                                     result variables-reference)))
+            (add-hook 'post-command-hook 'dap-tooltip-post-tooltip))
           ;; TODO: hover failure will yield weird errors involving process
           ;; filters, so I resorted to this hack; we should proably do proper
           ;; error handling, with a whitelist of allowable errors.
