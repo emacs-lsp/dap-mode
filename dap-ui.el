@@ -863,7 +863,9 @@ request."
 (defun dap-ui-eval-variable-in-buffer ()
   "Evaluate the symbol at point in a new buffer."
   (interactive)
-  (dap-ui-eval-in-buffer (thing-at-point 'symbol)))
+  (if-let ((sym (thing-at-point 'symbol)))
+      (dap-ui-eval-in-buffer sym)
+    (user-error "`dap-ui-eval-variable-in-buffer': no symbol at point")))
 
 (defvar dap-ui--locals-timer nil)
 
