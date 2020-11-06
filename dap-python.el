@@ -175,7 +175,12 @@ strings, for the sake of launch.json feature parity."
                       (buffer-file-name)))
          (module (plist-get conf :module))
          (debugger (plist-get conf :debugger)))
+    ;; These are `dap-python'-specific and always ignored.
     (cl-remf conf :debugger)
+    (cl-remf conf :target-module)
+
+    ;; Ignored by ptsvd and set explicitly for debugpy.
+    (cl-remf conf :program)
     (pcase (or debugger dap-python-debugger)
       ((or 'ptvsd "ptvsd")
        (let ((host "localhost")
@@ -184,40 +189,46 @@ strings, for the sake of launch.json feature parity."
          ;; a list, so it will be mapconcat'ed, yielding the empty string.
          (when (sequencep python-args)
            (setq python-args (mapconcat #'shell-quote-argument python-args " ")))
+         ;; ignored by ptsvd anyway
+         (cl-remf conf :module)
+         (cl-remf conf :args)
          (plist-put conf :program-to-start
-                    (format "%s%s -m ptvsd --wait --host %s --port %s%s %s %s"
+                    (format "%s%s -m ptvsd --wait --host %s --port %s%s %s%s"
                             (or dap-python-terminal "")
                             (shell-quote-argument python-executable)
                             host
                             debug-port
                             (if module (concat " -m " (shell-quote-argument module)) "")
-                            (shell-quote-argument program)
-                            python-args))
+                            (if program (shell-quote-argument program) "")
+                            (if (not (string-empty-p python-args)) (concat " " python-args) "")))
          (plist-put conf :debugServer debug-port)
          (plist-put conf :port debug-port)
          (plist-put conf :hostName host)
          (plist-put conf :host host)))
       ((or 'debugpy "debugpy")
+       (cond ((stringp python-args)
+              (cl-callf split-string-and-unquote python-args))
+             ;; If both :module and :program are specified, we'll need to push
+             ;; :program to PYTHON-ARGS instead, to behave like ptvsd. This is
+             ;; needed for the debug-test-at-point functionality.
+             ((and (vectorp python-args) module program)
+              (cl-callf cl-coerce python-args 'list)))
+
        ;; If certain properties are nil, issues will arise, as debugpy expects
        ;; them to unspecified instead. Some templates in this file set such
        ;; properties (e.g. :module) to nil instead of leaving them undefined. To
        ;; support them, sanitize CONF before passing it on.
-       (when (or (null python-args) (stringp python-args))
-         (cl-remf conf :args))
-       (when (stringp python-args)
-         (let ((args (split-string-and-unquote python-args)))
-           (if args
-               (plist-put conf :args args)
-             ;; :args "" -> :args nil -> {"args": null}; to handle that edge
-             ;; case, use the empty vector instead.
-             (plist-put conf :args []))))
-       (cl-remf conf :target-module)
-       (cl-remf conf :program)
        (when program
-         (plist-put conf :program program))
+         (if module
+             (push program python-args)
+           (plist-put conf :program program)))
+
+       (cl-remf conf :args)
+       (plist-put conf :args (or python-args []))
 
        (unless module
          (cl-remf conf :module))
+
        (unless (plist-get conf :cwd)
          (cl-remf conf :cwd))
 
@@ -226,20 +237,10 @@ strings, for the sake of launch.json feature parity."
       (_ (error "`dap-python': unknown :debugger type %S" debugger)))
     conf))
 
-(defun dap-python--normalize-args (args)
-  "Convert ARGS to a `list' of arguments.
-ARGS may be a string, a vector or a list."
-  (cl-typecase args
-    (string (split-string-and-unquote args))
-    (vector (cl-coerce args 'list))
-    (t args)))
-
 (defun dap-python--populate-test-at-point (conf)
   "Populate CONF with the required arguments."
   (if-let ((test (dap-python--test-at-point)))
-      (let ((args (dap-python--normalize-args (plist-get conf :args))))
-        (cl-remf conf :args)
-        (plist-put conf :args (cons (concat (buffer-file-name) test) args)))
+      (plist-put conf :program test)
     (user-error "`dap-python': no test at point"))
   (plist-put conf :cwd (lsp-workspace-root))
 
@@ -268,6 +269,7 @@ ARGS may be a string, a vector or a list."
 (dap-register-debug-template "Python :: Run pytest (at point)"
                              (list :type "python-test-at-point"
                                    :args ""
+                                   :program nil
                                    :module "pytest"
                                    :request "launch"
                                    :name "Python :: Run pytest (at point)"))
