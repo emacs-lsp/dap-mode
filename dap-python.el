@@ -240,7 +240,7 @@ strings, for the sake of launch.json feature parity."
 (defun dap-python--populate-test-at-point (conf)
   "Populate CONF with the required arguments."
   (if-let ((test (dap-python--test-at-point)))
-      (plist-put conf :program test)
+      (plist-put conf :program (concat (buffer-file-name) test))
     (user-error "`dap-python': no test at point"))
   (plist-put conf :cwd (lsp-workspace-root))
 
