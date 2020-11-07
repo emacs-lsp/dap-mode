@@ -126,12 +126,13 @@ CONF - the startup configuration."
 Populate the arguments like normal 'Launch' request but then
 initiate `compile' and attach to the process."
   (dap-java--populate-launch-args conf)
-  (-let* (((&plist :mainClass :projectName :classPaths classpaths) conf)
+  (-let* (((&plist :mainClass :projectName :args :classPaths classpaths) conf)
           (port   (dap--find-available-port "localhost" dap-java-compile-port))
-          (program-to-start (format "%s -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=%s,quiet=y -cp $CLASSPATH_ARGS %s"
+          (program-to-start (format "%s -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=%s,quiet=y -cp $CLASSPATH_ARGS %s %s"
                                     lsp-java-java-path
                                     port
-                                    mainClass)))
+                                    mainClass
+                                    args)))
     (dap-java--populate-attach-args
      (list :type "java"
            :request "attach"
