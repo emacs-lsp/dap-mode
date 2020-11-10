@@ -132,7 +132,7 @@ If there is an active selection - return it."
       (goto-char point)
       (bounds-of-thing-at-point 'symbol))))
 
-(defvar-local dap-tooltip-bounds nil)
+(defvar-local dap--tooltip-overlay nil)
 (defun dap-tooltip-post-tooltip ()
   "Clean tooltip properties."
 
@@ -146,24 +146,21 @@ If there is an active selection - return it."
       (lambda ()
         (when (dap-mouse--hide-popup?)
           (posframe-hide dap-mouse-buffer)
-          (when dap-tooltip-bounds
-            (remove-text-properties (car dap-tooltip-bounds)
-                                    (cdr dap-tooltip-bounds)
-                                    '(mouse-face))
+          (when dap--tooltip-overlay
+            (delete-overlay dap--tooltip-overlay)
             ;; restore the selection
             (when (region-active-p)
-              (let ((bounds dap-tooltip-bounds))
+              (let ((start (overlay-start dap--tooltip-overlay))
+                    (end (overlay-end dap--tooltip-overlay)))
                 (run-with-idle-timer
                  0.0
                  nil
                  (lambda ()
                    (let ((point (point)))
-                     (push-mark (car bounds) t t)
-                     (goto-char (cdr bounds))
+                     (push-mark start t t)
+                     (goto-char end)
                      (unless (= point (point))
-                       (exchange-point-and-mark)))))))
-            (setq dap-tooltip-bounds nil))
-
+                       (exchange-point-and-mark))))))))
           (setq dap-mouse--hide-timer nil)
           (remove-hook 'post-command-hook #'dap-tooltip-post-tooltip)))))))
 
@@ -183,7 +180,6 @@ consequently where to show the `posframe'."
                    (bounds (dap-tooltip-thing-bounds mouse-point))
                    ((start . end) bounds)
                    (expression (s-trim (buffer-substring start end))))
-        (setq dap-tooltip-bounds bounds)
         (dap--send-message
          (dap--make-request "evaluate"
                             (list :expression expression
@@ -192,8 +188,9 @@ consequently where to show the `posframe'."
          (dap--resp-handler
           (-lambda ((&hash "body" (&hash? "result"
                                           "variablesReference" variables-reference)))
-            (add-text-properties
-             start end '(mouse-face dap-mouse-eval-thing-face))
+            (setq dap--tooltip-overlay
+                  (-doto (make-overlay start end)
+                    (overlay-put 'mouse-face 'dap-mouse-eval-thing-face)))
             ;; Show a dead buffer so that the `posframe' size is consistent.
             (when (get-buffer dap-mouse-buffer)
               (kill-buffer dap-mouse-buffer))
