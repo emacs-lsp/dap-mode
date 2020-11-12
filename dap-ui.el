@@ -1086,14 +1086,14 @@ request."
   (dap-breakpoint-log-message file-name breakpoint))
 
 (defun dap-ui--breakpoints-data ()
-  (-let (((debug-session &as &dap-session 'launch-args 'initialize-result 'breakpoints all-session-breakpoints)
+  (-let (((debug-session &as &dap-session 'launch-args 'current-capabilities 'breakpoints all-session-breakpoints)
           (or (dap--cur-session)
               (make-dap--debug-session)))
          (lsp-file-truename-cache (ht)))
     (lsp-with-cached-filetrue-name
      (append
       (when (dap--session-running debug-session)
-        (-some->> initialize-result
+        (-some->> current-capabilities
           (gethash "body")
           (gethash "exceptionBreakpointFilters")
           (-map (-lambda ((&hash "label" "filter" "default"))

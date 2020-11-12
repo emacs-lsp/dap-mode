@@ -278,8 +278,8 @@ locations."
   (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
   ;; the arguments that were used to start the debug session.
   (launch-args nil)
-  ;; The result of initialize request. It holds the server capabilities.
-  (initialize-result nil)
+  ;; Currently-available server capabilities
+  (current-capabilities nil)
   (error-message nil)
   (loaded-sources nil)
   (program-proc)
@@ -1231,11 +1231,11 @@ DEBUG-SESSION is the active debug session."
              #'equal))
 
 (defun dap--set-exception-breakpoints (debug-session callback)
-  (-let [(&dap-session 'initialize-result 'launch-args (&plist :type)) debug-session]
+  (-let [(&dap-session 'current-capabilities 'launch-args (&plist :type)) debug-session]
     (dap--send-message
      (dap--make-request "setExceptionBreakpoints"
                         (list :filters
-                              (or (-some->> initialize-result
+                              (or (-some->> current-capabilities
                                     (gethash "body")
                                     (gethash "exceptionBreakpointFilters")
                                     (-keep (-lambda ((&hash "default" "filter"))
@@ -1618,10 +1618,10 @@ before starting the debug process."
          (dap--initialize-message type)
          (dap--session-init-resp-handler
           debug-session
-          (lambda (initialize-result)
+          (lambda (current-capabilities )
             (-let [debug-sessions (dap--get-sessions)]
 
-              (setf (dap--debug-session-initialize-result debug-session) initialize-result)
+              (setf (dap--debug-session-current-capabilities debug-session) current-capabilities)
 
               (dap--set-sessions (cons debug-session debug-sessions)))
             (dap--send-message
