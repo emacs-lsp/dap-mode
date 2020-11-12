@@ -1094,7 +1094,6 @@ request."
      (append
       (when (dap--session-running debug-session)
         (-some->> current-capabilities
-          (gethash "body")
           (gethash "exceptionBreakpointFilters")
           (-map (-lambda ((&hash "label" "filter" "default"))
                   (list :label (propertize
