@@ -355,16 +355,17 @@ DEBUG-SESSION is the debug session triggering the event."
 
 (defun dap-ui--show-buffer (buf)
   "Show BUF according to defined rules."
-  (when-let (win (display-buffer-in-side-window buf
-                                                (or (-> buf
-                                                        buffer-name
-                                                        (assoc dap-ui-buffer-configurations)
-                                                        cl-rest)
-                                                    '((side . right)
-                                                      (slot . 1)
-                                                      (window-width . 0.20)))))
-    (set-window-dedicated-p win t)
-    (select-window win)))
+  (with-selected-frame (dap--debug-session-ui-display-frame (dap--cur-session))
+    (when-let (win (display-buffer-in-side-window buf
+                                                  (or (-> buf
+                                                          buffer-name
+                                                          (assoc dap-ui-buffer-configurations)
+                                                          cl-rest)
+                                                      '((side . right)
+                                                        (slot . 1)
+                                                        (window-width . 0.20)))))
+      (set-window-dedicated-p win t)
+      (select-window win))))
 
 
 ;; breakpoints

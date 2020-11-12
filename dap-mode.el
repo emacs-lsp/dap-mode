@@ -264,6 +264,7 @@ The hook will be called with the session file and the new set of breakpoint loca
   (workspace nil)
   (threads nil)
   (thread-states (make-hash-table :test 'eql) :read-only t)
+  (ui-display-frame nil)
   (active-frame-id nil)
   (active-frame nil)
   (cursor-marker nil)
@@ -1457,7 +1458,8 @@ DEBUG-SESSIONS - list of the currently active sessions."
       (--each (dap--buffer-list) (with-current-buffer it
                                    (->> breakpoints
                                         (gethash buffer-file-name)
-                                        (dap--set-breakpoints-in-file buffer-file-name))))))
+                                        (dap--set-breakpoints-in-file buffer-file-name)))))
+    (setf (dap--debug-session-ui-display-frame new-session) (selected-frame)))
 
   (run-hook-with-args 'dap-session-changed-hook lsp--cur-workspace)
 
@@ -1599,6 +1601,7 @@ before starting the debug process."
     (unless skip-debug-session
       (let ((debug-session (dap--create-session launch-args)))
         (setf (dap--debug-session-program-proc debug-session) program-process)
+        (setf (dap--debug-session-ui-display-frame debug-session) (selected-frame))
         (dap--send-message
          (dap--initialize-message type)
          (dap--session-init-resp-handler
