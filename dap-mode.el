@@ -1493,10 +1493,19 @@ arguments which contain the debug port to use for opening TCP connection."
 (defun dap-register-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
 
-CONFIGURATION-SETTINGS - plist containing the preset settings for the configuration."
+CONFIGURATION-SETTINGS is a plist containing the preset settings
+for the configuration. If its :name is omitted, it defaults to
+CONFIGURATION-NAME."
   (setq dap-debug-template-configurations
         (delq (assoc configuration-name dap-debug-template-configurations)
               dap-debug-template-configurations))
+  ;; Use `plist-member' instead of just `plist-get', because :name would
+  ;; possibly not be properly removed in `dap-start-debugging-noexpand' due to
+  ;; being specified twice (the inferred name, followed by nil).
+  (unless (plist-member configuration-settings :name)
+    ;; We mustn't modify CONFIGURATION-SETTINGS; `push' is non-destructive.
+    (push configuration-name configuration-settings)
+    (push :name configuration-settings))
   (add-to-list
    'dap-debug-template-configurations
    (cons configuration-name configuration-settings)))
