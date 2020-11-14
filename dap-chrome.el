@@ -50,7 +50,7 @@
   (setq conf (-> conf
                  (plist-put :type "chrome")
                  (plist-put :dap-server-path dap-chrome-debug-program)
-                 (dap--put-if-absent :cwd default-directory)))
+                 (dap--put-if-absent :cwd (expand-file-name default-directory))))
   (dap--plist-delete
    (pcase (plist-get conf :mode)
      ("url" (-> conf
