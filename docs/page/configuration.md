@@ -1,9 +1,16 @@
 Configuration
 ===============
 
+After [installing
+`dap-mode`](https://github.com/emacs-lsp/dap-mode#Install), you may
+need to install a DAP compliant debugger.  `dap-mode` will need to be
+configured to connect with it.  This most easily done with
+`dap-auto-configure-mode`.
+
 ## DAP mode configuration
 
-For an auto-configuration enable the `dap-auto-configure-mode`. You can configure which features from `dap-mode` do you want with `dap-auto-configure-features`:
+
+You can configure which features from `dap-mode` do you want with `dap-auto-configure-features`:
 
 ```elisp
 ;; Enabling only some features
