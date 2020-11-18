@@ -1595,7 +1595,7 @@ before starting the debug process."
                                    (cl-copy-list process-environment)
                                  process-environment))
           program-process)
-    (mapc (-lambda ((env . value)) (setenv env value)) environment-variables)
+    (mapc (-lambda ((env . value)) (setenv env value t)) environment-variables)
     (plist-put launch-args :name session-name)
 
     (when program-to-start
