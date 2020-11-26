@@ -1590,7 +1590,8 @@ before starting the debug process."
                    :wait-for-port :type :request :port
                    :startup-function :environment-variables :hostName host) launch-args)
           (session-name (dap--calculate-unique-name name (dap--get-sessions)))
-          (default-directory (or cwd default-directory))
+          (default-directory (or (and cwd (expand-file-name cwd))
+                                 default-directory))
           (process-environment (if environment-variables
                                    (cl-copy-list process-environment)
                                  process-environment))
