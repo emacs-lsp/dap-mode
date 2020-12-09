@@ -240,6 +240,19 @@ Using <https://github.com/WebFreak001/code-debug>
 
     Then do `dap-debug` or `dap-debug-edit-template` and selet GBD or
     LLDB configuration.
+    
+### Rust
+To fully support rust and pretty printing of strings when debugging, remember to add set `gdbpath` to `rust-gdb` in your debug template. An example template would be
+
+```elisp
+(dap-register-debug-template "Rust::GDB Run Configuration"
+                             (list :type "gdb"
+                                   :request "launch"
+                                   :name "GDB::Run"
+                		   :gdbpath "rust-gdb"
+                                   :target nil
+                                   :cwd nil))
+```
 
 ## Go
 
