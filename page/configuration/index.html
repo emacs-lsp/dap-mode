@@ -390,6 +390,19 @@
     Native Debug (GDB/LLDB)
   </a>
   
+    <nav class="md-nav" aria-label="Native Debug (GDB/LLDB)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rust" class="md-nav__link">
+    Rust
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -687,6 +700,19 @@
     Native Debug (GDB/LLDB)
   </a>
   
+    <nav class="md-nav" aria-label="Native Debug (GDB/LLDB)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rust" class="md-nav__link">
+    Rust
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -983,6 +1009,17 @@ location).</p>
 LLDB configuration.</p>
 </li>
 </ol>
+<h3 id="rust">Rust<a class="headerlink" href="#rust" title="Permanent link">#</a></h3>
+<p>To fully support rust and pretty printing of strings when debugging, remember to add set <code>gdbpath</code> to <code>rust-gdb</code> in your debug template. An example template would be</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-register-debug-template</span> <span class="s">&quot;Rust::GDB Run Configuration&quot;</span>
+                             <span class="p">(</span><span class="nf">list</span> <span class="nb">:type</span> <span class="s">&quot;gdb&quot;</span>
+                                   <span class="nb">:request</span> <span class="s">&quot;launch&quot;</span>
+                                   <span class="nb">:name</span> <span class="s">&quot;GDB::Run&quot;</span>
+                           <span class="nb">:gdbpath</span> <span class="s">&quot;rust-gdb&quot;</span>
+                                   <span class="nb">:target</span> <span class="no">nil</span>
+                                   <span class="nb">:cwd</span> <span class="no">nil</span><span class="p">))</span>
+</code></pre></div>
+
 <h2 id="go">Go<a class="headerlink" href="#go" title="Permanent link">#</a></h2>
 <ol>
 <li>
@@ -1215,7 +1252,7 @@ Debugging</a>.</p>
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 18, 2020</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 9, 2020</span>
     
   </small>
 </div>
