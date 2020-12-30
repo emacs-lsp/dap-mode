@@ -1547,7 +1547,7 @@ SLEEP-INTERVAL is the sleep interval between each retry."
   "Select the configuration to launch.
 If ORIGIN is t, return the original configuration without prepopulation"
   (let ((debug-args (-> (dap--completing-read "Select configuration template: "
-                                              dap-debug-template-configurations
+                                              (dap--get-configurations)
                                               'cl-first nil t)
                         cl-rest
                         copy-tree)))
@@ -1639,6 +1639,12 @@ before starting the debug process."
         (push (cons session-name launch-args) dap--debug-configuration)
         (run-hook-with-args 'dap-session-created-hook debug-session)))))
 
+(defun dap--get-configurations ()
+  "Get a list of launch configurations.
+Configurations are acquired from
+`dap-launch-configuration-providers', which see."
+  (-mapcat #'funcall dap-launch-configuration-providers))
+
 ;;;###autoload
 (defun dap-debug (debug-args)
   "Run debug configuration DEBUG-ARGS.
@@ -1646,7 +1652,7 @@ before starting the debug process."
 If DEBUG-ARGS is not specified the configuration is generated
 after selecting configuration template."
   (interactive (list (-> (dap--completing-read "Select configuration template: "
-                                               (-mapcat #'funcall dap-launch-configuration-providers)
+                                               (dap--get-configurations)
                                                'cl-first nil t)
                          cl-rest
                          copy-tree)))
