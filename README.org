@@ -2,6 +2,7 @@
 [[https://stable.melpa.org/#/dap-mode][file:https://stable.melpa.org/packages/dap-mode-badge.svg]]
 [[http://spacemacs.org][file:https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg]]
 [[https://github.com/emacs-lsp/dap-mode/actions][file:https://github.com/emacs-lsp/dap-mode/workflows/CI/badge.svg]]
+[[https://discord.gg/swuxy5AAgT][file:https://discordapp.com/api/guilds/789885435026604033/widget.png?style=shield]]
 
 * dap-mode
 ** Table of Contents :TOC_4_gh:noexport:
