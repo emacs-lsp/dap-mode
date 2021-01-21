@@ -1,4 +1,4 @@
-.PHONY: all build unix-compile windows-compile clean test
+.PHONY: all build unix-compile windows-compile clean unix-test windows-test
 
 EMACS ?= emacs
 CASK ?= cask
@@ -12,6 +12,10 @@ DAP-CLIENTS := dap-chrome.el dap-cpptools.el dap-edge.el		\
 		dap-elixir.el dap-firefox.el dap-gdb-lldb.el		\
 		dap-go.el dap-lldb.el dap-netcore.el dap-node.el	\
 		dap-php.el dap-pwsh.el dap-python.el dap-ruby.el
+
+TEST-FILES := test/windows-bootstrap.el $(shell ls test/dap-*.el)
+LOAD-FILE = -l $(test-file)
+LOAD-TEST-FILES := $(foreach test-file, $(TEST-FILES), $(LOAD-FILE))
 
 all:
 	$(CASK) build
@@ -33,13 +37,21 @@ windows-compile:
 	--eval '(setq treemacs-no-load-time-warnings t)' \
 	-f batch-byte-compile $(DAP-GENERAL) $(DAP-CLIENTS)
 
-unix-ci: clean build unix-compile test
+unix-ci: clean build unix-compile unix-test
 
 windows-ci: CASK=
-windows-ci: clean windows-compile test
+windows-ci: clean windows-compile windows-test
 
 clean:
 	rm -rf .cask *.elc
 
-test:
+unix-test:
 	$(CASK) exec ert-runner -L .
+
+windows-test:
+	@$(EMACS) -Q --batch \
+		-l test/windows-bootstrap.el \
+		-L . \
+		$(LOAD-TEST-FILES) \
+		--eval "(ert-run-tests-batch-and-exit \
+		'(and (not (tag no-win)) (not (tag org))))"
