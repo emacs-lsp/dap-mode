@@ -34,7 +34,7 @@ windows-compile:
 	-f batch-byte-compile $(DAP-GENERAL) $(DAP-CLIENTS)
 
 unix-ci: clean build unix-compile test
-windows-ci: clean build windows-compile test
+windows-ci: clean windows-compile test
 
 clean:
 	rm -rf .cask *.elc
