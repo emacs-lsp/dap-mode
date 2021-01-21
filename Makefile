@@ -1,10 +1,10 @@
-.PHONY: all build byte-compile clean test
+.PHONY: all build unix-compile windows-compile clean test
 
 EMACS ?= emacs
 CASK ?= cask
 
 DAP-GENERAL := dap-launch.el dap-overlays.el dap-variables.el	\
-		dap-mode.el dapui.el dap-ui.el dap-mouse.el	\
+		dap-mode.el dapui.el dap-ui.el dap-mouse.el \
 		dap-hydra.el dap-utils.el
 
 # TODO: make a clients/ directory and update melpa recipe
@@ -20,12 +20,21 @@ build:
 	$(CASK) install
 
 # NOTE: treemacs also sets treemacs-no-load-time-warnings to t in its Makefile, so I guess it's OK?
-byte-compile:
-	@$(CASK) $(EMACS) -Q --batch -L . \
+unix-compile:
+	@$(CASK) $(EMACS) -Q --batch \
+	-L . \
 	--eval '(setq treemacs-no-load-time-warnings t)' \
 	-f batch-byte-compile $(DAP-GENERAL) $(DAP-CLIENTS)
 
-ci: clean build byte-compile test
+windows-compile:
+	@$(CASK) $(EMACS) -Q --batch \
+	-l test/windows-bootstrap.el \
+	-L . \
+	--eval '(setq treemacs-no-load-time-warnings t)' \
+	-f batch-byte-compile $(DAP-GENERAL) $(DAP-CLIENTS)
+
+unix-ci: clean build unix-compile test
+windows-ci: clean build windows-compile test
 
 clean:
 	rm -rf .cask *.elc
