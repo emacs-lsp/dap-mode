@@ -40,7 +40,7 @@ jobs:
           - 27.1
           - snapshot
 
-    steps: 
+    steps:
       - uses: actions/checkout@v2
 
       - uses: jcs090218/setup-emacs-windows@master

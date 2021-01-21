@@ -30,7 +30,7 @@
                                          user-emacs-directory))
 
 (let* ((package-archives '(("melpa" . "https://melpa.org/packages/")
-                           ("gnu" . "https://elpa.gnu.org/packages/")))
+                           ("gnu" . "http://elpa.gnu.org/packages/")))
        (pkgs (append '(dash lsp-mode dash-functional bui f s lsp-treemacs posframe)
                      '(ecukes espuds undercover ert-runner))))
   (package-initialize)
