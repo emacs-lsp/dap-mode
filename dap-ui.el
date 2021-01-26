@@ -152,7 +152,8 @@ number - expand N levels."
   :group 'dap-ui)
 
 (defcustom  dap-ui-default-fetch-count 30
-  "Default number of variables to load in inspect variables view for array variables."
+  "Default number of variables to load in inspect variables view for
+array variables."
   :group 'dap-ui
   :type 'number)
 
@@ -770,7 +771,8 @@ DEBUG-SESSION is the debug session triggering the event."
 ;; locals
 
 (defcustom dap-ui-variable-length 30
-  "Default number of variables to load in inspect variables view for array variables."
+  "Default number of variables to load in inspect variables view for
+array variables."
   :group 'dap-ui
   :type 'number)
 
