@@ -1727,7 +1727,7 @@ normally with `dap-debug'"
               `((side . bottom) (slot . 5) (window-width . 0.20)))))
     (set-window-dedicated-p win t)
     (unless no-select (select-window win))
-    (fit-window-to-buffer nil dap-output-window-max-height dap-output-window-min-height)))
+    (fit-window-to-buffer win dap-output-window-max-height dap-output-window-min-height)))
 
 (defun dap-delete-session (debug-session)
   "Remove DEBUG-SESSION.
