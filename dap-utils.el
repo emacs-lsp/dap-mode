@@ -160,7 +160,6 @@ PATH is the location of directory that contains the dir named after the version.
        (defun ,(intern (format "%s-update" dapfile)) ()
 	 ,help-string
 	 (interactive)
-	 (message "Installed version is %s" ,installed-version)
 	 (unless ,installed-version
 	   (message "Debug extension not installed, run M-x %s-setup to install it"
 		    ,dapfile))
