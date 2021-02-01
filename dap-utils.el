@@ -142,8 +142,7 @@ With prefix, FORCED to redownload the extension." extension-name)))
 PUBLISHER is the vscode extension publisher.
 NAME is the vscode extension name.
 VERSION is the version to update to
-PATH is the location of directory that contains the dir named after the version. ex: ~/.emacs.d/.extention/vscond/foo.bar/ and should never contains x.x.* in it
-"
+PATH is the location of directory that contains the dir named after the version. ex: ~/.emacs.d/.extention/vscond/foo.bar/ and should never contains the version number in it"
   (let* ((extension-name (concat publisher "." name))
 	 (dest (or path
 		   (f-join dap-utils-extension-path
