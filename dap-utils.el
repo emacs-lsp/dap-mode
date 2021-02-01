@@ -137,5 +137,37 @@ With prefix, FORCED to redownload the extension." extension-name)))
          (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
                   ,dapfile ,extension-name ,dapfile)))))
 
+(defmacro dap-utils-vscode-update-function (dapfile publisher name version &optional path callback)
+  "Helper to create DAPFILE update function for vscode debug extension.
+PUBLISHER is the vscode extension publisher.
+NAME is the vscode extension name.
+VERSION is the version to update to
+PATH is the location of directory that contains the dir named after the version. ex: ~/.emacs.d/.extention/vscond/foo.bar/ and should never contains x.x.* in it
+"
+  (let* ((extension-name (concat publisher "." name))
+	 (dest (or path
+		   (f-join dap-utils-extension-path
+			   "vscode"
+			   extension-name)))
+	 (help-string (format "Updating %s to version %s"
+			      name
+			      version))
+	 (installed-version (car (directory-files dest
+						  nil
+						  "[[:digit:]]"
+						  t))))
+    `(progn
+       (defun ,(intern (format "%s-update" dapfile)) ()
+	 ,help-string
+	 (interactive)
+	 (message "Installed version is %s" ,installed-version)
+	 (unless ,installed-version
+	   (message "Debug extension not installed, run M-x %s-setup to install it"
+		    ,dapfile))
+	 (if (string= ,version ,installed-version)
+	     (message "You are already up to date.")
+	   (message "Installing version %s" ,version)
+	   (message "Version %s installed." ,version))))))
+
 (provide 'dap-utils)
 ;;; dap-utils.el ends here
