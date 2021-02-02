@@ -142,22 +142,27 @@ With prefix, FORCED to redownload the extension." extension-name)))
 PUBLISHER is the vscode extension publisher.
 NAME is the vscode extension name.
 VERSION is the version to update to
-PATH is the location of directory that contains the debugger"
+PATH is the location of directory that contains the debugger. It shoul end with the version number"
   (let* ((extension-name (concat publisher "." name))
-	 (dest (or path
-		   (f-join dap-utils-extension-path
+	 (constructed-path (f-join dap-utils-extension-path
 			   "vscode"
-			   extension-name)))
+			   extension-name))
+	 (dest (or path constructed-path))
 	 (help-string (format "Updating %s to version %s"
 			      name
-			      version))
-	 (installed-version (car (directory-files path nil "[[:digit:]]" t))))
+			      version)))
     `(progn
        (defun ,(intern (format "%s-update" dapfile)) ()
 	 ,help-string
 	 (interactive)
-	 (if ,installed-version
-	     (if (string= ,version ,installed-version)
+	 (setq installed-version (if ,path
+				     (f-filename ,path)
+				   (car (directory-files ,constructed-path
+							   nil
+							   "[[:digit:]]"
+							   t))))
+	 (if installed-version
+	     (if (string= ,version installed-version)
 		 (message "You are already up to date.")
 	       (message "Installing version %s" ,version)
 	       (dap-utils-get-vscode-extension ,publisher ,name ,version ,dest)
