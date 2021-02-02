@@ -142,7 +142,7 @@ With prefix, FORCED to redownload the extension." extension-name)))
 PUBLISHER is the vscode extension publisher.
 NAME is the vscode extension name.
 VERSION is the version to update to
-PATH is the location of directory that contains the dir named after the version. ex: ~/.emacs.d/.extention/vscond/foo.bar/ and should never contains the version number in it"
+PATH is the location of directory that contains the debugger"
   (let* ((extension-name (concat publisher "." name))
 	 (dest (or path
 		   (f-join dap-utils-extension-path
@@ -151,21 +151,19 @@ PATH is the location of directory that contains the dir named after the version.
 	 (help-string (format "Updating %s to version %s"
 			      name
 			      version))
-	 (installed-version (car (directory-files dest
-						  nil
-						  "[[:digit:]]"
-						  t))))
+	 (installed-version (car (directory-files path nil "[[:digit:]]" t))))
     `(progn
        (defun ,(intern (format "%s-update" dapfile)) ()
 	 ,help-string
 	 (interactive)
-	 (unless ,installed-version
-	   (message "Debug extension not installed, run M-x %s-setup to install it"
-		    ,dapfile))
-	 (if (string= ,version ,installed-version)
-	     (message "You are already up to date.")
-	   (message "Installing version %s" ,version)
-	   (message "Version %s installed." ,version))))))
+	 (if ,installed-version
+	     (if (string= ,version ,installed-version)
+		 (message "You are already up to date.")
+	       (message "Installing version %s" ,version)
+	       (dap-utils-get-vscode-extension ,publisher ,name ,version ,dest)
+	       (message "Version %s installed." ,version))
+	   (message "Debug extension not installed, run M-x %s-setup to install V%s"
+		    ,dapfile ,version))))))
 
 (provide 'dap-utils)
 ;;; dap-utils.el ends here
