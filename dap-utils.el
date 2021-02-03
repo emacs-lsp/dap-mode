@@ -167,8 +167,11 @@ PATH is the location of directory that contains the debugger. It shoul end with 
 	       (message "Installing version %s" ,version)
 	       (dap-utils-get-vscode-extension ,publisher ,name ,version ,dest)
 	       (message "Version %s installed." ,version))
+	       (delete-directory (f-join ,constructed-path installed-version) t t)
+	       (message "Deleting version %s", installed-version)
 	   (message "Debug extension not installed, run M-x %s-setup to install V%s"
-		    ,dapfile ,version))))))
+		    ,dapfile
+		    ,version))))))
 
 (provide 'dap-utils)
 ;;; dap-utils.el ends here
