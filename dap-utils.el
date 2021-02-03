@@ -155,12 +155,10 @@ PATH is the location of directory that contains the debugger. It shoul end with 
        (defun ,(intern (format "%s-update" dapfile)) ()
 	 ,help-string
 	 (interactive)
-	 (setq installed-version (if ,path
-				     (f-filename ,path)
-				   (car (directory-files ,constructed-path
+	 (setq installed-version (car (directory-files ,constructed-path
 							   nil
 							   "[[:digit:]]"
-							   t))))
+							   t)))
 	 (if installed-version
 	     (if (string= ,version installed-version)
 		 (message "You are already up to date.")
