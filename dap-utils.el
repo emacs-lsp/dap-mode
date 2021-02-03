@@ -142,7 +142,7 @@ With prefix, FORCED to redownload the extension." extension-name)))
 PUBLISHER is the vscode extension publisher.
 NAME is the vscode extension name.
 VERSION is the version to update to
-PATH is the location of directory that contains the debugger. It shoul end with the version number"
+PATH is the download destination dir.
   (let* ((extension-name (concat publisher "." name))
 	 (constructed-path (f-join dap-utils-extension-path
 			   "vscode"
