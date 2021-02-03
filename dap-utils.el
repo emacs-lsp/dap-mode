@@ -137,7 +137,7 @@ With prefix, FORCED to redownload the extension." extension-name)))
          (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
                   ,dapfile ,extension-name ,dapfile)))))
 
-(defmacro dap-utils-vscode-update-function (dapfile publisher name version &optional path)
+(defmacro dap-utils-vscode-update-function (dapfile publisher name version &optional path callback)
   "Helper to create DAPFILE update function for vscode debug extension.
 PUBLISHER is the vscode extension publisher.
 NAME is the vscode extension name.
@@ -171,7 +171,9 @@ PATH is the location of directory that contains the debugger. It shoul end with 
 	       (message "Deleting version %s", installed-version)
 	   (message "Debug extension not installed, run M-x %s-setup to install V%s"
 		    ,dapfile
-		    ,version))))))
+		    ,version)))
+       (when ,callback
+	 (funcall ,callback)))))
 
 (provide 'dap-utils)
 ;;; dap-utils.el ends here
