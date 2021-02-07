@@ -914,7 +914,7 @@ request."
 (defun dap-ui-locals ()
   (interactive)
   (dap-ui--show-buffer (get-buffer-create dap-ui--locals-buffer))
-  (dap-ui-locals--refresh)
+  (dap-ui-locals--refresh-schedule)
   (with-current-buffer dap-ui--locals-buffer
     (add-hook 'dap-terminated-hook #'dap-ui-locals--refresh-schedule)
     (add-hook 'dap-session-changed-hook #'dap-ui-locals--refresh-schedule)
@@ -1207,21 +1207,27 @@ request."
   (add-hook 'dap-breakpoints-changed-hook #'dap-ui-breakpoints--refresh)
   (add-hook 'kill-buffer-hook 'dap-ui-breakpoints--cleanup-hooks nil t))
 
+(defvar dap-ui--many-windows-displayed nil)
+
 (defun dap-ui--show-many-windows (_session)
   "Show auto configured feature windows."
-  (seq-doseq (feature-start-stop dap-auto-configure-features)
-    (when-let (start-stop (alist-get feature-start-stop dap-features->windows))
-      (funcall (car start-stop)))))
+  (unless dap-ui--many-windows-displayed
+    (seq-doseq (feature-start-stop dap-auto-configure-features)
+      (when-let (start-stop (alist-get feature-start-stop dap-features->windows))
+        (funcall (car start-stop))))
+    (setq dap-ui--many-windows-displayed t)))
 
 (defun dap-ui--hide-many-windows (_session)
   "Hide all debug windows when sessions are dead."
-  (seq-doseq (feature-start-stop dap-auto-configure-features)
-    (when-let* ((feature-start-stop (alist-get feature-start-stop dap-features->windows))
-                (buffer-name (symbol-value (cdr feature-start-stop))))
-      (when-let (window (get-buffer-window buffer-name))
-        (delete-window window))
-      (and (get-buffer buffer-name)
-           (kill-buffer buffer-name)))))
+  (when dap-ui--many-windows-displayed
+    (seq-doseq (feature-start-stop dap-auto-configure-features)
+      (when-let* ((feature-start-stop (alist-get feature-start-stop dap-features->windows))
+                  (buffer-name (symbol-value (cdr feature-start-stop))))
+        (when-let (window (get-buffer-window buffer-name))
+          (delete-window window))
+        (and (get-buffer buffer-name)
+             (kill-buffer buffer-name))))
+    (setq dap-ui--many-windows-displayed nil)))
 
 ;;;###autoload
 (defun dap-ui-show-many-windows ()
