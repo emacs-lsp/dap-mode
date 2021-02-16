@@ -94,7 +94,7 @@ https://github.com/pyenv/pyenv-which-ext."
                                              :character end-character))))
   (make-dap-python--symbol
    :name name
-   :type (alist-get kind lsp--symbol-kind)
+   :type (alist-get kind lsp-symbol-kinds)
    :location (make-dap-python--location
               :start (make-dap-python--point :line start-line
                                              :character start-character)
