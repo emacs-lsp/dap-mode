@@ -19,6 +19,7 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'dap-utils)
 
 (defcustom dap-codelldb-download-url
   (format "https://github.com/vadimcn/vscode-lldb/releases/download/v1.6.1/codelldb-x86_64-%s.vsix"
