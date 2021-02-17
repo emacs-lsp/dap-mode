@@ -11,7 +11,8 @@ DAP-GENERAL := dap-launch.el dap-overlays.el dap-variables.el	\
 DAP-CLIENTS := dap-chrome.el dap-cpptools.el dap-edge.el		\
 		dap-elixir.el dap-firefox.el dap-gdb-lldb.el		\
 		dap-go.el dap-lldb.el dap-netcore.el dap-node.el	\
-		dap-php.el dap-pwsh.el dap-python.el dap-ruby.el
+		dap-php.el dap-pwsh.el dap-python.el dap-ruby.el	\
+		dap-codelldb.el
 
 TEST-FILES := test/windows-bootstrap.el $(shell ls test/dap-*.el)
 LOAD-FILE = -l $(test-file)
