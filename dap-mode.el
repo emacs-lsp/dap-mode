@@ -1493,6 +1493,22 @@ has language id = LANGUAGE-ID. The function must return debug
 arguments which contain the debug port to use for opening TCP connection."
   (puthash language-id provide-configuration-fn dap--debug-providers))
 
+(defun dep-register-setup-debbug-provider (&rest debbug-setup)
+  "Register debug setup for LANGUAGE-ID.
+
+DEBBUG-SETUP is a PLIST that holds all the elements necessary to
+configue the debugger.
+Arguments passed to the function are: 
+:language-id LANGUAGE-ID
+:process-template-function PROCESS-TEMPLATE-FN 
+:present? INSTALLED-OR-UPTODATE-FN?
+:install INSTALL-FN"
+  (let ((alist-debbug-setup (seq-partition debbug-setup 2)))
+    (mapcar (lambda (entry)
+	      (let ((key (car entry))
+		    (val (cadr entry)))
+		(puthash key val dap--debug-providers))) alist-debbug-setup)))
+
 (defun dap-register-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
 
