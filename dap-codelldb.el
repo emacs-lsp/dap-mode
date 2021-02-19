@@ -38,14 +38,12 @@
 
 (defcustom dap-codelldb-debug-program
   (concat dap-codelldb-debug-path
-             (if (eq system-type 'windows-nt)
-                 "/extension/adapter/codelldb.exe"
-                 "/extension/adapter/codelldb"))
+          (if (eq system-type 'windows-nt)
+              "/extension/adapter/codelldb.exe"
+            "/extension/adapter/codelldb"))
   "The path to the codelldb debugger."
   :group 'dap-codelldb
   :type 'string)
-
-
 
 (defun dap-codelldb-setup (&optional forced)
   "Download and install codelldb adapter.
@@ -60,13 +58,11 @@ With prefix, FORCED to redownload the extension."
  (lambda (conf)
    (let ((debug-port (dap--find-available-port)))
      (plist-put conf :program-to-start (format "%s --port %s" dap-codelldb-debug-program debug-port))
-     (plist-put conf :debugServer debug-port)
-   )
+     (plist-put conf :debugServer debug-port))
    (plist-put conf :host "localhost")
    (plist-put conf :type "lldb")
    (plist-put conf :cargo "")
-   conf)
-)
+   conf))
 
 (provide 'dap-codelldb)
 ;;; dap-codelldb.el ends here
