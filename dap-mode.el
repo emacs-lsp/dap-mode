@@ -1484,7 +1484,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
                                                   target-debug-sessions
                                                   #'dap--debug-session-name)))))
 
-(defun dap-register-debug-provider (language-id provide-configuration-fn)
+(defun dap-debug-provider (language-id provide-configuration-fn)
   "Register debug configuration provider for LANGUAGE-ID.
 
 PROVIDE-CONFIGURATION-FN is a function which will be called when
@@ -1493,7 +1493,28 @@ has language id = LANGUAGE-ID. The function must return debug
 arguments which contain the debug port to use for opening TCP connection."
   (puthash language-id provide-configuration-fn dap--debug-providers))
 
-(defun dap-register-debug-template (configuration-name configuration-settings)
+(cl-defun dap-register-setup-debug-provider (&rest debbug-setup
+						 &key
+						 language-id
+						 process-template-fn
+						 present?
+						 install)
+  "Register debug setup for LANGUAGE-ID.
+
+The only purpose of DEBBUG-SETUP is to bind to `&key' passed as arguments.
+LANGUAGE-ID is the language ID to identify the LANGUAGE.
+PROCESS-TEMPLATE-FN is a function that procecess the template used by the
+debugger.
+PRESENT? is a function that checks if the debug server is installed or 
+outdated.
+INSTALL is a function that performs the installation of the DAP SERVER."
+  (let ((alist-debbug-setup (seq-partition debbug-setup 2)))
+    (mapcar (lambda (entry)
+	      (let ((key (car entry))
+		    (val (cadr entry)))
+		(puthash key val dap--debug-providers))) alist-debbug-setup)))
+
+(defun dap-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
 
 CONFIGURATION-SETTINGS is a plist containing the preset settings
