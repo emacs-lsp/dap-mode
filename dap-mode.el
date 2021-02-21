@@ -1484,7 +1484,7 @@ DEBUG-SESSIONS - list of the currently active sessions."
                                                   target-debug-sessions
                                                   #'dap--debug-session-name)))))
 
-(defun dap-debug-provider (language-id provide-configuration-fn)
+(defun dap-register-debug-provider (language-id provide-configuration-fn)
   "Register debug configuration provider for LANGUAGE-ID.
 
 PROVIDE-CONFIGURATION-FN is a function which will be called when
@@ -1514,7 +1514,7 @@ INSTALL is a function that performs the installation of the DAP SERVER."
 		    (val (cadr entry)))
 		(puthash key val dap--debug-providers))) alist-debug-setup)))
 
-(defun dap-debug-template (configuration-name configuration-settings)
+(defun dap-register-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
 
 CONFIGURATION-SETTINGS is a plist containing the preset settings
