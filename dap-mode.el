@@ -1493,7 +1493,7 @@ has language id = LANGUAGE-ID. The function must return debug
 arguments which contain the debug port to use for opening TCP connection."
   (puthash language-id provide-configuration-fn dap--debug-providers))
 
-(cl-defun dep-register-setup-debug-provider (&rest debbug-setup
+(cl-defun dap-register-setup-debug-provider (&rest debbug-setup
 						 &key
 						 language-id
 						 process-template-fn
@@ -1514,7 +1514,7 @@ INSTALL is a function that performs the installation of the DAP SERVER."
 		    (val (cadr entry)))
 		(puthash key val dap--debug-providers))) alist-debbug-setup)))
 
-(defun dap-register-debug-template (configuration-name configuration-settings)
+(defun dap-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
 
 CONFIGURATION-SETTINGS is a plist containing the preset settings
