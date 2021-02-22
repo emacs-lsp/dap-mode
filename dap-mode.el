@@ -1508,6 +1508,20 @@ debugger.
 PRESENT? is a function that checks if the debug server is installed or 
 outdated.
 INSTALL is a function that performs the installation of the DAP SERVER."
+
+  ;; I used 'cond' because All the tested args are members of
+  ;; DEBUG-SETUP.  I tested them directly instead of doing the check
+  ;; with ((null (plist-member ... debug-setup)) (error ...)) because
+  ;; it makes more sens.
+  (cond
+   ((null debug-setup)         (error (concat "'dap-register-setup-debug-provider' takes keyword arguments.\n"
+					      "Please refer to it documentation")))
+   ((null language-id)         (error "'langauge-id' is not provided"))
+   ((null process-template-fn) (error "'process-template-fn' is not provided"))
+   ((null present?)            (error "'present?' is not provided"))
+   ((null install)             (error "'install' is not provided"))
+   (t nil))
+  
   (let ((alist-debug-setup (seq-partition debug-setup 2)))
     (dolist (entry alist-debug-setup)
       (puthash (car entry) (cadr entry) dap--debug-providers))))
