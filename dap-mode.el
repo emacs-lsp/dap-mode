@@ -1510,7 +1510,7 @@ outdated.
 INSTALL is a function that performs the installation of the DAP SERVER."
   (let ((alist-debug-setup (seq-partition debug-setup 2)))
     (dolist (entry alist-debug-setup)
-      (puthash (car entry) (cadr entry) dap-debug-providers))))
+      (puthash (car entry) (cadr entry) dap--debug-providers))))
 
 (defun dap-register-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
