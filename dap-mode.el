@@ -1509,10 +1509,8 @@ PRESENT? is a function that checks if the debug server is installed or
 outdated.
 INSTALL is a function that performs the installation of the DAP SERVER."
   (let ((alist-debug-setup (seq-partition debug-setup 2)))
-    (mapcar (lambda (entry)
-	      (let ((key (car entry))
-		    (val (cadr entry)))
-		(puthash key val dap--debug-providers))) alist-debug-setup)))
+    (dolist (entry alist-debug-setup)
+      (puthash (car entry) (cadr entry) dap-debug-providers))))
 
 (defun dap-register-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
