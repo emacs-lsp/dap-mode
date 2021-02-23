@@ -18,7 +18,7 @@
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords: languages, debug
 ;; URL: https://github.com/emacs-lsp/dap-mode
-;; Package-Requires: ((emacs "26.1") (dash "2.18.0") (lsp-mode "6.0") (bui "1.1.0") (f "0.20.0") (s "1.12.0") (lsp-treemacs "0.1") (posframe "0.7.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.18.0") (lsp-mode "6.0") (bui "1.1.0") (f "0.20.0") (s "1.12.0") (lsp-treemacs "0.1") (posframe "0.7.0") (ht "2.3"))
 ;; Version: 0.6
 
 ;;; Commentary:
@@ -34,6 +34,7 @@
 (require 'cl-lib)
 (require 'ansi-color)
 (require 'posframe)
+(require 'ht)
 
 (require 'dap-launch)
 
@@ -278,8 +279,8 @@ locations."
   (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
   ;; the arguments that were used to start the debug session.
   (launch-args nil)
-  ;; The result of initialize request. It holds the server capabilities.
-  (initialize-result nil)
+  ;; Currently-available server capabilities
+  (current-capabilities (make-hash-table :test 'equal))
   (error-message nil)
   (loaded-sources nil)
   (program-proc)
@@ -961,6 +962,9 @@ PARAMS are the event params.")
        (-let [(&hash "body" (&hash "source")) event]
          (cl-pushnew source (dap--debug-session-loaded-sources debug-session))
          (run-hook-with-args 'dap-loaded-sources-changed-hook debug-session)))
+      ("capabilities"
+       (-let [(&hash "body" (&hash "capabilities")) event]
+         (ht-update! (dap--debug-session-current-capabilities debug-session) capabilities)))
       (_ (dap-handle-event (intern event-type) debug-session body)))))
 
 (defcustom dap-default-terminal-kind "integrated"
@@ -1231,12 +1235,11 @@ DEBUG-SESSION is the active debug session."
              #'equal))
 
 (defun dap--set-exception-breakpoints (debug-session callback)
-  (-let [(&dap-session 'initialize-result 'launch-args (&plist :type)) debug-session]
+  (-let [(&dap-session 'current-capabilities 'launch-args (&plist :type)) debug-session]
     (dap--send-message
      (dap--make-request "setExceptionBreakpoints"
                         (list :filters
-                              (or (-some->> initialize-result
-                                    (gethash "body")
+                              (or (-some->> current-capabilities
                                     (gethash "exceptionBreakpointFilters")
                                     (-keep (-lambda ((&hash "default" "filter"))
                                              (when (dap--breakpoint-filter-enabled filter type default)
@@ -1651,10 +1654,10 @@ before starting the debug process."
          (dap--initialize-message type)
          (dap--session-init-resp-handler
           debug-session
-          (lambda (initialize-result)
+          (-lambda ((&hash "body" capabilities))
             (-let [debug-sessions (dap--get-sessions)]
 
-              (setf (dap--debug-session-initialize-result debug-session) initialize-result)
+              (ht-update! (dap--debug-session-current-capabilities debug-session) capabilities)
 
               (dap--set-sessions (cons debug-session debug-sessions)))
             (dap--send-message
