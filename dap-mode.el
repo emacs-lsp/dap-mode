@@ -1496,12 +1496,11 @@ has language id = LANGUAGE-ID. The function must return debug
 arguments which contain the debug port to use for opening TCP connection."
   (puthash language-id provide-configuration-fn dap--debug-providers))
 
-(cl-defun dap-register-setup-debug-provider (&rest debug-setup
-						 &key
-						 language-id
-						 process-template-fn
-						 present?
-						 install)
+(cl-defun dap-register-setup-debug-provider (language-id &rest debug-setup
+							 &key
+							 process-template-fn
+							 present?
+							 install)
   "Register debug setup for LANGUAGE-ID.
 
 The only purpose of DEBUG-SETUP is to bind to `&key' passed as arguments.
@@ -1519,14 +1518,13 @@ INSTALL is a function that performs the installation of the DAP SERVER."
   (cond
    ((null debug-setup)         (error (concat "'dap-register-setup-debug-provider' takes keyword arguments.\n"
 					      "Please refer to it documentation")))
-   ((null language-id)         (error "'langauge-id' is not provided"))
    ((null process-template-fn) (error "'process-template-fn' is not provided"))
    ((null present?)            (error "'present?' is not provided"))
    ((null install)             (error "'install' is not provided"))
    (t nil))
-  
-  (let ((setup-actions (seq-drop debug-setup 2))) ;removes language-id key and value from plist.
-    (puthash language-id setup-actions dap--debug-providers)))
+
+
+  (puthash language-id setup-actions dap--debug-providers))
 
 (defun dap-register-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
