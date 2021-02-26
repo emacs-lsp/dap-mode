@@ -1525,9 +1525,8 @@ INSTALL is a function that performs the installation of the DAP SERVER."
    ((null install)             (error "'install' is not provided"))
    (t nil))
   
-  (let ((alist-debug-setup (seq-partition debug-setup 2)))
-    (dolist (entry alist-debug-setup)
-      (puthash (car entry) (cadr entry) dap--debug-providers))))
+  (let ((actions (seq-drop debug-setup 2))) ;removes language-id key and value from plist.
+    (puthash language-id actions dap--debug-providers)))
 
 (defun dap-register-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
