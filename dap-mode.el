@@ -1524,7 +1524,7 @@ INSTALL is a function that performs the installation of the DAP SERVER."
    (t nil))
 
 
-  (puthash language-id setup-actions dap--debug-providers))
+  (puthash language-id debug-setup dap--debug-providers))
 
 (defun dap-register-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
