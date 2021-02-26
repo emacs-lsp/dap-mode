@@ -35,8 +35,15 @@
   :group 'dap-go
   :type 'string)
 
-(defcustom dap-go-debug-program `("node"
-                                  ,(f-join dap-go-debug-path "extension/dist/debugAdapter.js"))
+(defcustom dap-go-debug-program
+  `("node"
+    ,(let ((old (f-join dap-go-debug-path "extension/out/src/debugAdapter/goDebug.js"))
+           (new (f-join dap-go-debug-path "extension/dist/debugAdapter.js")))
+       (if (f-exists? old)
+           (progn
+             (lsp--warn "Go debug adapter is outdated; some features will not work properly")
+             old)
+         new)))
   "The path to the go debugger."
   :group 'dap-go
   :type '(repeat string))
