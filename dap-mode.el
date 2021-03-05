@@ -1198,7 +1198,9 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
     (dap--make-request
      "setBreakpoints"
      (list :source (list :name (f-filename file-name)
-                         :path file-name)
+                         :path (if (eq system-type 'windows-nt)
+                                   (s-replace "/" "\\" file-name)
+                                 file-name))
            :breakpoints (->> file-breakpoints
                              (-map (-lambda ((it &as &plist :condition :hit-condition :log-message))
                                      (let ((result (->> it dap-breakpoint-get-point line-number-at-pos (list :line))))
