@@ -1705,7 +1705,7 @@ after selecting configuration template."
                                                   (user-error "%s does not specify :type" debug-args))))))
     (cond
      ((string= provider-state :upgrade)    (funcall install provider-state debug-provider-name))  ;upgrade debug-provider
-     ((string= provider-state :none)       (functall install provider-state debug-provider-name)) ;install debug-provider
+     ((string= provider-state :none)       (funcall install provider-state debug-provider-name)) ;install debug-provider
      ((string= provider-state :up-to-date) nil)                                                   ;do nothing
      ((null provider-state)                (error (concat "None of :upgrade, :none, "
 					                  ":up-to-date was provided by "
