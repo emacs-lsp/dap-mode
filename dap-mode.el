@@ -1524,8 +1524,6 @@ INSTALL is a function that performs the installation of the DAP SERVER."
    ((null present?)            (error "'present?' is not provided"))
    ((null install)             (error "'install' is not provided"))
    (t nil))
-
-
   (puthash language-id debug-setup dap--debug-providers))
 
 (defun dap-register-debug-template (configuration-name configuration-settings)
@@ -1694,13 +1692,24 @@ after selecting configuration template."
   ;; very hard to quote them. Because of this, `dap-start-debugging' cannot
   ;; expand them properly. Any python configuration that uses variables in :args
   ;; will fail.
-  (let* ((debug-args (dap-variables-expand-in-launch-configuration debug-args))
-         (launch-args (or (-some-> (plist-get debug-args :type)
-                            (gethash dap--debug-providers)
-                            (funcall debug-args))
-                          (user-error "Have you loaded the `%s' specific dap package?"
-                                      (or (plist-get debug-args :type)
-                                          (user-error "%s does not specify :type" debug-args))))))
+  (let* ((debug-args          (dap-variables-expand-in-launch-configuration debug-args))
+	 (debug-provider-name (plist-get debug-args :type))
+	 (provider-setup      (gethash debug-provider-name dap--debug-providers))
+	 (present?            (plist-get provider-setup :present?))
+	 (provider-state      (funcall present? debug-provider-name))
+	 (install             (plist-get provider-setup :install))
+	 (launch-args         (or (-some-> (plist-get provider-setup :process-template-fn)
+                                    (funcall debug-args))
+                                  (user-error "Have you loaded the `%s' specific dap package?"
+                                              (or (plist-get debug-args :type)
+                                                  (user-error "%s does not specify :type" debug-args))))))
+    (cond
+     ((string= provider-state :upgrade)    (funcall install provider-state debug-provider-name))  ;upgrade debug-provider
+     ((string= provider-state :none)       (functall install provider-state debug-provider-name)) ;install debug-provider
+     ((string= provider-state :up-to-date) nil)                                                   ;do nothing
+     ((null provider-state)                (error (concat "None of :upgrade, :none, "
+					                  ":up-to-date was provided by "
+						          "'present?' funcall"))))                ;bad implementation of the install function
     (if (functionp launch-args)
         (funcall launch-args #'dap-start-debugging-noexpand)
       (dap-start-debugging-noexpand launch-args))))
