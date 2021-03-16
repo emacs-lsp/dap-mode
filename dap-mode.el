@@ -1679,9 +1679,9 @@ after selecting configuration template."
                (if (functionp launch-args)
                    (funcall launch-args #'dap-start-debugging-noexpand)
                  (dap-start-debugging-noexpand launch-args)))))
-    (-if-let ((&plist :compilation) launch-args)
+    (-if-let ((&plist :dap-compilation compilation) launch-args)
         (progn
-          (cl-remf launch-args :compilation)
+          (cl-remf launch-args :dap-compilation)
           (with-current-buffer (compilation-start compilation)
             (let (window)
               (add-hook 'compilation-finish-functions
