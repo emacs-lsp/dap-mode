@@ -1689,7 +1689,8 @@ after selecting configuration template."
                           (if (string= "finished\n" status)
                               (progn
                                 (when (and (not dap-debug-compilation-keep)
-                                           (window-live-p window))
+                                           (window-live-p window)
+                                           (eq buf (window-buffer window)))
                                   (delete-window window))
                                 (funcall cb))
                             (lsp--error "Compilation step failed"))))
