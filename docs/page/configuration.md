@@ -155,7 +155,7 @@ you are good to debug dart.
     and Swift.
 
       - Clone and follow the instructions to compile lldb-vscode from
-        <https://github.com/llvm/llvm-project/tree/master/lldb/tools/lldb-vscode>
+        <https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-vscode>
 
       - Put in your emacs configuration.
 
@@ -175,7 +175,7 @@ You only need to run `dap-cpptools-setup` to setup automatically and then
 you are good start debugging.
 
       - Clone and follow the instructions to compile lldb-vscode from
-        <https://github.com/llvm/llvm-project/tree/master/lldb/tools/lldb-vscode>
+        <https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-vscode>
 
       - Put in your emacs configuration.
 
