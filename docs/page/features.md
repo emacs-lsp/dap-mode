@@ -105,3 +105,15 @@ DAP are just like in VSCode and even support variables. See:
 
 - [launch.json](https://code.visualstudio.com/docs/editor/debugging)
 - [launch.json variables](https://code.visualstudio.com/docs/editor/variables-reference)
+
+## Compiling the project before debugging
+
+Many modern IDEs, for example Eclipse and VSCode (`preLaunchTask`), provide
+functionality to compile the project before starting the debug session.
+
+`dap-mode` also has such a feature: the `:dap-compilation` property of launch
+configurations ("dap-compilation" in `launch.json`) specifies a shell command
+that needs to execute successfully before the debug session is started.
+
+In the future, we want to support VSCode's `preLaunchTask` instead, but
+currently there is no tasks.json-compatible task runner for Emacs.

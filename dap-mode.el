@@ -1646,7 +1646,7 @@ before starting the debug process."
         (run-hook-with-args 'dap-session-created-hook debug-session)))))
 
 (defcustom dap-debug-compilation-keep nil
-  "Whether `dap-debug' should keep the compile window on sucess.
+  "Whether `dap-debug' should keep the compile window on success.
 By default, it is hidden."
   :type 'boolean
   :group 'dap-mode)
@@ -1656,7 +1656,11 @@ By default, it is hidden."
   "Run debug configuration DEBUG-ARGS.
 
 If DEBUG-ARGS is not specified the configuration is generated
-after selecting configuration template."
+after selecting configuration template.
+
+:dap-compilation specifies a shell command to be run using
+`compilation-start' before starting the debug session. It could
+be used to compile the project, spin up docker, ...."
   (interactive (list (-> (dap--completing-read "Select configuration template: "
                                                (-mapcat #'funcall dap-launch-configuration-providers)
                                                'cl-first nil t)
