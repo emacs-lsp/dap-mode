@@ -42,6 +42,8 @@
         pkgs)
 
   (add-hook 'kill-emacs-hook
-            `(lambda () (delete-directory ,user-emacs-directory t))))
+            `(lambda ()
+               (unless (boundp 'emacs-lsp-ci)
+                 (delete-directory ,user-emacs-directory t)))))
 
 ;;; windows-bootstrap.el ends here
