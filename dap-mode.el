@@ -127,7 +127,7 @@ based on DAP protocol category."
   :type 'boolean)
 
 (defcustom dap-auto-show-output t
-  "If non-nil, the output buffer will be showed automatically."
+  "If non-nil, the output buffer will be shown automatically."
   :group 'dap-mode
   :type 'boolean)
 

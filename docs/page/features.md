@@ -54,7 +54,7 @@ Features
 
 ## Sessions
 
-The session view is showed after invoking `dap-ui-sessions` . It
+The session view is shown after invoking `dap-ui-sessions` . It
 represents the list of the active sessions.
 
 ## Locals
