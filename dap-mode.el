@@ -1704,9 +1704,9 @@ after selecting configuration template."
                                               (or (plist-get debug-args :type)
                                                   (user-error "%s does not specify :type" debug-args))))))
     (cond
-     ((string= provider-state :upgrade)    (funcall install provider-state debug-provider-name))  ;upgrade debug-provider
-     ((string= provider-state :none)       (funcall install provider-state debug-provider-name)) ;install debug-provider
-     ((string= provider-state :up-to-date) nil)                                                   ;do nothing
+     ((eq provider-state :upgrade)    (funcall install provider-state debug-provider-name))  ;upgrade debug-provider
+     ((eq provider-state :none)       (funcall install provider-state debug-provider-name)) ;install debug-provider
+     ((eq provider-state :up-to-date) nil)                                                   ;do nothing
      ((null provider-state)                (error (concat "None of :upgrade, :none, "
 					                  ":up-to-date was provided by "
 						          "'present?' funcall"))))                ;bad implementation of the install function
