@@ -1686,7 +1686,8 @@ be used to compile the project, spin up docker, ...."
     (-if-let ((&plist :dap-compilation compilation) launch-args)
         (progn
           (cl-remf launch-args :dap-compilation)
-          (with-current-buffer (compilation-start compilation)
+          (with-current-buffer (compilation-start compilation t (lambda (&rest _)
+                                                                  "*DAP compilation*"))
             (let (window)
               (add-hook 'compilation-finish-functions
                         (lambda (buf status &rest _)
