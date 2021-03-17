@@ -67,6 +67,25 @@
   :group 'dap-utils
   :type 'directory)
 
+(defun dap-utils-extension-present? (publisher name origine version &optional path)
+  "Check if extension is present.
+return `:present' if not installed.
+return `:upgrade' if don't match with VERSION.
+return `:none' if not present.
+Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
+ in GitHub.
+Argument NAME is the vscode extension name or the GitHub repo.
+Argument ORIGINE is either `vscode' or `github'.
+Argument VERSION is the version of the extension.
+Optional argument PATH is the path to the extension in the file system."
+  (let* ((path (or path
+		   (f-join dap-utils-extension-path origine (concat publisher "." name))))
+	 (extention-version-list (reverse (directory-files path nil "[^.]"))))
+    (cond
+     ((null extention-version-list) :none)
+     ((string= (car extention-version-list) version) :present)
+     (t :upgrade))))
+
 (defun dap-utils-get-vscode-extension (publisher name &optional version path)
   "Get vscode extension from PUBLISHER named NAME.
 VERSION is the version of the extenssion, otherwise the latest.
