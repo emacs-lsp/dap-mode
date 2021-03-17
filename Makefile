@@ -28,14 +28,17 @@ build:
 unix-compile:
 	@$(CASK) $(EMACS) -Q --batch \
 	-L . \
-	--eval '(setq byte-compile-error-on-warn t treemacs-no-load-time-warnings t)' \
+	--eval '(setq treemacs-no-load-time-warnings t)' \
+	--eval '(setq byte-compile-error-on-warn t)' \
 	-f batch-byte-compile $(DAP-GENERAL) $(DAP-CLIENTS)
 
 windows-compile:
 	@$(CASK) $(EMACS) -Q --batch \
+	--eval '(setq emacs-lsp-ci t)' \
 	-l test/windows-bootstrap.el \
 	-L . \
-	--eval '(setq byte-compile-error-on-warn t treemacs-no-load-time-warnings t)' \
+	--eval '(setq treemacs-no-load-time-warnings t)' \
+	--eval '(setq byte-compile-error-on-warn t)' \
 	-f batch-byte-compile $(DAP-GENERAL) $(DAP-CLIENTS)
 
 unix-ci: clean build unix-compile unix-test
@@ -51,6 +54,7 @@ unix-test:
 
 windows-test:
 	@$(EMACS) -Q --batch \
+		--eval '(setq emacs-lsp-ci t)' \
 		-l test/windows-bootstrap.el \
 		-L . \
 		$(LOAD-TEST-FILES) \
