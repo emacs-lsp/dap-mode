@@ -1696,7 +1696,6 @@ after selecting configuration template."
 	 (debug-provider-name (plist-get debug-args :type))
 	 (provider-setup      (gethash debug-provider-name dap--debug-providers))
 	 (present?            (plist-get provider-setup :present?))
-	 (provider-state      (funcall present? debug-provider-name))
 	 (install             (plist-get provider-setup :install))
 	 (launch-args         (or (-some-> (plist-get provider-setup :process-template-fn)
                                     (funcall debug-args))
@@ -1704,10 +1703,10 @@ after selecting configuration template."
                                               (or (plist-get debug-args :type)
                                                   (user-error "%s does not specify :type" debug-args))))))
     (cond
-     ((eq provider-state :upgrade)    (funcall install provider-state debug-provider-name))  ;upgrade debug-provider
-     ((eq provider-state :none)       (funcall install provider-state debug-provider-name)) ;install debug-provider
-     ((eq provider-state :up-to-date) nil)                                                   ;do nothing
-     ((null provider-state)                (error (concat "None of :upgrade, :none, "
+     ((eq present? :upgrade)    (funcall install present? debug-provider-name))  ;upgrade debug-provider
+     ((eq present? :none)       (funcall install present? debug-provider-name)) ;install debug-provider
+     ((eq present? :up-to-date) nil)                                                   ;do nothing
+     ((null present?)                (error (concat "None of :upgrade, :none, "
 					                  ":up-to-date was provided by "
 						          "'present?' funcall"))))                ;bad implementation of the install function
     (if (functionp launch-args)
