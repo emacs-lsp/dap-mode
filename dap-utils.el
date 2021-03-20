@@ -84,7 +84,7 @@ Optional argument PATH is the path to the extension in the file system."
 	 (extention-version-list (reverse (directory-files path nil "[^.]"))))
     (cond
      ((null extention-version-list) :none)
-     ((string= (car extention-version-list) version) :present)
+     ((string= (car extention-version-list) version) :up-to-date)
      (t :upgrade))))
 
 (defun dap-utils-extention-install? (publisher name origine version &optional path)
@@ -93,7 +93,7 @@ Optional argument PATH is the path to the extension in the file system."
 			   (concat publisher "." name)))))
     (lambda (provider-state debug-provider-name)
       (cond
-       ((eq provider-state :present) (message "%s-debug-provider is already installed and up to date"
+       ((eq provider-state :up-to-date) (message "%s-debug-provider is already installed and up to date"
 						 debug-provider-name))
        ((or (eq provider-state :upgrade)
 	    (eq provider-state :none)) (if (string= origine "vscode")
