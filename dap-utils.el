@@ -79,12 +79,26 @@ Argument ORIGINE is either `vscode' or `github'.
 Argument VERSION is the version of the extension.
 Optional argument PATH is the path to the extension in the file system."
   (let* ((path (or path
-		   (f-join dap-utils-extension-path origine (concat publisher "." name))))
+		   (f-join dap-utils-extension-path origine
+			   (concat publisher "." name))))
 	 (extention-version-list (reverse (directory-files path nil "[^.]"))))
     (cond
      ((null extention-version-list) :none)
      ((string= (car extention-version-list) version) :present)
      (t :upgrade))))
+
+(defun dap-utils-extention-install? (publisher name origine version &optional path)
+  (let* ((path (or path
+		   (f-join dap-utils-extension-path origine
+			   (concat publisher "." name)))))
+    (lambda (provider-state debug-provider-name)
+      (cond
+       ((eq provider-state :present) (message "%s-debug-provider is already installed and up to date"
+						 debug-provider-name))
+       ((or (eq provider-state :upgrade)
+	    (eq provider-state :none)) (if (string= origine "vscode")
+					    (dap-utils-get-vscode-extension publisher name version path)
+					  (dap-utils-get-github-extension publisher name version path)))))))
 
 (defun dap-utils-get-vscode-extension (publisher name &optional version path)
   "Get vscode extension from PUBLISHER named NAME.
