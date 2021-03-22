@@ -116,6 +116,9 @@ Argument PROVIDER-STATE is either `:up-to-date' which instruct the function
 which tell the function to install the missing provider.
 Argument DEBUG-PROVIDER-NAME is the name of the language related to dap provider"
       (cond
+       ((null provider-state)           (error (concat "None of :upgrade, :none, "
+					               ":up-to-date was provided by "
+						       "'present?' funcall")))
        ((eq provider-state :up-to-date) (message "%s-debug-provider is already installed and up to date"
 						 debug-provider-name))
        ((eq provider-state :upgrade)    (progn
