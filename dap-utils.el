@@ -101,7 +101,7 @@ Optional argument PATH is the path to the extension in the file system."
 	    (eq provider-state :none)) (progn (if (string= origine "vscode")
 						  (dap-utils-get-vscode-extension publisher name version path)
 						(dap-utils-get-github-extension publisher name version path))
-					      "installing %s-debug-provider " debug-provider-name))))))
+					      (message "installing %s-debug-provider " debug-provider-name)))))))
 
 (defun dap-utils-get-vscode-extension (publisher name &optional version path)
   "Get vscode extension from PUBLISHER named NAME.
