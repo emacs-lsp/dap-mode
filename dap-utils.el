@@ -82,6 +82,7 @@ Optional argument PATH is the path to the extension in the file system."
 		   (f-join dap-utils-extension-path origine
 			   (concat publisher "." name))))
 	 (extention-version-list (reverse (directory-files path nil "[^.]"))))
+    
     (cond
      ((null extention-version-list) :none)
      ((string= (car extention-version-list) version) :up-to-date)
@@ -91,14 +92,16 @@ Optional argument PATH is the path to the extension in the file system."
   (let* ((path (or path
 		   (f-join dap-utils-extension-path origine
 			   (concat publisher "." name)))))
+    
     (lambda (provider-state debug-provider-name)
       (cond
        ((eq provider-state :up-to-date) (message "%s-debug-provider is already installed and up to date"
 						 debug-provider-name))
        ((or (eq provider-state :upgrade)
-	    (eq provider-state :none)) (if (string= origine "vscode")
-					    (dap-utils-get-vscode-extension publisher name version path)
-					  (dap-utils-get-github-extension publisher name version path)))))))
+	    (eq provider-state :none)) (progn (if (string= origine "vscode")
+						  (dap-utils-get-vscode-extension publisher name version path)
+						(dap-utils-get-github-extension publisher name version path))
+					      "installing %s-debug-provider " debug-provider-name))))))
 
 (defun dap-utils-get-vscode-extension (publisher name &optional version path)
   "Get vscode extension from PUBLISHER named NAME.
