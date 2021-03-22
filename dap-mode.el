@@ -1703,7 +1703,7 @@ after selecting configuration template."
                                               (or debug-provider-name
                                                   (user-error "%s does not specify :type" debug-args))))))
 
-    (funcall install provider-state debug-provider-name)
+    (funcall install present? debug-provider-name)
     
     (if (functionp launch-args)
         (funcall launch-args #'dap-start-debugging-noexpand)
