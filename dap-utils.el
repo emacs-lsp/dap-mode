@@ -106,6 +106,15 @@ PATH is the download destination path."
                    (f-join dap-utils-extension-path "github" (concat owner "." repo)))))
     (dap-utils--get-extension url dest)))
 
+(defun dap-perform-install-from-origine (origine)
+      "Install debug-provider from GITHUB or VSCODE MARKETPLACE."
+      (cond
+       ((string= origine "vscode")
+	(dap-utils-get-vscode-extension publisher name version path))
+       ((string= origine "github")
+	(dap-utils-get-github-extension publisher name version path))
+       (t (error "Unknown origine %s" origine))))
+
 (defun dap-utils-extention-install? (publisher name origine version &optional path)
   "Create a closure that will install DAP-DEBUG-PROVIDER.
 Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
@@ -117,15 +126,6 @@ Optional argument PATH is the path to the extension in the file system."
   (let* ((path (or path
 		   (f-join dap-utils-extension-path origine
 			   (concat publisher "." name)))))
-
-    (defun perform-install-from-origine (origine)
-      "Install debug-provider from GITHUB or VSCODE MARKETPLACE."
-      (cond
-       ((string= origine "vscode")
-	(dap-utils-get-vscode-extension publisher name version path))
-       ((string= origine "github")
-	(dap-utils-get-github-extension publisher name version path))
-       (t (error "Unknown origine %s" origine))))
     
     (lambda (provider-state debug-provider-name)
       "Install or upgrade DEBUG-PROVIDER-NAME according to PROVIDER-STATE.
@@ -140,11 +140,11 @@ Argument DEBUG-PROVIDER-NAME is the name of the language related to dap provider
        ((eq provider-state :up-to-date) (message "%s-debug-provider is already installed and up to date"
 						 debug-provider-name))
        ((eq provider-state :upgrade)    (progn
-					  (perform-install-from-origine origine)
+					  (dap-perform-install-from-origine origine)
 					  (message "%s-debug-provider upgraded with success"
 						   debug-provider-name)))
        ((eq provider-state :none)       (progn
-					  (perform-install-from-origine origine)
+					  (dap-perform-install-from-origine origine)
 					  (message "%s-debug-provider installed with success"
 						   debug-provider-name)))))))
 
