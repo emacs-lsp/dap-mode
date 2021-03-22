@@ -105,8 +105,14 @@ Optional argument PATH is the path to the extension in the file system."
       (cond
        ((eq provider-state :up-to-date) (message "%s-debug-provider is already installed and up to date"
 						 debug-provider-name))
-       ((eq provider-state :upgrade) )
-       ((eq provider-state :none) )))))
+       ((eq provider-state :upgrade)    (progn
+					  (perform-install-from-origine origine)
+					  (message "%s-debug-provider upgraded with success"
+						   debug-provider-name)))
+       ((eq provider-state :none)       (progn
+					  (perform-install-from-origine origine)
+					  (message "%s-debug-provider installed with success"
+						   debug-provider-name)))))))
 
 (defun dap-utils-get-vscode-extension (publisher name &optional version path)
   "Get vscode extension from PUBLISHER named NAME.
