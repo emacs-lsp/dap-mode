@@ -149,11 +149,11 @@ Argument DEBUG-PROVIDER-NAME is the name of the language related to dap provider
        ((eq provider-state :up-to-date) (message "%s-debug-provider is already installed and up to date"
 						 debug-provider-name))
        ((eq provider-state :upgrade)    (progn
-					  (dap-perform-install-from-origine origine)
-					  (message "%s-debug-provider upgraded with success"
+					  (dap-perform-install-from-origine publisher name origine version path)
+					  (MESSAGE "%s-debug-provider upgraded with success"
 						   debug-provider-name)))
        ((eq provider-state :none)       (progn
-					  (dap-perform-install-from-origine origine)
+					  (dap-perform-install-from-origine publisher name origine version path)
 					  (message "%s-debug-provider installed with success"
 						   debug-provider-name)))))))
 
