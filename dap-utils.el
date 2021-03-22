@@ -106,14 +106,23 @@ PATH is the download destination path."
                    (f-join dap-utils-extension-path "github" (concat owner "." repo)))))
     (dap-utils--get-extension url dest)))
 
-(defun dap-perform-install-from-origine (origine)
-      "Install debug-provider from GITHUB or VSCODE MARKETPLACE."
-      (cond
-       ((string= origine "vscode")
-	(dap-utils-get-vscode-extension publisher name version path))
-       ((string= origine "github")
-	(dap-utils-get-github-extension publisher name version path))
-       (t (error "Unknown origine %s" origine))))
+(defun dap-perform-install-from-origine (publisher name origine version &optional path)
+  "Install debug-provider from GITHUB or VSCODE MARKETPLACE.
+ is the name of the vscode publisher or the owner of the repo
+ in GitHub.
+Argument NAME is the vscode extension name or the GitHub repo.
+Argument ORIGINE is either `vscode' or `github'.
+Argument VERSION is the version of the extension.
+Optional argument PATH is the path to the extension in the file system."
+  (let ((path (or path
+		  (f-join dap-utils-extension-path origine
+			  (concat publisher "." name)))))
+    (cond
+     ((string= origine "vscode")
+      (dap-utils-get-vscode-extension publisher name version path))
+     ((string= origine "github")
+      (dap-utils-get-github-extension publisher name version path))
+     (t (error "Unknown origine %s" origine)))))
 
 (defun dap-utils-extention-install? (publisher name origine version &optional path)
   "Create a closure that will install DAP-DEBUG-PROVIDER.
@@ -123,7 +132,7 @@ Argument NAME is the vscode extension name or the GitHub repo.
 Argument ORIGINE is either `vscode' or `github'.
 Argument VERSION is the version of the extension.
 Optional argument PATH is the path to the extension in the file system."
-  (let* ((path (or path
+  (let ((path (or path
 		   (f-join dap-utils-extension-path origine
 			   (concat publisher "." name)))))
     
