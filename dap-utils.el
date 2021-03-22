@@ -89,11 +89,19 @@ Optional argument PATH is the path to the extension in the file system."
      (t :upgrade))))
 
 (defun dap-utils-extention-install? (publisher name origine version &optional path)
+  "Create a closure that will install DAP-DEBUG-PROVIDER.
+Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
+ in GitHub.
+Argument NAME is the vscode extension name or the GitHub repo.
+Argument ORIGINE is either `vscode' or `github'.
+Argument VERSION is the version of the extension.
+Optional argument PATH is the path to the extension in the file system."
   (let* ((path (or path
 		   (f-join dap-utils-extension-path origine
 			   (concat publisher "." name)))))
 
     (defun perform-install-from-origine (origine)
+      "Install debug-provider from GITHUB or VSCODE MARKETPLACE."
       (cond
        ((string= origine "vscode")
 	(dap-utils-get-vscode-extension publisher name version path))
@@ -102,6 +110,11 @@ Optional argument PATH is the path to the extension in the file system."
        (t (error "Unknown origine %s" origine))))
     
     (lambda (provider-state debug-provider-name)
+      "Install or upgrade DEBUG-PROVIDER-NAME according to PROVIDER-STATE.
+Argument PROVIDER-STATE is either `:up-to-date' which instruct the function
+ to do nothing, `:upgrade' which instruct the function to upgrade or `:none'
+which tell the function to install the missing provider.
+Argument DEBUG-PROVIDER-NAME is the name of the language related to dap provider"
       (cond
        ((eq provider-state :up-to-date) (message "%s-debug-provider is already installed and up to date"
 						 debug-provider-name))
