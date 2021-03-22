@@ -1702,13 +1702,9 @@ after selecting configuration template."
                                   (user-error "Have you loaded the `%s' specific dap package?"
                                               (or debug-provider-name
                                                   (user-error "%s does not specify :type" debug-args))))))
-    (cond
-     ((eq present? :upgrade)    (funcall install present? debug-provider-name))  ;upgrade debug-provider
-     ((eq present? :none)       (funcall install present? debug-provider-name)) ;install debug-provider
-     ((eq present? :up-to-date) nil)                                                   ;do nothing
-     ((null present?)                (error (concat "None of :upgrade, :none, "
-					                  ":up-to-date was provided by "
-						          "'present?' funcall"))))                ;bad implementation of the install function
+
+    (funcall install provider-state debug-provider-name)
+    
     (if (functionp launch-args)
         (funcall launch-args #'dap-start-debugging-noexpand)
       (dap-start-debugging-noexpand launch-args))))
