@@ -1700,7 +1700,7 @@ after selecting configuration template."
 	 (launch-args         (or (-some-> (plist-get provider-setup :process-template-fn)
                                     (funcall debug-args))
                                   (user-error "Have you loaded the `%s' specific dap package?"
-                                              (or (plist-get debug-args :type)
+                                              (or debug-provider-name
                                                   (user-error "%s does not specify :type" debug-args))))))
     (cond
      ((eq present? :upgrade)    (funcall install present? debug-provider-name))  ;upgrade debug-provider
