@@ -88,6 +88,24 @@ Optional argument PATH is the path to the extension in the file system."
      ((string= (car extention-version-list) version) :up-to-date)
      (t :upgrade))))
 
+(defun dap-utils-get-vscode-extension (publisher name &optional version path)
+  "Get vscode extension from PUBLISHER named NAME.
+VERSION is the version of the extenssion, otherwise the latest.
+PATH is the download destination dir."
+  (let* ((version (or version "latest"))
+         (url (format dap-utils-vscode-ext-url publisher name version))
+         (dest (or path
+                   (f-join dap-utils-extension-path "vscode" (concat publisher "." name)))))
+    (dap-utils--get-extension url dest)))
+
+(defun dap-utils-get-github-extension (owner repo version &optional path)
+  "Get extension from github named OWNER/REPO with VERSION.
+PATH is the download destination path."
+  (let* ((url (format dap-utils-github-extension-url owner repo version))
+         (dest (or path
+                   (f-join dap-utils-extension-path "github" (concat owner "." repo)))))
+    (dap-utils--get-extension url dest)))
+
 (defun dap-utils-extention-install? (publisher name origine version &optional path)
   "Create a closure that will install DAP-DEBUG-PROVIDER.
 Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
@@ -129,24 +147,6 @@ Argument DEBUG-PROVIDER-NAME is the name of the language related to dap provider
 					  (perform-install-from-origine origine)
 					  (message "%s-debug-provider installed with success"
 						   debug-provider-name)))))))
-
-(defun dap-utils-get-vscode-extension (publisher name &optional version path)
-  "Get vscode extension from PUBLISHER named NAME.
-VERSION is the version of the extenssion, otherwise the latest.
-PATH is the download destination dir."
-  (let* ((version (or version "latest"))
-         (url (format dap-utils-vscode-ext-url publisher name version))
-         (dest (or path
-                   (f-join dap-utils-extension-path "vscode" (concat publisher "." name)))))
-    (dap-utils--get-extension url dest)))
-
-(defun dap-utils-get-github-extension (owner repo version &optional path)
-  "Get extension from github named OWNER/REPO with VERSION.
-PATH is the download destination path."
-  (let* ((url (format dap-utils-github-extension-url owner repo version))
-         (dest (or path
-                   (f-join dap-utils-extension-path "github" (concat owner "." repo)))))
-    (dap-utils--get-extension url dest)))
 
 (defmacro dap-utils-vscode-setup-function (dapfile publisher name &optional path version callback)
   "Helper to create DAPFILE setup function for vscode debug extension.
