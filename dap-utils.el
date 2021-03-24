@@ -107,8 +107,8 @@ PATH is the download destination path."
     (dap-utils--get-extension url dest)))
 
 (defun dap-perform-install-from-origine (publisher name origine version &optional path)
-  "Install debug-provider from GITHUB or VSCODE MARKETPLACE.
- is the name of the vscode publisher or the owner of the repo
+  "Install debug-provider from `github' or `vscode' marketplace.
+Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
  in GitHub.
 Argument NAME is the vscode extension name or the GitHub repo.
 Argument ORIGINE is either `vscode' or `github'.
