@@ -143,9 +143,6 @@ Argument PROVIDER-STATE is either `:up-to-date' which instruct the function
 which tell the function to install the missing provider.
 Argument DEBUG-PROVIDER-NAME is the name of the language related to dap provider"
       (cond
-       ((null provider-state)           (error (concat "None of :upgrade, :none, "
-					               ":up-to-date was provided by "
-						       "'present?' funcall")))
        ((eq provider-state :up-to-date) (message "%s-debug-provider is already installed and up to date"
 						 debug-provider-name))
        ((eq provider-state :upgrade)    (progn
@@ -155,7 +152,10 @@ Argument DEBUG-PROVIDER-NAME is the name of the language related to dap provider
        ((eq provider-state :none)       (progn
 					  (dap-perform-install-from-origine publisher name origine version path)
 					  (message "%s-debug-provider installed with success"
-						   debug-provider-name)))))))
+						   debug-provider-name)))
+       (t                               (error (concat "None of :upgrade, :none, "
+						       ":up-to-date was provided by "
+						       "'present?' funcall")))))))
 
 (defmacro dap-utils-vscode-setup-function (dapfile publisher name &optional path version callback)
   "Helper to create DAPFILE setup function for vscode debug extension.
