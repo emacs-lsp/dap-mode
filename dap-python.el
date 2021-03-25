@@ -233,8 +233,18 @@ strings, for the sake of launch.json feature parity."
        (unless (plist-get conf :cwd)
          (cl-remf conf :cwd))
 
-       (plist-put conf :dap-server-path
-                  (list python-executable "-m" "debugpy.adapter")))
+       (pcase (plist-get conf :request)
+         ("launch"
+          (plist-put conf :dap-server-path
+                     (list python-executable "-m" "debugpy.adapter")))
+         ("attach"
+          (let* ((connect (plist-get conf :connect))
+                 (host (or (plist-get connect :host) "localhost"))
+                 (port (or (plist-get connect :port) 5678)))
+            (plist-put conf :host host)
+            (plist-put conf :debugServer port)
+            (cl-remf conf :connect)))))
+
       (_ (error "`dap-python': unknown :debugger type %S" debugger)))
     conf))
 
