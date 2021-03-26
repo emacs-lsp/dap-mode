@@ -145,14 +145,15 @@ Argument DEBUG-PROVIDER-NAME is the name of the language related to dap provider
       (cond
        ((eq provider-state :up-to-date) (message "%s-debug-provider is already installed and up to date"
 						 debug-provider-name))
-       ((eq provider-state :upgrade)    (progn
-					  (dap-perform-install-from-origine publisher name origine version path)
-					  (message "%s-debug-provider upgraded with success"
-						   debug-provider-name)))
-       ((eq provider-state :none)       (progn
-					  (dap-perform-install-from-origine publisher name origine version path)
-					  (message "%s-debug-provider installed with success"
-						   debug-provider-name)))
+       
+       ((eq provider-state :upgrade)    (dap-perform-install-from-origine publisher name origine version path)
+	                                (message "%s-debug-provider upgraded with success"
+						 debug-provider-name))
+       
+       ((eq provider-state :none)      (dap-perform-install-from-origine publisher name origine version path)
+	                               (message "%s-debug-provider installed with success"
+						debug-provider-name))
+       
        (t                               (error (concat "None of :upgrade, :none, "
 						       ":up-to-date was provided by "
 						       "'present?' funcall")))))))
