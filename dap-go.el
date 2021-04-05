@@ -64,7 +64,7 @@
 	       ))
 
 
-  (if (plist-get conf :args) (plist-put conf :args (split-string (plist-get conf :args))) ())
+  (if (stringp (plist-get conf :args)) (plist-put conf :args (split-string (plist-get conf :args))) ())
   
   (-> conf
       (dap--put-if-absent :dap-server-path dap-go-debug-program)
