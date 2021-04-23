@@ -112,8 +112,9 @@ Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
  in GitHub.
 Argument NAME is the vscode extension name or the GitHub repo.
 Argument ORIGINE is either `vscode' or `github'.
-Optional Argument VERSION is the version of the extension. NOTE: This argument is mandatory for
-extentions installed from github.
+Argument VERSION is the version of the extension, it should be NIL if you don't want 
+to pass a vscode extension version to the function.
+>>>>>>> integrate_dap-register-setup-debug-provider
 Optional argument PATH is the path to the extension in the file system."
   (let ((path (or path
 		  (f-join dap-utils-extension-path origine
@@ -133,8 +134,8 @@ Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
  in GitHub.
 Argument NAME is the vscode extension name or the GitHub repo.
 Argument ORIGINE is either `vscode' or `github'.
-Optional Argument VERSION is the version of the extension. NOTE: This argument is mandatory for
-extentions installed from github.
+Argument VERSION is the version of the extension, it should be NIL if you don't want 
+to pass a vscode extension version to the function.
 Optional argument PATH is the path to the extension in the file system."
   (let ((path (or path
 		   (f-join dap-utils-extension-path origine
