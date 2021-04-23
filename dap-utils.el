@@ -106,7 +106,7 @@ PATH is the download destination path."
                    (f-join dap-utils-extension-path "github" (concat owner "." repo)))))
     (dap-utils--get-extension url dest)))
 
-(defun dap-perform-install-from-origine (publisher name origine &optional version path)
+(defun dap-perform-install-from-origine (publisher name origine version &optional path)
   "Install debug-provider from `github' or `vscode' marketplace.
 Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
  in GitHub.
@@ -128,7 +128,7 @@ Optional argument PATH is the path to the extension in the file system."
 	(dap-utils-get-github-extension publisher name version path)))
      (t (error "Unknown origine %s" origine)))))
 
-(defun dap-utils-extention-install? (publisher name origine &optional version path)
+(defun dap-utils-extention-install? (publisher name origine version &optional path)
   "Create a closure that will install DAP-DEBUG-PROVIDER.
 Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
  in GitHub.
