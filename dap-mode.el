@@ -1498,6 +1498,34 @@ has language id = LANGUAGE-ID. The function must return debug
 arguments which contain the debug port to use for opening TCP connection."
   (puthash language-id provide-configuration-fn dap--debug-providers))
 
+(cl-defun dap-register-setup-debug-provider (language-id &rest debug-setup
+							 &key
+							 process-template-fn
+							 present?
+							 install)
+  "Register debug setup for LANGUAGE-ID.
+
+The only purpose of DEBUG-SETUP is to bind to `&key' passed as arguments.
+LANGUAGE-ID is the language ID to identify the LANGUAGE.
+PROCESS-TEMPLATE-FN is a function that procecess the template used by the
+debugger.
+PRESENT? is a function that checks if the debug server is installed or 
+outdated.
+INSTALL is a function that performs the installation of the DAP SERVER."
+
+  ;; I used 'cond' because All the tested args are members of
+  ;; DEBUG-SETUP.  I tested them directly instead of doing the check
+  ;; with ((null (plist-member ... debug-setup)) (error ...)) because
+  ;; it makes more sens.
+  (cond
+   ((null debug-setup)         (error (concat "'dap-register-setup-debug-provider' takes keyword arguments.\n"
+					      "Please refer to it documentation")))
+   ((null process-template-fn) (error "'process-template-fn' is not provided"))
+   ((null present?)            (error "'present?' is not provided"))
+   ((null install)             (error "'install' is not provided"))
+   (t nil))
+  (puthash language-id debug-setup dap--debug-providers))
+
 (defun dap-register-debug-template (configuration-name configuration-settings)
   "Register configuration template CONFIGURATION-NAME.
 
@@ -1664,13 +1692,19 @@ after selecting configuration template."
   ;; very hard to quote them. Because of this, `dap-start-debugging' cannot
   ;; expand them properly. Any python configuration that uses variables in :args
   ;; will fail.
-  (let* ((debug-args (dap-variables-expand-in-launch-configuration debug-args))
-         (launch-args (or (-some-> (plist-get debug-args :type)
-                            (gethash dap--debug-providers)
-                            (funcall debug-args))
-                          (user-error "Have you loaded the `%s' specific dap package?"
-                                      (or (plist-get debug-args :type)
-                                          (user-error "%s does not specify :type" debug-args))))))
+  (let* ((debug-args          (dap-variables-expand-in-launch-configuration debug-args))
+	 (debug-provider-name (plist-get debug-args :type))
+	 (provider-setup      (gethash debug-provider-name dap--debug-providers))
+	 (present?            (plist-get provider-setup :present?))
+	 (install             (plist-get provider-setup :install))
+	 (launch-args         (or (-some-> (plist-get provider-setup :process-template-fn)
+                                    (funcall debug-args))
+                                  (user-error "Have you loaded the `%s' specific dap package?"
+                                              (or debug-provider-name
+                                                  (user-error "%s does not specify :type" debug-args))))))
+
+    (funcall install present? debug-provider-name)
+    
     (if (functionp launch-args)
         (funcall launch-args #'dap-start-debugging-noexpand)
       (dap-start-debugging-noexpand launch-args))))

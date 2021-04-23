@@ -67,6 +67,27 @@
   :group 'dap-utils
   :type 'directory)
 
+(defun dap-utils-extension-present? (publisher name origine version &optional path)
+  "Check if extension is present.
+return `:present' if not installed.
+return `:upgrade' if don't match with VERSION.
+return `:none' if not present.
+Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
+ in GitHub.
+Argument NAME is the vscode extension name or the GitHub repo.
+Argument ORIGINE is either `vscode' or `github'.
+Argument VERSION is the version of the extension.
+Optional argument PATH is the path to the extension in the file system."
+  (let* ((path (or path
+		   (f-join dap-utils-extension-path origine
+			   (concat publisher "." name))))
+	 (extention-version-list (reverse (directory-files path nil "[^.]"))))
+    
+    (cond
+     ((null extention-version-list) :none)
+     ((string= (car extention-version-list) version) :up-to-date)
+     (t :upgrade))))
+
 (defun dap-utils-get-vscode-extension (publisher name &optional version path)
   "Get vscode extension from PUBLISHER named NAME.
 VERSION is the version of the extenssion, otherwise the latest.
@@ -84,6 +105,63 @@ PATH is the download destination path."
          (dest (or path
                    (f-join dap-utils-extension-path "github" (concat owner "." repo)))))
     (dap-utils--get-extension url dest)))
+
+(defun dap-perform-install-from-origine (publisher name origine version &optional path)
+  "Install debug-provider from `github' or `vscode' marketplace.
+Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
+ in GitHub.
+Argument NAME is the vscode extension name or the GitHub repo.
+Argument ORIGINE is either `vscode' or `github'.
+Argument VERSION is the version of the extension, it should be NIL if you don't want 
+to pass a vscode extension version to the function.
+>>>>>>> integrate_dap-register-setup-debug-provider
+Optional argument PATH is the path to the extension in the file system."
+  (let ((path (or path
+		  (f-join dap-utils-extension-path origine
+			  (concat publisher "." name)))))
+    (cond
+     ((string= origine "vscode")
+      (dap-utils-get-vscode-extension publisher name version path))
+     ((string= origine "github")
+      (if (null versoin)
+	  (error "You have to provide the argument VERSION to the function!")
+	(dap-utils-get-github-extension publisher name version path)))
+     (t (error "Unknown origine %s" origine)))))
+
+(defun dap-utils-extention-install? (publisher name origine version &optional path)
+  "Create a closure that will install DAP-DEBUG-PROVIDER.
+Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
+ in GitHub.
+Argument NAME is the vscode extension name or the GitHub repo.
+Argument ORIGINE is either `vscode' or `github'.
+Argument VERSION is the version of the extension, it should be NIL if you don't want 
+to pass a vscode extension version to the function.
+Optional argument PATH is the path to the extension in the file system."
+  (let ((path (or path
+		   (f-join dap-utils-extension-path origine
+			   (concat publisher "." name)))))
+    
+    (lambda (provider-state debug-provider-name)
+      "Install or upgrade DEBUG-PROVIDER-NAME according to PROVIDER-STATE.
+Argument PROVIDER-STATE is either `:up-to-date' which instruct the function
+ to do nothing, `:upgrade' which instruct the function to upgrade or `:none'
+which tell the function to install the missing provider.
+Argument DEBUG-PROVIDER-NAME is the name of the language related to dap provider"
+      (cond
+       ((eq provider-state :up-to-date) (message "%s-debug-provider is already installed and up to date"
+						 debug-provider-name))
+       
+       ((eq provider-state :upgrade)    (dap-perform-install-from-origine publisher name origine version path)
+	                                (message "%s-debug-provider upgraded with success"
+						 debug-provider-name))
+       
+       ((eq provider-state :none)      (dap-perform-install-from-origine publisher name origine version path)
+	                               (message "%s-debug-provider installed with success"
+						debug-provider-name))
+       
+       (t                               (error (concat "None of :upgrade, :none, "
+						       ":up-to-date was provided by "
+						       "'present?' funcall")))))))
 
 (defmacro dap-utils-vscode-setup-function (dapfile publisher name &optional path version callback)
   "Helper to create DAPFILE setup function for vscode debug extension.
