@@ -112,7 +112,8 @@ Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
  in GitHub.
 Argument NAME is the vscode extension name or the GitHub repo.
 Argument ORIGINE is either `vscode' or `github'.
-Argument VERSION is the version of the extension.
+Argument VERSION is the version of the extension, it should be NIL if you don't want 
+to pass a vscode extension version to the function.
 Optional argument PATH is the path to the extension in the file system."
   (let ((path (or path
 		  (f-join dap-utils-extension-path origine
@@ -130,7 +131,8 @@ Argument PUBLISHER is the name of the vscode publisher or the owner of the repo
  in GitHub.
 Argument NAME is the vscode extension name or the GitHub repo.
 Argument ORIGINE is either `vscode' or `github'.
-Argument VERSION is the version of the extension.
+Argument VERSION is the version of the extension, it should be NIL if you don't want 
+to pass a vscode extension version to the function.
 Optional argument PATH is the path to the extension in the file system."
   (let ((path (or path
 		   (f-join dap-utils-extension-path origine
