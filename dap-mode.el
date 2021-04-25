@@ -1647,12 +1647,22 @@ before starting the debug process."
         (push (cons session-name launch-args) dap--debug-configuration)
         (run-hook-with-args 'dap-session-created-hook debug-session)))))
 
+(defcustom dap-debug-compilation-keep nil
+  "Whether `dap-debug' should keep the compile window on success.
+By default, it is hidden."
+  :type 'boolean
+  :group 'dap-mode)
+
 ;;;###autoload
 (defun dap-debug (debug-args)
   "Run debug configuration DEBUG-ARGS.
 
 If DEBUG-ARGS is not specified the configuration is generated
-after selecting configuration template."
+after selecting configuration template.
+
+:dap-compilation specifies a shell command to be run using
+`compilation-start' before starting the debug session. It could
+be used to compile the project, spin up docker, ...."
   (interactive (list (-> (dap--completing-read "Select configuration template: "
                                                (-mapcat #'funcall dap-launch-configuration-providers)
                                                'cl-first nil t)
@@ -1670,10 +1680,29 @@ after selecting configuration template."
                             (funcall debug-args))
                           (user-error "Have you loaded the `%s' specific dap package?"
                                       (or (plist-get debug-args :type)
-                                          (user-error "%s does not specify :type" debug-args))))))
-    (if (functionp launch-args)
-        (funcall launch-args #'dap-start-debugging-noexpand)
-      (dap-start-debugging-noexpand launch-args))))
+                                          (user-error "%s does not specify :type" debug-args)))))
+         (cb (lambda ()
+               (if (functionp launch-args)
+                   (funcall launch-args #'dap-start-debugging-noexpand)
+                 (dap-start-debugging-noexpand launch-args)))))
+    (-if-let ((&plist :dap-compilation compilation) launch-args)
+        (progn
+          (cl-remf launch-args :dap-compilation)
+          (with-current-buffer (compilation-start compilation t (lambda (&rest _)
+                                                                  "*DAP compilation*"))
+            (let (window)
+              (add-hook 'compilation-finish-functions
+                        (lambda (buf status &rest _)
+                          (if (string= "finished\n" status)
+                              (progn
+                                (when (and (not dap-debug-compilation-keep)
+                                           (window-live-p window)
+                                           (eq buf (window-buffer window)))
+                                  (delete-window window))
+                                (funcall cb))
+                            (lsp--error "Compilation step failed"))))
+              (setq window (display-buffer (current-buffer))))))
+      (funcall cb))))
 
 (defun dap-debug-edit-template (&optional debug-args)
   "Edit registered template DEBUG-ARGS.
@@ -1699,11 +1728,11 @@ normally with `dap-debug'"
            ((fst snd . rst) debug-args))
       (insert (format "%s %s" fst (prin1-to-string snd)))
       (cl-loop for (k v) on rst by #'cddr
-         do (if (not (equal k :program-to-start))
-                (progn
-                  (insert "\n")
-                  (--dotimes column (insert " "))
-                  (insert (format "%s %s" k (prin1-to-string v)))))))
+               do (if (not (equal k :program-to-start))
+                      (progn
+                        (insert "\n")
+                        (--dotimes column (insert " "))
+                        (insert (format "%s %s" k (prin1-to-string v)))))))
     (insert "))"))
   (pop-to-buffer "*DAP Templates*")
   (goto-char (point-max)))
