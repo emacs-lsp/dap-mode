@@ -59,7 +59,32 @@ Yields nil if it cannot be found or there is no project."
   "Parse the project's launch.json as json data and return the result."
   (when-let ((launch-json (dap-launch-find-launch-json))
              (json-object-type 'plist)
-             (json-array-type 'list))
+             ;; Use 'vector instead of 'list. With 'list for array type,
+             ;; json-encode-list interpreted a list with one plist element as
+             ;; an alist. Using 'list, it turned the following value of
+             ;; pathMappings:
+             ;;
+             ;;     "pathMappings": [
+             ;;         {
+             ;;             "localRoot": "${workspaceFolder}",
+             ;;             "remoteRoot": "."
+             ;;         }
+             ;;     ]
+             ;;
+             ;; into:
+             ;;
+             ;;     ((:localRoot "${workspaceFolder}" :remoteRoot "."))
+             ;;
+             ;; and then into:
+             ;;
+             ;;     "pathMappings": {
+             ;;         "localRoot": [
+             ;;             "${workspaceFolder}",
+             ;;             "remoteRoot",
+             ;;             "."
+             ;;         ]
+             ;;     }
+             (json-array-type 'vector))
     (with-temp-buffer
       ;; NOTE: insert-file-contents does not move point
       (insert-file-contents launch-json)
