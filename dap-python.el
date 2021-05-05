@@ -48,7 +48,7 @@ For example you may set it to `xterm -e' which will pop xterm console when
 you are debugging."
   :group 'dap-python
   :risky t
-  :type '(choice (string) (const :tag "None" nil))
+  :type '(choice (string) (const :tag "None" nil)))
 
 (defun dap-python--pyenv-executable-find (command)
   "Find executable COMMAND, taking pyenv shims into account.
