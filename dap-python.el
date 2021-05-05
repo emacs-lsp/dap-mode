@@ -48,7 +48,7 @@ For example you may set it to `xterm -e' which will pop xterm console when
 you are debugging."
   :group 'dap-python
   :risky t
-  :type 'string)
+  :type '(choice (string) (const :tag "None" nil)))
 
 (defun dap-python--pyenv-executable-find (command)
   "Find executable COMMAND, taking pyenv shims into account.
@@ -164,7 +164,7 @@ Can be either `ptvsd' or `debugpy.' Note that this setting can be
 overridden in individual `dap-python' launch configuration. The
 values of this variable or the :debugger field may also be
 strings, for the sake of launch.json feature parity."
-  :type '(choice (const 'ptvsd) (const 'debugpy))
+  :type '(choice (const ptvsd) (const debugpy))
   :group 'dap-python)
 
 (defun dap-python--populate-start-file-args (conf)
