@@ -35,8 +35,16 @@
   :group 'dap-go
   :type 'string)
 
-(defcustom dap-go-debug-program `("node"
-                                  ,(f-join dap-go-debug-path "extension/out/src/debugAdapter/goDebug.js"))
+(defcustom dap-go-debug-program
+  `("node"
+    ,(let ((old (f-join dap-go-debug-path "extension/out/src/debugAdapter/goDebug.js"))
+           (new (f-join dap-go-debug-path "extension/dist/debugAdapter.js")))
+       (if (f-exists? old)
+           (progn
+             (lsp--warn "Go debug adapter is outdated; some features will not work properly (map debugging).\n\
+Update `dap-go' using `C-u M-x dap-go-setup'")
+             old)
+         new)))
   "The path to the go debugger."
   :group 'dap-go
   :type '(repeat string))
@@ -47,7 +55,7 @@
   :group 'dap-go
   :type 'string)
 
-(dap-utils-vscode-setup-function "dap-go" "golang" "go" dap-go-debug-path "0.15.0")
+(dap-utils-vscode-setup-function "dap-go" "golang" "go" dap-go-debug-path "0.22.1")
 
 (defun dap-go--populate-default-args (conf)
   "Populate CONF with the default arguments."
