@@ -41,7 +41,8 @@
            (new (f-join dap-go-debug-path "extension/dist/debugAdapter.js")))
        (if (f-exists? old)
            (progn
-             (lsp--warn "Go debug adapter is outdated; some features will not work properly")
+             (lsp--warn "Go debug adapter is outdated; some features will not work properly (map debugging).\n\
+Update `dap-go' using `C-u M-x dap-go-setup'")
              old)
          new)))
   "The path to the go debugger."
