@@ -1598,7 +1598,7 @@ before starting the debug process."
                    :wait-for-port :type :request :port
                    :startup-function :environment-variables :hostName host) launch-args)
           (session-name (dap--calculate-unique-name name (dap--get-sessions)))
-          (default-directory (or cwd default-directory))
+          (default-directory (expand-file-name (or cwd default-directory)))
           (process-environment (if environment-variables
                                    (cl-copy-list process-environment)
                                  process-environment))
@@ -1630,15 +1630,18 @@ before starting the debug process."
 
               (dap--set-sessions (cons debug-session debug-sessions)))
             (dap--send-message
-             (dap--make-request request (-> launch-args
-                                            (cl-copy-list)
-                                            (dap--plist-delete :cleanup-function)
-                                            (dap--plist-delete :startup-function)
-                                            (dap--plist-delete :dap-server-path)
-                                            (dap--plist-delete :environment-variables)
-                                            (dap--plist-delete :wait-for-port)
-                                            (dap--plist-delete :skip-debug-session)
-                                            (dap--plist-delete :program-to-start)))
+             (dap--make-request request (cl-list*
+                                         :cwd default-directory
+                                         (-> launch-args
+                                             (cl-copy-list)
+                                             (dap--plist-delete :cwd)
+                                             (dap--plist-delete :cleanup-function)
+                                             (dap--plist-delete :startup-function)
+                                             (dap--plist-delete :dap-server-path)
+                                             (dap--plist-delete :environment-variables)
+                                             (dap--plist-delete :wait-for-port)
+                                             (dap--plist-delete :skip-debug-session)
+                                             (dap--plist-delete :program-to-start))))
              (dap--session-init-resp-handler debug-session)
              debug-session)))
          debug-session)
