@@ -58,10 +58,16 @@ With prefix, FORCED to redownload the extension."
   (unless (and (not forced) (file-exists-p dap-cpptools-debug-path))
     (dap-utils--get-extension dap-cpptools-download-url dap-cpptools-debug-path)
     (let* ((adapter-binary (cl-first dap-cpptools-debug-program))
-           (mono (f-join (f-parent adapter-binary) "mono.linux-x86_64")))
+           (mono (f-join (f-parent adapter-binary) "mono.linux-x86_64"))
+           (mono-mac (f-join (f-parent adapter-binary) "mono.osx"))
+           (lldb-mi (f-join (f-parent adapter-binary) "lldb-mi/bin/lldb-mi")))
       (set-file-modes adapter-binary #o0700)
       (when (f-exists? mono)
-        (set-file-modes mono #o0700)))
+        (set-file-modes mono #o0700))
+      (when (f-exists? mono-mac)
+        (set-file-modes mono #o0700))
+      (when (f-exists? lldb-mi)
+        (set-file-modes lldb-mi #o0700)))
 
     (message "%s: Downloading done!" "dap-cpptools")))
 
