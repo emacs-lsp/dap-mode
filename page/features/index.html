@@ -1008,7 +1008,8 @@ DAP are just like in VSCode and even support variables. See:</p>
 functionality to compile the project before starting the debug session.</p>
 <p><code>dap-mode</code> also has such a feature: the <code>:dap-compilation</code> property of launch
 configurations ("dap-compilation" in <code>launch.json</code>) specifies a shell command
-that needs to execute successfully before the debug session is started.</p>
+that needs to execute successfully before the debug session is started.
+<code>:dap-compilation-dir</code> can be used to control where the compilation is started.</p>
 <p>In the future, we want to support VSCode's <code>preLaunchTask</code> instead, but
 currently there is no tasks.json-compatible task runner for Emacs.</p>
                 
@@ -1019,7 +1020,7 @@ currently there is no tasks.json-compatible task runner for Emacs.</p>
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 13, 2021</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 17, 2021</span>
     
   </small>
 </div>
