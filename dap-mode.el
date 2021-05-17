@@ -1632,6 +1632,8 @@ before starting the debug process."
             (dap--send-message
              (dap--make-request request (-> launch-args
                                             (cl-copy-list)
+                                            (dap--plist-delete :dap-compilation)
+                                            (dap--plist-delete :dap-compilation-dir)
                                             (dap--plist-delete :cleanup-function)
                                             (dap--plist-delete :startup-function)
                                             (dap--plist-delete :dap-server-path)
@@ -1685,11 +1687,12 @@ be used to compile the project, spin up docker, ...."
                (if (functionp launch-args)
                    (funcall launch-args #'dap-start-debugging-noexpand)
                  (dap-start-debugging-noexpand launch-args)))))
-    (-if-let ((&plist :dap-compilation compilation) launch-args)
-        (progn
-          (cl-remf launch-args :dap-compilation)
-          (with-current-buffer (compilation-start compilation t (lambda (&rest _)
-                                                                  "*DAP compilation*"))
+    (-if-let ((&plist :dap-compilation) launch-args)
+        (let ((default-directory (or (plist-get :dap-compilation-dir launch-args)
+                                     (lsp-workspace-root)
+                                     default-directory)))
+          (with-current-buffer (compilation-start dap-compilation t (lambda (&rest _)
+                                                                      "*DAP compilation*"))
             (let (window)
               (add-hook 'compilation-finish-functions
                         (lambda (buf status &rest _)

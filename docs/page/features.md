@@ -72,7 +72,7 @@ could add remove watch expressions via `dap-ui-expressions-add` and
 Breakpoints can be viewed after invoking `dap-ui-breakpoints`.
 
 1.  Keybindings
-    
+
     | Command                              | Description                    | Keybindings |
     | ------------------------------------ | ------------------------------ | ----------- |
     | `dap-ui-breakpoints-goto`            | Go to breakpoint under cursor  | \<return\>  |
@@ -81,7 +81,7 @@ Breakpoints can be viewed after invoking `dap-ui-breakpoints`.
     | `bui-list-mark`                      | Mark breakpoint under point    | m           |
     | `bui-list-unmark`                    | Unmark breakpoint under point  | u           |
     | `bui-list-unmark-all`                | Unmark breakpoint under point  | U           |
-    
+
 
 ## Loaded sources
 
@@ -114,6 +114,7 @@ functionality to compile the project before starting the debug session.
 `dap-mode` also has such a feature: the `:dap-compilation` property of launch
 configurations ("dap-compilation" in `launch.json`) specifies a shell command
 that needs to execute successfully before the debug session is started.
+`:dap-compilation-dir` can be used to control where the compilation is started.
 
 In the future, we want to support VSCode's `preLaunchTask` instead, but
 currently there is no tasks.json-compatible task runner for Emacs.
