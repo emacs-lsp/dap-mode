@@ -1695,16 +1695,17 @@ be used to compile the project, spin up docker, ...."
                                                                       "*DAP compilation*"))
             (let (window)
               (cl-labels ((cf (buf status &rest _)
-                           (remove-hook 'compilation-finish-functions #'cf)
-                           (if (string= "finished\n" status)
-                               (progn
-                                 (when (and (not dap-debug-compilation-keep)
-                                            (window-live-p window)
-                                            (eq buf (window-buffer window)))
-                                   (delete-window window))
-                                 (funcall cb))
-                             (lsp--error "Compilation step failed"))))
-                (add-hook 'compilation-finish-functions #'cf)
+                              (with-current-buffer buf
+                                (remove-hook 'compilation-finish-functions #'cf t)
+                                (if (string= "finished\n" status)
+                                    (progn
+                                      (when (and (not dap-debug-compilation-keep)
+                                                 (window-live-p window)
+                                                 (eq buf (window-buffer window)))
+                                        (delete-window window))
+                                      (funcall cb))
+                                  (lsp--error "Compilation step failed")))))
+                (add-hook 'compilation-finish-functions #'cf nil t)
                 (setq window (display-buffer (current-buffer)))))))
       (funcall cb))))
 
