@@ -1335,6 +1335,29 @@ RESULT to use for the callback."
              error))
     (error "No thread is currently active %s" (dap--debug-session-name (dap--cur-session)))))
 
+(defun dap-up-stack-frame (frames)
+  "Switch stackframe up FRAMES frames on the current thread.
+A negative value will move down frames."
+  (interactive "p")
+  (-if-let* ((session (dap--cur-session-or-die))
+             (thread-id (dap--debug-session-thread-id session))
+             (stack-frames (gethash thread-id
+                                    (dap--debug-session-thread-stack-frames session)))
+             (cur-frame (dap--debug-session-active-frame session))
+             (pos (cl-position cur-frame stack-frames))
+             (len (length stack-frames))
+             (new-pos (min (1- len) (max 0 (+ pos frames)))))
+      (if (eq pos new-pos)
+          (error "Already at the %s of the stack" (if (<= pos 0) "bottom" "top"))
+        (dap--go-to-stack-frame session (nth new-pos stack-frames)))
+    (error "Unable to find active session, thread, or frame.")))
+
+(defun dap-down-stack-frame (frames)
+    "Switch stackframe down FRAMES frames on the current thread.
+A negative value will move up frames."
+  (interactive "p")
+  (dap-up-stack-frame (- frames)))
+
 (defun dap--calculate-unique-name (debug-session-name debug-sessions)
   "Calculate unique name with prefix DEBUG-SESSION-NAME.
 DEBUG-SESSIONS - list of the currently active sessions."
