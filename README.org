@@ -9,6 +9,7 @@
 - [[#dap-mode][dap-mode]]
   - [[#summary][Summary]]
     - [[#project-status][Project status]]
+  - [[#Install][Install]]
   - [[#usage][Usage]]
   - [[#features][Features]]
   - [[#configuration][Configuration]]
@@ -24,6 +25,37 @@
 *** Project status
    The API considered unstable until 1.0 release is out. It is tested against
    Java, Python, Ruby, Elixir and LLDB (C/C++/Objective-C/Swift).
+** Install
+   There are several ways to install ~dap-mode~.
+*** ~package.el~
+    To use the native Emacs package manager, ~package.el~, first add
+    [[https://melpa.org][MELPA]] or [[https://stable.melpa.org/][MELPA Stable]] to the ~package-archive~ alist:
+
+    #+begin_src elisp
+    (require 'package)
+    (add-to-list 'package-archives
+                 '("melpa-stable" . "https://stable.melpa.org/packages/"))
+    #+end_src
+
+    Next,
+    - ~M-x package-refresh-contents~ to refresh the package listing
+    - ~M-x package-install RET dap-mode RET~ to install ~dap-mode~
+
+    Finally, load Emacs Lisp packages and enable ~dap-mode~:
+
+    #+begin_src elisp
+    (package-initialize)
+    (dap-mode 1)
+    #+end_src
+*** [[https://github.com/jwiegley/use-package][~use-package.el~]]
+    For users of ~use-package~, install and enable ~dap-mode~ with:
+
+    #+begin_src elisp
+    (use-package dap-mode
+      :ensure t
+      :init
+      (dap-mode 1))
+    #+end_src
 ** Usage
   The main entry points are ~dap-debug~ and ~dap-debug-edit-template~. The first
   one asks for a registered debug template and starts the configuration using

@@ -1,9 +1,16 @@
 Configuration
 ===============
 
+After [installing
+`dap-mode`](https://github.com/emacs-lsp/dap-mode#Install), you may
+need to install a DAP compliant debugger.  `dap-mode` will need to be
+configured to connect with it.  This most easily done with
+`dap-auto-configure-mode`.
+
 ## DAP mode configuration
 
-For an auto-configuration enable the `dap-auto-configure-mode`. You can configure which features from `dap-mode` do you want with `dap-auto-configure-features`:
+
+You can configure which features from `dap-mode` do you want with `dap-auto-configure-features`:
 
 ```elisp
 ;; Enabling only some features
@@ -77,26 +84,40 @@ settings.
 
 1.  Installation
 
-      - install latest version of ptvsd.
+    A Python DAP compliant debugger is provided by `debugpy`.  This
+    can be installed with:
 
-        ``` bash
-        pip install "ptvsd>=4.2"
-        ```
+    ``` bash
+    pip install "debugpy"
+    ```
 
-          - Then add the following line in your config:
+    Use the following to load Python configurations into `dap-debug`:
 
-            ``` elisp
-            (require 'dap-python)
-            ```
+    ``` elisp
+    (require 'dap-python)
+    ```
 
-        This will add the python related configuration to `dap-debug`.
+    Use `dap-python-debugger` to specify which debugger to use.
+
+    For example,
+
+    ``` elisp
+    (use-package dap-mode
+        :config
+        (require 'dap-python)
+        (setq dap-python-debugger 'debugpy))
+    ```
 
 2.  Usage
 
-    A template named "Python :: Run Configuration" will appear, which
-    will execute the currently visited module. This will fall short
-    whenever you need to specify arguments, environment variables or
-    execute a setuptools based script. In such case, define a template:
+    If using a virtual environment, make sure it is activated.  Next,
+    call `dap-auto-configure-mode`.  Use `dap-debug` when you are
+    ready to debug.  You are able to choose from various Run
+    Configurations (e.g. `Python :: Run file (buffer)`) which specify
+    debug parameters.  Press `<tab>` to see available templates.
+
+    You can specify arguments, environment variables or execute a
+    setuptools based script, with a custom template:
 
     ``` elisp
     (dap-register-debug-template "My App"
@@ -108,6 +129,9 @@ settings.
             :request "launch"
             :name "My App"))
     ```
+
+    Templates can be quickly created and modified using
+    `dap-debug-edit-template`.
 
 ## Ruby
 
