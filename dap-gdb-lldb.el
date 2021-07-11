@@ -49,7 +49,7 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
       (dap--put-if-absent :dap-server-path dap-gdb-lldb-debug-program)
       (dap--put-if-absent :type "gdb")
       (dap--put-if-absent :cwd default-directory)
-      (dap--put-if-absent :target (read-file-name "Select file to debug."))
+      (dap--put-if-absent :target (expand-file-name (read-file-name "Select file to debug.")))
       (dap--put-if-absent :name "GDB Debug")))
 
 (dap-register-debug-provider "gdb" 'dap-gdb-lldb--populate-gdb)
@@ -98,7 +98,7 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
       (dap--put-if-absent :dap-server-path dap-gdb-lldb-path-lldb)
       (dap--put-if-absent :type "lldb")
       (dap--put-if-absent :cwd default-directory)
-      (dap--put-if-absent :target (read-file-name "Select file to debug."))
+      (dap--put-if-absent :target (expand-file-name (read-file-name "Select file to debug.")))
       (dap--put-if-absent :name "LLDB Debug")))
 
 (dap-register-debug-provider "lldb" 'dap-gdb-lldb--populate-lldb)
