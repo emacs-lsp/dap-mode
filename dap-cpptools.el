@@ -1,6 +1,6 @@
 ;;; dap-cpptools.el --- Debug Adapter Protocol mode for cpptools      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020  Ivan Yonchovski
+;; Copyright (C) 2021  Ivan Yonchovski
 
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords: language, tools
@@ -28,12 +28,18 @@
 (require 'dap-utils)
 
 (defcustom dap-cpptools-debug-path (expand-file-name "vscode/cpptools" dap-utils-extension-path)
-  "The path to go vscode extension."
+  "The path to cpptools vscode extension."
+  :group 'dap-cpptools
+  :type 'string)
+
+(defcustom dap-cpptools-extension-version "0.29.0"
+  "The version of the cpptools vscode extension."
   :group 'dap-cpptools
   :type 'string)
 
 (defcustom dap-cpptools-download-url
-  (format "https://github.com/microsoft/vscode-cpptools/releases/download/0.29.0/cpptools-%s.vsix"
+  (format "https://github.com/microsoft/vscode-cpptools/releases/download/%s/cpptools-%s.vsix"
+          dap-cpptools-extension-version
           (alist-get system-type
                      '((windows-nt . "win32")
                        (darwin . "osx")
@@ -47,7 +53,7 @@
              (if (eq system-type 'windows-nt)
                  "/extension/debugAdapters/bin/OpenDebugAD7.exe"
                "/extension/debugAdapters/OpenDebugAD7")))
-  "The path to the go debugger."
+  "The path to the cpptools debug adapter."
   :group 'dap-cpptools
   :type '(repeat string))
 
