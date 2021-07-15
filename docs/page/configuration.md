@@ -199,6 +199,19 @@ Then when you do `dap-debug-edit-template` and select Elixir which will
 generate runnable debug configuration. For more details on supported
 settings by the Elixir Debug Server refer to its documentation.
 
+## Erlang
+
+Make sure that you have properly configured `Erlang` and that you have
+[Erlang LS](https://github.com/erlang-ls/erlang_ls) binaries on the
+path and put in your emacs configuration.
+
+``` elisp
+(require 'dap-erlang)
+```
+
+For more information about DAP support in Erlang LS please refer to
+[the official documentation](https://erlang-ls.github.io/).
+
 ## PHP
 
 Simplify setup of vscode extension with `dap-php-setup` after requiring

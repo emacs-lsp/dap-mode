@@ -24,3 +24,7 @@ Gallery
 ## Javascript
 
 ![Javascript via Firefox debugger](../screenshots/javascript.png)
+
+## Erlang
+
+![Erlang via Erlang LS](../screenshots/erlang.png)
