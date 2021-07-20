@@ -149,7 +149,7 @@ based on DAP protocol category."
 (defcustom dap-terminated-hook nil
   "List of functions to be called after a debug session has been terminated.
 
-The functions will received the debug dession that
+The functions will receive the debug session that
 has been terminated."
   :type 'hook
   :group 'dap-mode)
