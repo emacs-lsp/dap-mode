@@ -71,7 +71,7 @@ With prefix, FORCED to redownload the extension."
       (when (f-exists? mono)
         (set-file-modes mono #o0700))
       (when (f-exists? mono-mac)
-        (set-file-modes mono #o0700))
+        (set-file-modes mono-mac #o0700))
       (when (f-exists? lldb-mi)
         (set-file-modes lldb-mi #o0700)))
 
