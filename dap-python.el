@@ -88,7 +88,7 @@ https://github.com/pyenv/pyenv-which-ext."
 (lsp-defun dap-python--parse-lsp-symbol
   ((&DocumentSymbol
     :name :kind
-    :selection-range (&Range :start (&Position :line start-line
+    :range (&Range :start (&Position :line start-line
                                                :character start-character)
                              :end (&Position :line end-line
                                              :character end-character))))
@@ -113,7 +113,8 @@ https://github.com/pyenv/pyenv-which-ext."
 
 (defun dap-python--test-p (lsp-symbol)
   (let ((name (dap-python--symbol-name lsp-symbol)))
-    (and (string= (dap-python--symbol-type lsp-symbol) "Function")
+    (and (or (string= (dap-python--symbol-type lsp-symbol) "Function")
+             (string= (dap-python--symbol-type lsp-symbol) "Method"))
          (s-starts-with? "test_" name))))
 
 (defun dap-python--test-class-p (test-symbol lsp-symbol)
@@ -142,6 +143,7 @@ https://github.com/pyenv/pyenv-which-ext."
 
 (defun dap-python--test-at-point ()
   (->> (lsp--get-document-symbols)
+       (lsp--symbols->document-symbols-hierarchy)
        (mapcar #'dap-python--parse-lsp-symbol)
        (dap-python--symbols-before-point (dap-python--cursor-position))
        dap-python--nearest-test))
