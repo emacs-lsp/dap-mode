@@ -152,7 +152,7 @@ https://github.com/pyenv/pyenv-which-ext."
   "Return the debug template whose name is TEMPLATE-NAME.
 For the name, only the template's `car' is checked, not its
 `:name' property."
-  (--first (string= template-name it) dap-debug-template-configurations))
+  (cdr (--first (string= template-name (car it)) dap-debug-template-configurations)))
 
 (defalias 'dap-python--debug-test-at-point #'dap-python-debug-test-at-point)
 (defun dap-python-debug-test-at-point ()
@@ -280,7 +280,7 @@ strings, for the sake of launch.json feature parity."
 
 (dap-register-debug-provider "python-test-at-point" 'dap-python--populate-test-at-point)
 (dap-register-debug-template "Python :: Run pytest (at point)"
-                             (list :type "python-test-at-point"
+                             (list :type "python"
                                    :args ""
                                    :program nil
                                    :module "pytest"
