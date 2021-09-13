@@ -115,7 +115,7 @@ https://github.com/pyenv/pyenv-which-ext."
   (let ((name (dap-python--symbol-name lsp-symbol)))
     (and (or (string= (dap-python--symbol-type lsp-symbol) "Function")
              (string= (dap-python--symbol-type lsp-symbol) "Method"))
-         (s-starts-with? "test_" name))))
+         (s-starts-with? "test" name))))
 
 (defun dap-python--test-class-p (test-symbol lsp-symbol)
   (when (string= (dap-python--symbol-type lsp-symbol) "Class")
