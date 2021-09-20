@@ -29,9 +29,8 @@
 (require 'dap-mode)
 (require 'f)
 
-(defcustom dap-netcore-install-dir (f-slash (f-join user-emacs-directory ".cache" "lsp" "netcoredbg"))
-  "Install directory for netcoredbg.
-The slash is expected at the end."
+(defcustom dap-netcore-install-dir (f-join user-emacs-directory ".cache" "lsp" "netcoredbg")
+  "Install directory for netcoredbg."
   :group 'dap-netcore
   :risky t
   :type 'directory)
@@ -94,7 +93,7 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
   (let ((file-ext (pcase system-type
                     (`windows-nt ".exe")
                     (_ ""))))
-    (expand-file-name (concat "netcoredbg" file-ext) (concat dap-netcore-install-dir "netcoredbg"))))
+    (expand-file-name (concat "netcoredbg" file-ext) (f-join dap-netcore-install-dir "netcoredbg"))))
 
 (defun dap-netcore--debugger-locate-or-install ()
   "Return the location of netcoredbg."
