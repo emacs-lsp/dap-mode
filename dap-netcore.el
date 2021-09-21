@@ -19,7 +19,7 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0"))
+;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0") (f "0.20.0"))
 ;; Version: 0.2
 
 ;;; Commentary:
@@ -27,21 +27,18 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'f)
 
-(defcustom dap-netcore-install-dir user-emacs-directory
-  "Install directory for netcoredbg.
-The slash is expected at the end."
+(defcustom dap-netcore-install-dir (f-join user-emacs-directory ".cache" "lsp" "netcoredbg")
+  "Install directory for netcoredbg."
   :group 'dap-netcore
   :risky t
-  :type 'directory
-  )
+  :type 'directory)
 
-(defcustom dap-netcore-download-url
-  (pcase system-type
-    (`gnu/linux "https://github.com/Samsung/netcoredbg/releases/download/latest/netcoredbg-linux-master.tar.gz")
-    (`darwin "https://github.com/Samsung/netcoredbg/releases/download/latest/netcoredbg-osx-master.tar.gz")
-    (`windows-nt "https://github.com/Samsung/netcoredbg/releases/download/latest/netcoredbg-win64-master.zip"))
-  "Netcoredbg download url."
+(defcustom dap-netcore-download-url nil
+  "Netcoredbg download url.
+See asset links here https://github.com/Samsung/netcoredbg/releases/ and select the correct one for your OS.
+Will be set automatically in Emacs 27.1 or newer with libxml2 support."
   :group 'dap-netcore
   :risky t
   :type 'string)
@@ -57,15 +54,47 @@ The slash is expected at the end."
                          (`windows-nt (format "powershell -noprofile -noninteractive -nologo -ex bypass Expand-Archive -path '%s' -dest '%s'" temp-file install-dir-full))
                          ((or `gnu/linux `darwin) (format "mkdir -p %s && tar xvzf %s -C %s" dap-netcore-install-dir temp-file dap-netcore-install-dir))
                          (_ (user-error (format "Unable to extract server - file %s cannot be extracted, please extract it manually" temp-file))))))
-    (url-copy-file dap-netcore-download-url temp-file t)
-    (shell-command unzip-script)))
+    (if (and (not dap-netcore-download-url)
+	     (fboundp 'libxml-available-p)
+	     (libxml-available-p)
+	     (fboundp 'dom-search)
+	     (fboundp 'dom-attr))
+	(url-retrieve "https://github.com/Samsung/netcoredbg/releases"
+		      (lambda (_)
+			(setq dap-netcore-download-url
+			      (concat
+			       "https://github.com"
+			       (dom-attr
+				(dom-search
+				 (libxml-parse-html-region (point-min) (point-max))
+				 (lambda (node)
+				   (string-match-p (pcase system-type
+						     (`gnu/linux ".*linux.*\\.tar\\.gz")
+						     (`darwin ".*osx.*\\.tar\\.gz")
+						     (`windows-nt ".*win64.*\\.zip"))
+						   (or (dom-attr node 'href) ""))))
+				'href)))
+			(lsp-download-install
+			 (lambda (&rest _)
+			   (shell-command unzip-script))
+			 (lambda (&rest _)
+			   (message "%s" "error during netcoredbg downloading"))
+			 :url dap-netcore-download-url
+			 :store-path temp-file)))
+      (lsp-download-install
+       (lambda (&rest _)
+	 (shell-command unzip-script))
+       (lambda (&rest _)
+	 (message "%s" "error during netcoredbg downloading"))
+       :url dap-netcore-download-url
+       :store-path temp-file))))
 
 (defun dap-netcore--debugger-cmd ()
   "The location of the netcoredbg executable."
   (let ((file-ext (pcase system-type
                     (`windows-nt ".exe")
                     (_ ""))))
-    (expand-file-name (concat "netcoredbg" file-ext) (concat dap-netcore-install-dir "netcoredbg"))))
+    (expand-file-name (concat "netcoredbg" file-ext) (f-join dap-netcore-install-dir "netcoredbg"))))
 
 (defun dap-netcore--debugger-locate-or-install ()
   "Return the location of netcoredbg."
@@ -84,7 +113,6 @@ The slash is expected at the end."
      (dap--put-if-absent conf :program (expand-file-name (read-file-name "Select an executable:"))))
     ("attach"
      (dap--put-if-absent conf :processId (string-to-number (read-string "Enter PID: " "2345"))))))
-
 
 (dap-register-debug-provider
  "coreclr"
