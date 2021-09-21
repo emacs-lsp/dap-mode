@@ -57,7 +57,8 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
     (if (and (not dap-netcore-download-url)
 	     (fboundp 'libxml-available-p)
 	     (libxml-available-p)
-	     (fboundp 'dom-search))
+	     (fboundp 'dom-search)
+	     (fboundp 'dom-attr))
 	(url-retrieve "https://github.com/Samsung/netcoredbg/releases"
 		      (lambda (_)
 			(setq dap-netcore-download-url
