@@ -77,17 +77,19 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
 			(lsp-download-install
 			 (lambda (&rest _)
 			   (shell-command unzip-script))
-			 (lambda (&rest _)
-			   (message "%s" "error during netcoredbg downloading"))
+			 (lambda (error &rest _)
+			   (user-error "Error during netcoredbg downloading: %s" error))
 			 :url dap-netcore-download-url
 			 :store-path temp-file)))
-      (lsp-download-install
-       (lambda (&rest _)
-	 (shell-command unzip-script))
-       (lambda (&rest _)
-	 (message "%s" "error during netcoredbg downloading"))
-       :url dap-netcore-download-url
-       :store-path temp-file))))
+      (if dap-netcore-download-url
+	  (lsp-download-install
+	   (lambda (&rest _)
+	     (shell-command unzip-script))
+	   (lambda (error &rest _)
+	     (user-error "Error during netcoredbg downloading: %s" error))
+	   :url dap-netcore-download-url
+	   :store-path temp-file)
+	(user-error "`dap-netcore-download-url' is not set. You can customize it")))))
 
 (defun dap-netcore--debugger-cmd ()
   "The location of the netcoredbg executable."

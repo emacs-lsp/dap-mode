@@ -438,3 +438,20 @@ To fully support rust and pretty printing of strings when debugging, remember to
 
 Start debugging by selecting "Powershell: Launch Script" from
 `dap-debug` menu.
+
+## Netcoredbg
+
+[Netcoredbg](https://github.com/Samsung/netcoredbg) is debugger that supports C#, F# and probably other
+languages of Dotnet platform.
+
+``` elisp
+(require 'dap-netcore)
+```
+
+If you have Emacs 26 or older or if your Emacs built wilthout libxml2
+support you also need customize `dap-netcore-download-url`:
+
+`M-x` `customize` `RET` `dap-netcore-download-url` `RET`
+
+Start debugging by selecting ".Net Core Launch (Console)" or ".Net
+Core Attach (Console)" from `dap-debug` menu.
