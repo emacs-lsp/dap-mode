@@ -1622,11 +1622,10 @@ before starting the debug process."
                    :startup-function :environment-variables :hostName host) launch-args)
           (session-name (dap--calculate-unique-name name (dap--get-sessions)))
           (default-directory (or cwd default-directory))
-          (process-environment (if environment-variables
-                                   (cl-copy-list process-environment)
-                                 process-environment))
+	  (compilation-environment (append (mapcar (-lambda ((env . value)) (concat env "=" value))
+						   environment-variables)
+					   compilation-environment))
           program-process)
-    (mapc (-lambda ((env . value)) (setenv env value t)) environment-variables)
     (plist-put launch-args :name session-name)
 
     (when program-to-start
