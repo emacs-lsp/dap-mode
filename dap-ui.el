@@ -151,6 +151,11 @@ number - expand N levels."
   "Face for enabled breakpoint icon in fringe."
   :group 'dap-ui)
 
+(defface dap-ui-controls-fringe
+  '((t :inherit fringe))
+  "Face used for the background of debugger icons in fringe."
+  :group 'dap-ui)
+
 (defcustom  dap-ui-default-fetch-count 30
   "Default number of variables to load in inspect variables view for
 array variables."
@@ -494,7 +499,7 @@ DEBUG-SESSION is the debug session triggering the event."
               'display `(image :type png
                                :file ,(f-join dap-ui--control-images-root-dir image)
                                :ascent center
-                               :background ,(face-attribute 'fringe :background nil t))
+                               :background ,(face-attribute 'dap-ui-controls-fringe :background nil 'default))
               'local-map (--doto (make-sparse-keymap)
                            (define-key it [mouse-1] command))
               'pointer 'hand
