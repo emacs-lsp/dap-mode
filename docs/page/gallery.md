@@ -28,3 +28,7 @@ Gallery
 ## Erlang
 
 ![Erlang via Erlang LS](../screenshots/erlang.png)
+
+## SWI-Prolog
+
+![SWI-Prolog](../screenshots/swi-prolog.png)
