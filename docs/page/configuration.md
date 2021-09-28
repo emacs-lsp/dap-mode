@@ -233,6 +233,19 @@ Start debugging by selecting "PHP Run Configuration" from the
 `dap-debug` menu, issue the debug request in your browser by choosing
 the running thread (`dap-switch-thread`) and then `dap-step-in`.
 
+## SWI-Prolog
+
+1. With SWI-Prolog [installed](https://www.swi-prolog.org/Download.html),
+   run the following command to build and install the debug adapter executable `swipl_debug_adapter`:
+   ```shell
+   swipl -g "pack_install(debug_adapter)" -t halt
+   ```
+2. Add the following line to your Emacs setup:
+   ``` elisp
+   (require 'dap-swi-prolog)
+   ```
+3. Run `dap-debug` in a Prolog buffer and start debugging.
+
 ## Native Debug (GDB/LLDB)
 
 Using <https://github.com/WebFreak001/code-debug>
