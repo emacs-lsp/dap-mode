@@ -240,7 +240,7 @@ the running thread (`dap-switch-thread`) and then `dap-step-in`.
    ```shell
    swipl -g "pack_install(debug_adapter)" -t halt
    ```
-2. Add the following line to you're Emacs setup:
+2. Add the following line to your Emacs setup:
    ``` elisp
    (require 'dap-swi-prolog)
    ```
