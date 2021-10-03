@@ -23,6 +23,8 @@
 
 (require 'package)
 
+(setq network-security-level 'low)
+
 (let* ((package-archives '(("melpa" . "https://melpa.org/packages/")
                            ("gnu" . "http://elpa.gnu.org/packages/")))
        (pkgs (append '(dash lsp-mode bui f s lsp-treemacs posframe)
