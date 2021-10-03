@@ -698,7 +698,7 @@ DEBUG-SESSION is the debug session triggering the event."
                             (funcall
                              callback
                              (-map
-                              (-lambda ((stack-frame &as &hash "name" "line" "source"))
+                              (-lambda ((stack-frame &as &hash "name" "line" "source" "instructionPointerReference"))
                                 (let* ((current-session (dap--cur-session))
                                        (icon (if (and
                                                   (equal session current-session)
@@ -731,6 +731,9 @@ DEBUG-SESSION is the debug session triggering the event."
                                                                                     (gethash "name"))))
                                                                  'dap-ui-sessions-thread-active-face
                                                                'dap-ui-sessions-thread-face))
+                                                      (if instructionPointerReference
+                                                          (propertize (format " [%s]" instructionPointerReference) 'face 'dap-ui-sessions-thread-face)
+                                                        "")
                                                       (propertize (format " (%s:%s)" (or (gethash "name" source)
                                                                                          (gethash "path" source))
                                                                           line)
