@@ -1037,17 +1037,19 @@ terminal configured (probably xterm)."
                 (when dap-print-io
                   (let ((inhibit-message dap-inhibit-io))
                     (message "Received:\n%s" (dap--json-encode parsed-msg))))
-                (pcase (gethash "type" parsed-msg)
-                  ("event" (dap--on-event debug-session parsed-msg))
-                  ("response" (if-let (callback (gethash key handlers nil))
-                                  (progn
-                                    (funcall callback parsed-msg)
-                                    (remhash key handlers)
-                                    (run-hook-with-args 'dap-executed-hook
-                                                        debug-session
-                                                        (gethash "command" parsed-msg)))
-                                (message "Unable to find handler for %s." (pp parsed-msg))))
-                  ("request" (dap--start-process debug-session parsed-msg)))))
+                (condition-case _
+                    (pcase (gethash "type" parsed-msg)
+                      ("event" (dap--on-event debug-session parsed-msg))
+                      ("response" (if-let (callback (gethash key handlers nil))
+                                      (progn
+                                        (funcall callback parsed-msg)
+                                        (remhash key handlers)
+                                        (run-hook-with-args 'dap-executed-hook
+                                                            debug-session
+                                                            (gethash "command" parsed-msg)))
+                                    (message "Unable to find handler for %s." (pp parsed-msg))))
+                      ("request" (dap--start-process debug-session parsed-msg)))
+                  (quit))))
             (dap--parser-read parser msg)))))
 
 (defun dap--create-output-buffer (session-name)
@@ -1441,9 +1443,8 @@ DEBUG-SESSIONS - list of the currently active sessions."
         (format "%s (%s)" name status)
       name)))
 
-(defun dap-switch-thread ()
-  "Switch current thread."
-  (interactive)
+(defun dap--switch-thread ()
+  "Switch current thread using current session."
   (let ((debug-session (dap--cur-active-session-or-die)))
     (dap--send-message
      (dap--make-request "threads")
@@ -1455,6 +1456,33 @@ DEBUG-SESSIONS - list of the currently active sessions."
                                       (apply-partially 'dap--thread-label debug-session))]
          (dap--select-thread-id debug-session thread-id t)))
      debug-session)))
+
+(defun dap--switch-thread-all-sessions ()
+  "Switch current thread selecting from all sessions."
+  (interactive)
+  (-when-let ((debug-session . (&hash "id"))
+              (dap--completing-read
+               "Select active thread: "
+               (->> (dap--get-sessions)
+                    (-filter #'dap--session-running)
+                    (-mapcat (lambda (debug-session)
+                               (->> (dap-request debug-session "threads")
+                                    (gethash "threads")
+                                    (-map (-partial #'cons debug-session))))))
+               (-lambda ((debug-session . thread))
+                 (format "%-80s%s"
+                         (dap--thread-label debug-session thread)
+                         (dap--debug-session-name debug-session)))))
+    (dap--switch-to-session debug-session)
+    (dap--select-thread-id debug-session id t)))
+
+(defun dap-switch-thread (&optional all?)
+  "Switch current thread.
+When ALL? is non-nil select from threads in all debug sessions."
+  (interactive "P")
+  (if all?
+      (dap--switch-thread-all-sessions )
+    (dap--switch-thread)))
 
 (defun dap-stop-thread-1 (debug-session thread-id)
   (dap--send-message
