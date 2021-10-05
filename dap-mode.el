@@ -489,16 +489,16 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
     (let ((set-breakpoints-req (dap--set-breakpoints-request
                                 file-name
                                 updated-file-breakpoints)))
-      (-as-> (dap--get-sessions) $
-             (-filter 'dap--session-running $)
-             (--each $
-               (dap--send-message set-breakpoints-req
-                                  (dap--resp-handler
-                                   (lambda (resp)
-                                     (dap--update-breakpoints it
-                                                              resp
-                                                              file-name)))
-                                  it))))
+      (mapc (lambda (session)
+              (dap--send-message
+               set-breakpoints-req
+               (dap--resp-handler
+                (lambda (resp)
+                  (dap--update-breakpoints session
+                                           resp
+                                           file-name)))
+               session))
+            (-filter #'dap--session-running (dap--get-sessions))))
     (dap--persist-breakpoints breakpoints)))
 
 (defun dap-breakpoint-toggle ()
