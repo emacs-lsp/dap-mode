@@ -223,7 +223,7 @@ VISUALS and MSG will be used for the overlay."
 
 (defun dap-ui--clear-breakpoint-overlays ()
   "Remove all overlays that ensime-debug has created."
-  (mapc #'delete-overlay dap-ui--breakpoint-overlays)
+  (mapc #'delete-overlay (-filter #'identity dap-ui--breakpoint-overlays))
   (setq dap-ui--breakpoint-overlays '()))
 
 (defun dap-ui--breakpoint-visuals (breakpoint breakpoint-dap)
