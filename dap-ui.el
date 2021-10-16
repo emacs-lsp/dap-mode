@@ -1338,26 +1338,29 @@ evaluate python in the context of the debugee, ...."
 (defun dap-ui-repl--calculate-candidates ()
   "Calculate completion candidates.
 TEXT is the current input."
-  (let ((text (comint-get-old-input-default))
-        (debug-session (dap--cur-active-session-or-die)))
-    (if-let (frame-id (-some->> debug-session
-                                dap--debug-session-active-frame
-                                (gethash "id")))
-        (cons :async
-              (lambda (callback)
-                (dap--send-message
-                 (dap--make-request "completions"
-                                    (list :frameId frame-id
-                                          :text text
-                                          :column (- (length text) (- (point-at-eol) (point)))))
-                 (dap--resp-handler
-                  (lambda (result)
-                    (-if-let (targets (-some->> result (gethash "body") (gethash "targets")))
-                        (funcall callback (-map (-lambda ((item &as &hash "label" "text" "type"))
-                                                  (propertize label :text text :type type :dap-completion-item item))
-                                                targets))
-                      (funcall callback ()))))
-                 debug-session))))))
+  (when (-some->> (dap--cur-session)
+          (dap--debug-session-current-capabilities)
+          (gethash "supportsCompletionsRequest"))
+    (let ((text (comint-get-old-input-default))
+          (debug-session (dap--cur-active-session-or-die)))
+      (if-let (frame-id (-some->> debug-session
+                          dap--debug-session-active-frame
+                          (gethash "id")))
+          (cons :async
+                (lambda (callback)
+                  (dap--send-message
+                   (dap--make-request "completions"
+                                      (list :frameId frame-id
+                                            :text text
+                                            :column (- (length text) (- (point-at-eol) (point)))))
+                   (dap--resp-handler
+                    (lambda (result)
+                      (-if-let (targets (-some->> result (gethash "body") (gethash "targets")))
+                          (funcall callback (-map (-lambda ((item &as &hash "label" "text" "type"))
+                                                    (propertize label :text text :type type :dap-completion-item item))
+                                                  targets))
+                        (funcall callback ()))))
+                   debug-session)))))))
 
 (defun dap-ui-repl--post-completion (candidate)
   "Post completion handling for CANDIDATE."
