@@ -377,7 +377,7 @@ has succeeded."
 
 (defmacro dap--put-if-absent (config key form)
   "Update KEY to FORM if KEY does not exist in plist CONFIG."
-  `(plist-put ,config ,key (or (plist-get ,config ,key) ,form)))
+  `(if (plist-member ,config ,key) ,config (plist-put ,config ,key ,form)))
 
 (defun dap--completing-read (prompt collection transform-fn &optional predicate
                                     require-match initial-input
