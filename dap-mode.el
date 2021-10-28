@@ -763,6 +763,28 @@ will be reversed."
         (dap-debug (dap--debug-session-launch-args debug-session)))
     (user-error "There is session to restart")))
 
+(defun dap--request-source-for-frame-by-reference (debug-session stack-frame line column name)
+  "Request source string for a STACK-FRAME using the sourceReference."
+  (with-lsp-workspace (dap--debug-session-workspace debug-session)
+    (-when-let* ((source (gethash "source" stack-frame))
+                 (sourceReference (gethash "sourceReference" source))
+                 (sourceReferenceKey (format "%s-%s" name sourceReference)))
+      (select-window (get-mru-window (selected-frame) nil))
+      (if-let* ((existing-buffer (get-buffer sourceReferenceKey)))
+          (switch-to-buffer existing-buffer)
+        (dap--send-message
+         (dap--make-request "source" (list :sourceReference sourceReference))
+         (dap--resp-handler
+          (-lambda ((&hash "body" (&hash "content" content)))
+            (switch-to-buffer (generate-new-buffer sourceReferenceKey))
+            (insert content)
+            (goto-char (point-min))
+            (forward-line (1- line))
+            (forward-char column))
+          (lambda (errmsg)
+            (message "No source code for %s. Cursor at %s:%s. Error: %s." name line column errmsg)))
+         debug-session)))))
+
 (defun dap--get-path-for-frame (stack-frame)
   "Get file path for a STACK-FRAME."
   (-when-let* ((source (gethash "source" stack-frame))
@@ -788,7 +810,7 @@ will be reversed."
               (goto-char (point-min))
               (forward-line (1- line))
               (forward-char column))
-          (message "No source code for %s. Cursor at %s:%s." name line column))))
+          (dap--request-source-for-frame-by-reference debug-session stack-frame line column name))))
     (run-hook-with-args 'dap-stack-frame-changed-hook debug-session)))
 
 (defun dap--select-thread-id (debug-session thread-id &optional force)
