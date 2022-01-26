@@ -1182,7 +1182,7 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--create-session (launch-args)
   "Create debug session from LAUNCH-ARGS."
-  (-let* (((&plist :host :dap-server-path :name session-name :debugServer port) launch-args)
+  (-let* (((&plist :host :dap-server-path :name session-name :debugPort port) launch-args)
           (proc (if dap-server-path
                     (make-process
                      :name session-name

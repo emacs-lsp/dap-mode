@@ -58,7 +58,7 @@ With prefix, FORCED to redownload the extension."
  (lambda (conf)
    (let ((debug-port (dap--find-available-port)))
      (plist-put conf :program-to-start (format "%s --port %s" dap-codelldb-debug-program debug-port))
-     (plist-put conf :debugServer debug-port))
+     (plist-put conf :debugPort debug-port))
    (plist-put conf :host "localhost")
    (plist-put conf :type "lldb")
    (plist-put conf :cargo "")
