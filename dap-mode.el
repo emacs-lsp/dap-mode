@@ -1117,7 +1117,7 @@ ADAPTER-ID the id of the adapter."
         :arguments (list :clientID "vscode"
                          :clientName "Visual Studio Code"
                          :adapterID adapter-id
-                         :pathFormat "path"
+                         :pathFormat "uri"
                          :linesStartAt1 t
                          :columnsStartAt1 t
                          :supportsVariableType t
@@ -1217,26 +1217,29 @@ ADAPTER-ID the id of the adapter."
 (defun dap--set-breakpoints-request (file-name file-breakpoints)
   "Make `setBreakpoints' request for FILE-NAME.
 FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
-  (with-temp-buffer
-    (insert-file-contents file-name)
-    (dap--make-request
-     "setBreakpoints"
-     (list :source (list :name (f-filename file-name)
-                         :path (if (eq system-type 'windows-nt)
+  (let ((file-name-only (f-filename file-name))
+        (file-path (if (eq system-type 'windows-nt)
                                    (s-replace "/" "\\" file-name)
-                                 file-name))
-           :breakpoints (->> file-breakpoints
-                             (-map (-lambda ((it &as &plist :condition :hit-condition :log-message))
-                                     (let ((result (->> it dap-breakpoint-get-point line-number-at-pos (list :line))))
-                                       (when condition (plist-put result :condition condition))
-                                       (when log-message (plist-put result :logMessage log-message))
-                                       (when hit-condition (plist-put result :hitCondition hit-condition))
-                                       result)))
-                             (apply 'vector))
-           :sourceModified :json-false
-           :lines (->> file-breakpoints
-                       (--map (-> it dap-breakpoint-get-point line-number-at-pos))
-                       (apply 'vector))))))
+                                 (lsp--path-to-uri file-name))))
+    (with-temp-buffer
+      (insert-file-contents file-name)
+      (dap--make-request
+       "setBreakpoints"
+       (list :source (list :name file-name-only
+                           :path file-path
+                           )
+             :breakpoints (->> file-breakpoints
+                               (-map (-lambda ((it &as &plist :condition :hit-condition :log-message))
+                                       (let ((result (->> it dap-breakpoint-get-point line-number-at-pos (list :line))))
+                                         (when condition (plist-put result :condition condition))
+                                         (when log-message (plist-put result :logMessage log-message))
+                                         (when hit-condition (plist-put result :hitCondition hit-condition))
+                                         result)))
+                               (apply 'vector))
+             :sourceModified :json-false
+             :lines (->> file-breakpoints
+                         (--map (-> it dap-breakpoint-get-point line-number-at-pos))
+                         (apply 'vector)))))))
 
 (defun dap--update-breakpoints (debug-session resp file-name)
   "Update breakpoints in FILE-NAME.
