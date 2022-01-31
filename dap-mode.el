@@ -788,20 +788,21 @@ will be reversed."
             (message "No source code for %s. Cursor at %s:%s. Error: %s." name line column errmsg)))
          debug-session)))))
 
-(defun dap--get-path-for-frame (stack-frame)
+(defun dap--get-path-for-frame (debug-session stack-frame)
   "Get file path for a STACK-FRAME."
   (-when-let* ((source (gethash "source" stack-frame))
                (path (gethash "path" source)))
-    (if (-> path url-unhex-string url-generic-parse-url url-type)
-        (lsp--uri-to-path path)
-      path)))
+    (let ((remote-path (if (-> path url-unhex-string url-generic-parse-url url-type)
+                           (lsp--uri-to-path path)
+                         path)))
+      (--> debug-session dap--debug-session-remote-to-local-path-fn (funcall it remote-path)))))
 
 (defun dap--go-to-stack-frame (debug-session stack-frame)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
   (with-lsp-workspace (dap--debug-session-workspace debug-session)
     (when stack-frame
       (-let* (((&hash "line" line "column" column "name" name) stack-frame)
-              (path (dap--get-path-for-frame stack-frame)))
+              (path (dap--get-path-for-frame debug-session stack-frame)))
         (setf (dap--debug-session-active-frame debug-session) stack-frame)
         ;; If we have a source file with path attached, open it and
         ;; position the point in the line/column referenced in the
@@ -1355,7 +1356,7 @@ RESULT to use for the callback."
                  (new-stack-frame (dap--completing-read "Select active frame: "
                                                         stack-frames
                                                         (-lambda ((frame &as &hash "name"))
-                                                          (if-let (frame-path (dap--get-path-for-frame frame))
+                                                          (if-let (frame-path (dap--get-path-for-frame (dap--cur-session) frame))
                                                               (format "%s: %s (in %s)"
                                                                       (cl-incf index) name frame-path)
                                                             (format "%s: %s" (cl-incf index) name)))

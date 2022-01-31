@@ -286,7 +286,7 @@ DEBUG-SESSION is the debug session triggering the event."
   (when debug-session
     (-if-let* (((stack-frame &as &hash "source" "line" "column")
                 (dap--debug-session-active-frame debug-session))
-               (path (dap--get-path-for-frame stack-frame))
+               (path (dap--get-path-for-frame debug-session stack-frame))
                (buffer (find-buffer-visiting path)))
         (with-current-buffer buffer
           (goto-char (point-min))
