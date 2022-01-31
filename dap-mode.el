@@ -279,6 +279,9 @@ locations."
   (thread-stack-frames (make-hash-table :test 'eql) :read-only t)
   ;; the arguments that were used to start the debug session.
   (launch-args nil)
+  ;; path translation functions
+  (local-to-remote-path-fn nil)
+  (remote-to-local-path-fn nil)
   ;; Currently-available server capabilities
   (current-capabilities (make-hash-table :test 'equal))
   (error-message nil)
@@ -1117,7 +1120,7 @@ ADAPTER-ID the id of the adapter."
         :arguments (list :clientID "vscode"
                          :clientName "Visual Studio Code"
                          :adapterID adapter-id
-                         :pathFormat "uri"
+                         :pathFormat "path"
                          :linesStartAt1 t
                          :columnsStartAt1 t
                          :supportsVariableType t
@@ -1182,7 +1185,7 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--create-session (launch-args)
   "Create debug session from LAUNCH-ARGS."
-  (-let* (((&plist :host :dap-server-path :name session-name :debugServer port) launch-args)
+  (-let* (((&plist :host :dap-server-path :name session-name :path-mappings :debugServer port) launch-args)
           (proc (if dap-server-path
                     (make-process
                      :name session-name
@@ -1196,6 +1199,8 @@ ADAPTER-ID the id of the adapter."
                           :launch-args launch-args
                           :proc proc
                           :name session-name
+                          :local-to-remote-path-fn #'dap--local-to-remote-path-identical
+                          :remote-to-local-path-fn #'dap--remote-to-local-path-identical
                           :output-buffer (dap--create-output-buffer session-name))))
     (set-process-sentinel proc
                           (lambda (_process exit-str)
@@ -1922,6 +1927,14 @@ If the current session it will be terminated."
          (gethash buffer-file-name)
          (dap--set-breakpoints-in-file buffer-file-name))
     (add-hook 'kill-buffer-hook 'dap--buffer-killed nil t)))
+
+(defun dap--local-to-remote-path-identical (path debug-session)
+  "Don't translate anything"
+  path)
+
+(defun dap--remote-to-local-path-identical (path debug-session)
+  "Don't translate anything"
+  path)
 
 (defun dap-mode-mouse-set-clear-breakpoint (event)
   "Set or remove a breakpoint at the position represented by an
