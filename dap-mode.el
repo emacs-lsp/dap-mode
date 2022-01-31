@@ -1296,15 +1296,16 @@ RESULT to use for the callback."
       (maphash
        (lambda (file-name file-breakpoints)
          (condition-case _err
-             (dap--send-message
-              (dap--set-breakpoints-request file-name file-breakpoints)
-              (dap--resp-handler
-               (lambda (resp)
-                 (setf finished (1+ finished))
-                 (dap--update-breakpoints debug-session resp file-name)
-                 (when (= finished breakpoint-count)
-                   (dap--set-exception-breakpoints debug-session callback))))
-              debug-session)
+             (let ((remote-file-path (--> debug-session dap--debug-session-local-to-remote-path-fn (funcall it file-name))))
+               (dap--send-message
+                (dap--set-breakpoints-request remote-file-path file-breakpoints)
+                (dap--resp-handler
+                 (lambda (resp)
+                   (setf finished (1+ finished))
+                   (dap--update-breakpoints debug-session resp file-name)
+                   (when (= finished breakpoint-count)
+                     (dap--set-exception-breakpoints debug-session callback))))
+                debug-session))
            (file-missing
             (setf finished (1+ finished))
             (remhash file-name breakpoints)
