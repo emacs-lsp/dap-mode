@@ -1199,8 +1199,8 @@ ADAPTER-ID the id of the adapter."
                           :launch-args launch-args
                           :proc proc
                           :name session-name
-                          :local-to-remote-path-fn #'dap--local-to-remote-path-identical
-                          :remote-to-local-path-fn #'dap--remote-to-local-path-identical
+                          :local-to-remote-path-fn (-partial #'dap--local-to-remote-path (lsp-docker-get-path-mappings (lsp-docker-get-config-from-lsp)))
+                          :remote-to-local-path-fn (-partial #'dap--remote-to-local-path (lsp-docker-get-path-mappings (lsp-docker-get-config-from-lsp)))
                           :output-buffer (dap--create-output-buffer session-name))))
     (set-process-sentinel proc
                           (lambda (_process exit-str)
@@ -1677,7 +1677,7 @@ should be started after the :port argument is taken.
 before starting the debug process."
   (-let* (((&plist :name :skip-debug-session :cwd :program-to-start
                    :wait-for-port :type :request :port
-                   :startup-function :environment-variables :hostName host) launch-args)
+                   :startup-function :environment-variables :program :hostName host) launch-args)
           (session-name (dap--calculate-unique-name name (dap--get-sessions)))
           (default-directory (or cwd default-directory))
           (process-environment (if environment-variables
@@ -1710,20 +1710,23 @@ before starting the debug process."
               (ht-update! (dap--debug-session-current-capabilities debug-session) capabilities)
 
               (dap--set-sessions (cons debug-session debug-sessions)))
-            (dap--send-message
-             (dap--make-request request (-> launch-args
-                                            (cl-copy-list)
-                                            (dap--plist-delete :dap-compilation)
-                                            (dap--plist-delete :dap-compilation-dir)
-                                            (dap--plist-delete :cleanup-function)
-                                            (dap--plist-delete :startup-function)
-                                            (dap--plist-delete :dap-server-path)
-                                            (dap--plist-delete :environment-variables)
-                                            (dap--plist-delete :wait-for-port)
-                                            (dap--plist-delete :skip-debug-session)
-                                            (dap--plist-delete :program-to-start)))
-             (dap--session-init-resp-handler debug-session)
-             debug-session)))
+            (let ((translated-launch-args (cl-copy-list launch-args)))
+              (plist-put translated-launch-args :cwd (funcall (dap--debug-session-local-to-remote-path-fn debug-session) cwd))
+              (plist-put translated-launch-args :program (funcall (dap--debug-session-local-to-remote-path-fn debug-session) program))
+              (dap--send-message
+               (dap--make-request request (-> translated-launch-args
+                                              (cl-copy-list)
+                                              (dap--plist-delete :dap-compilation)
+                                              (dap--plist-delete :dap-compilation-dir)
+                                              (dap--plist-delete :cleanup-function)
+                                              (dap--plist-delete :startup-function)
+                                              (dap--plist-delete :dap-server-path)
+                                              (dap--plist-delete :environment-variables)
+                                              (dap--plist-delete :wait-for-port)
+                                              (dap--plist-delete :skip-debug-session)
+                                              (dap--plist-delete :program-to-start)))
+               (dap--session-init-resp-handler debug-session)
+               debug-session))))
          debug-session)
 
         (dap--set-cur-session debug-session)
@@ -1928,13 +1931,17 @@ If the current session it will be terminated."
          (dap--set-breakpoints-in-file buffer-file-name))
     (add-hook 'kill-buffer-hook 'dap--buffer-killed nil t)))
 
-(defun dap--local-to-remote-path-identical (path debug-session)
+(defun dap--local-to-remote-path (mappings path)
   "Don't translate anything"
-  path)
+  (if mappings
+      (lsp--uri-to-path-1 (lsp-docker--path->uri mappings path))
+    path))
 
-(defun dap--remote-to-local-path-identical (path debug-session)
+(defun dap--remote-to-local-path (mappings path)
   "Don't translate anything"
-  path)
+  (if mappings
+      (lsp--uri-to-path (lsp--path-to-uri-1 path))
+    path))
 
 (defun dap-mode-mouse-set-clear-breakpoint (event)
   "Set or remove a breakpoint at the position represented by an
