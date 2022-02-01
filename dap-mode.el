@@ -18,7 +18,7 @@
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords: languages, debug
 ;; URL: https://github.com/emacs-lsp/dap-mode
-;; Package-Requires: ((emacs "26.1") (dash "2.18.0") (lsp-mode "6.0") (bui "1.1.0") (f "0.20.0") (s "1.12.0") (lsp-treemacs "0.1") (posframe "0.7.0") (ht "2.3"))
+;; Package-Requires: ((emacs "26.1") (dash "2.18.0") (lsp-mode "6.0") (bui "1.1.0") (f "0.20.0") (s "1.12.0") (lsp-treemacs "0.1") (posframe "0.7.0") (ht "2.3") (lsp-docker "1.0.0"))
 ;; Version: 0.7
 
 ;;; Commentary:
@@ -35,6 +35,7 @@
 (require 'ansi-color)
 (require 'posframe)
 (require 'ht)
+(require 'lsp-docker)
 
 (require 'dap-launch)
 
@@ -489,10 +490,12 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
           (run-hooks 'dap-breakpoints-changed-hook))))
 
     ;; Update all of the active sessions with the list of breakpoints.
-    (let ((set-breakpoints-req (dap--set-breakpoints-request
-                                file-name
-                                updated-file-breakpoints)))
-      (mapc (lambda (session)
+    (mapc (lambda (session)
+            (debug)
+            (let ((set-breakpoints-req (dap--set-breakpoints-request
+                                        session
+                                        file-name
+                                        updated-file-breakpoints)))
               (dap--send-message
                set-breakpoints-req
                (dap--resp-handler
@@ -500,8 +503,8 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
                   (dap--update-breakpoints session
                                            resp
                                            file-name)))
-               session))
-            (-filter #'dap--session-running (dap--get-sessions))))
+               session)))
+          (-filter #'dap--session-running (dap--get-sessions)))
     (dap--persist-breakpoints breakpoints)))
 
 (defun dap-breakpoint-toggle ()
@@ -1220,19 +1223,20 @@ ADAPTER-ID the id of the adapter."
                           (run-hook-with-args 'dap-session-changed-hook))))
                      debug-session))
 
-(defun dap--set-breakpoints-request (file-name file-breakpoints)
+(defun dap--set-breakpoints-request (debug-session file-name file-breakpoints)
   "Make `setBreakpoints' request for FILE-NAME.
 FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
   (let ((file-name-only (f-filename file-name))
-        (file-path (if (eq system-type 'windows-nt)
+        (local-file-path (if (eq system-type 'windows-nt)
                                    (s-replace "/" "\\" file-name)
-                                 (lsp--path-to-uri file-name))))
+                           file-name))
+        (remote-file-path (--> debug-session dap--debug-session-local-to-remote-path-fn (funcall it file-name))))
     (with-temp-buffer
       (insert-file-contents file-name)
       (dap--make-request
        "setBreakpoints"
        (list :source (list :name file-name-only
-                           :path file-path
+                           :path remote-file-path
                            )
              :breakpoints (->> file-breakpoints
                                (-map (-lambda ((it &as &plist :condition :hit-condition :log-message))
@@ -1297,16 +1301,15 @@ RESULT to use for the callback."
       (maphash
        (lambda (file-name file-breakpoints)
          (condition-case _err
-             (let ((remote-file-path (--> debug-session dap--debug-session-local-to-remote-path-fn (funcall it file-name))))
-               (dap--send-message
-                (dap--set-breakpoints-request remote-file-path file-breakpoints)
-                (dap--resp-handler
-                 (lambda (resp)
-                   (setf finished (1+ finished))
-                   (dap--update-breakpoints debug-session resp file-name)
-                   (when (= finished breakpoint-count)
-                     (dap--set-exception-breakpoints debug-session callback))))
-                debug-session))
+             (dap--send-message
+              (dap--set-breakpoints-request debug-session file-name file-breakpoints)
+              (dap--resp-handler
+               (lambda (resp)
+                 (setf finished (1+ finished))
+                 (dap--update-breakpoints debug-session resp file-name)
+                 (when (= finished breakpoint-count)
+                   (dap--set-exception-breakpoints debug-session callback))))
+              debug-session)
            (file-missing
             (setf finished (1+ finished))
             (remhash file-name breakpoints)
@@ -1934,15 +1937,15 @@ If the current session it will be terminated."
     (add-hook 'kill-buffer-hook 'dap--buffer-killed nil t)))
 
 (defun dap--local-to-remote-path (mappings path)
-  "Don't translate anything"
+  "Translate paths using lsp-docker and path  mappings"
   (if mappings
       (lsp--uri-to-path-1 (lsp-docker--path->uri mappings path))
     path))
 
 (defun dap--remote-to-local-path (mappings path)
-  "Don't translate anything"
+  "Translate paths using lsp-docker and path  mappings"
   (if mappings
-      (lsp--uri-to-path (lsp--path-to-uri-1 path))
+      (lsp-docker--uri->path mappings nil (lsp--path-to-uri-1 path))
     path))
 
 (defun dap-mode-mouse-set-clear-breakpoint (event)
