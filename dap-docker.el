@@ -32,6 +32,7 @@
 (require 'f)
 (require 's)
 (require 'ht)
+(require 'dash)
 
 (defvar dap-docker-supported-server-types-subtypes
   (ht ('docker (list 'container 'image)))
