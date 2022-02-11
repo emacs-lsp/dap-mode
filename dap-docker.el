@@ -182,7 +182,7 @@
 
 (defun dap-docker--dockerize-start-file-args (conf project-config project-root)
   "Add container launching and path mapping wrappers to start arguments"
-  (let* ((original-provider-name (plist-get conf :type))
+  (let* ((provider-name (plist-get conf :type))
          (original-launch-command (if (listp (plist-get conf :dap-server-path))
                                       (s-join " " (plist-get conf :dap-server-path))
                                     (plist-get conf :dap-server-path)))
@@ -196,28 +196,24 @@
     (cond ((equal server-subtype 'container)
            (-> conf
                (plist-put :dap-server-path (s-split " " (dap-docker--prepare-container-start-path container-name path-mappings launch-command)))
-               (plist-put :type (dap-docker--get-dockerized-debug-provider-name original-provider-name project-root))
                (plist-put :name (s-concat original-name "DockerContainer"))
                (plist-put :path-mappings path-mappings)
-               (plist-put :local-to-remote-path-fn (-partial #'dap--local-to-remote-path (dap-docker--get-path-mappings project-config)))
-               (plist-put :remote-to-local-path-fn (-partial #'dap--remote-to-local-path (dap-docker--get-path-mappings project-config)))))
+               (plist-put :local-to-remote-path-fn (-partial #'dap--local-to-remote-path path-mappings))
+               (plist-put :remote-to-local-path-fn (-partial #'dap--remote-to-local-path path-mappings))))
           ((equal server-subtype 'image)
            (-> conf
-               (plist-put :dap-server-path (s-split " " (dap-docker--prepare-image-start-path container-name path-mappings launch-command)))
-               (plist-put :type (dap-docker--get-dockerized-debug-provider-name original-provider-name project-root))
+               (plist-put :dap-server-path (s-split " " (dap-docker--prepare-image-start-path image-name path-mappings launch-command)))
                (plist-put :name (s-concat original-name "DockerImage"))
                (plist-put :path-mappings path-mappings)
-               (plist-put :local-to-remote-path-fn (-partial #'dap--local-to-remote-path (dap-docker--get-path-mappings project-config)))
-               (plist-put :remote-to-local-path-fn (-partial #'dap--remote-to-local-path (dap-docker--get-path-mappings project-config))))))))
+               (plist-put :local-to-remote-path-fn (-partial #'dap--local-to-remote-path path-mappings))
+               (plist-put :remote-to-local-path-fn (-partial #'dap--remote-to-local-path path-mappings)))))))
 
 (defun dap-docker--dockerize-debug-provider (debug-provider-name project-config project-root)
   "Make a particular debug provider docker-aware in a project folder"
   (-if-let* ((original-debug-provider (gethash debug-provider-name dap--debug-providers)))
       (dap-register-debug-provider (dap-docker--get-dockerized-debug-provider-name debug-provider-name project-root)
-               (lambda (conf)
-                 (-> conf
-                     (original-debug-provider)
-                     (-rpartial #'dap-docker--dockerize-start-file-args project-config project-root))))))
+               `(lambda (conf)
+                  (funcall #'dap-docker--dockerize-start-file-args (funcall (quote ,original-debug-provider) conf) ,project-config ,project-root)))))
 
 (defun dap-docker--dockerize-debug-template (debug-template-name project-config project-root)
   "Make a particular debug template docker-aware in a project folder"

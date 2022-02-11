@@ -798,7 +798,7 @@ will be reversed."
     (let ((remote-path (if (-> path url-unhex-string url-generic-parse-url url-type)
                            (lsp--uri-to-path path)
                          path)))
-      (--> debug-session dap--debug-session-remote-to-local-path-fn (funcall it remote-path)))))
+      (--> debug-session (dap--debug-session-remote-to-local-path-fn it) (funcall it remote-path)))))
 
 (defun dap--go-to-stack-frame (debug-session stack-frame)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
@@ -1189,7 +1189,15 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--create-session (launch-args)
   "Create debug session from LAUNCH-ARGS."
-  (-let* (((&plist :host :dap-server-path :name session-name :path-mappings :debugServer port) launch-args)
+  (-let* (((&plist
+            :host
+            :dap-server-path
+            :name session-name
+            :path-mappings path-mappings
+            :debugServer port
+            :local-to-remote-path-fn local-to-remote-path-fn
+            :remote-to-local-path-fn remote-to-local-path-fn)
+           launch-args)
           (proc (if dap-server-path
                     (make-process
                      :name session-name
@@ -1203,8 +1211,8 @@ ADAPTER-ID the id of the adapter."
                           :launch-args launch-args
                           :proc proc
                           :name session-name
-                          :local-to-remote-path-fn (-partial #'dap--local-to-remote-path (lsp-docker-get-path-mappings (lsp-docker-get-config-from-lsp)))
-                          :remote-to-local-path-fn (-partial #'dap--remote-to-local-path (lsp-docker-get-path-mappings (lsp-docker-get-config-from-lsp)))
+                          :local-to-remote-path-fn (or local-to-remote-path-fn (-partial #'dap--local-to-remote-path-identical nil))
+                          :remote-to-local-path-fn (or remote-to-local-path-fn (-partial #'dap--remote-to-local-path-identical nil))
                           :output-buffer (dap--create-output-buffer session-name))))
     (set-process-sentinel proc
                           (lambda (_process exit-str)
@@ -1729,7 +1737,10 @@ before starting the debug process."
                                               (dap--plist-delete :environment-variables)
                                               (dap--plist-delete :wait-for-port)
                                               (dap--plist-delete :skip-debug-session)
-                                              (dap--plist-delete :program-to-start)))
+                                              (dap--plist-delete :program-to-start)
+                                              (dap--plist-delete :path-mappings)
+                                              (dap--plist-delete :local-to-remote-path-fn)
+                                              (dap--plist-delete :remote-to-local-path-fn)))
                (dap--session-init-resp-handler debug-session)
                debug-session))))
          debug-session)
@@ -1937,16 +1948,24 @@ If the current session it will be terminated."
     (add-hook 'kill-buffer-hook 'dap--buffer-killed nil t)))
 
 (defun dap--local-to-remote-path (mappings path)
-  "Translate paths using lsp-docker and path  mappings"
+  "Translate paths using lsp-docker and path mappings"
   (if mappings
       (lsp--uri-to-path-1 (lsp-docker--path->uri mappings path))
     path))
 
+(defun dap--local-to-remote-path-identical (_mappings path)
+  "Don't translate anything"
+  path)
+
 (defun dap--remote-to-local-path (mappings path)
-  "Translate paths using lsp-docker and path  mappings"
+  "Translate paths using lsp-docker and path mappings"
   (if mappings
       (lsp-docker--uri->path mappings nil (lsp--path-to-uri-1 path))
     path))
+
+(defun dap--remote-to-local-path-identical (_mappings path)
+  "Don't translate anything"
+  path)
 
 (defun dap-mode-mouse-set-clear-breakpoint (event)
   "Set or remove a breakpoint at the position represented by an
