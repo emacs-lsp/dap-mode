@@ -30,7 +30,7 @@
 (require 'dap-mode)
 
 (defcustom dap-swi-prolog-debug-program
-    `(,(locate-file "swipl_debug_adapter" exec-path))
+    '("swipl" "-g" "[library(debug_adapter/main)]" "-t" "halt")
   "The path to the SWI-Prolog debug adapter."
   :group 'dap-swi-prolog
   :type '(repeat string))

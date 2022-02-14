@@ -10,6 +10,7 @@
   - [[#summary][Summary]]
     - [[#project-status][Project status]]
   - [[#usage][Usage]]
+    - [[#docker-usage][Docker usage]]
   - [[#features][Features]]
   - [[#configuration][Configuration]]
   - [[#gallery][Gallery]]
@@ -36,11 +37,41 @@
 
   dap-mode also provides a [[https://github.com/abo-abo/hydra][hydra]] with ~dap-hydra~. You can automatically trigger
   the hydra when the program hits a breakpoint by using the following code.
-
-  #+BEGIN_SRC elisp
-    (add-hook 'dap-stopped-hook
-              (lambda (arg) (call-interactively #'dap-hydra)))
+  
+  #+BEGIN_SRC elisp 
+  (add-hook 'dap-stopped-hook
+            (lambda (arg) (call-interactively #'dap-hydra)))
   #+END_SRC
+  
+*** Docker usage
+    You can also use this tool with dockerized debug servers: configure it either with a ~.dir-locals~ file
+    or drop an ~.lsp-docker.yml~ configuration file (use [[https://github.com/emacs-lsp/lsp-docker][lsp-docker]] for general reference).
+    Basically you have one function ~dap-docker-register~ that performs all the heavy lifting (finding the original debug template,
+    patching it, registering a debug provider e.t.c). This function examines a configuration file or falls back to the default configuration
+    (which can be patched using the ~.dir-locals~ approach, take a note that the default configuration doesn't provide any sane defaults for debugging)
+    and then operates on the combination of the two. This mechanism is the same as in ~lsp-docker~.
+    If you want to stick to a configuration file, take a look at the example below:
+    
+    #+begin_src yaml
+    lsp:
+      server:
+        # 'lsp-docker' fields
+      mappings:
+        - source: "/your/host/source/path" # used both by 'lsp-docker' and 'dap-docker'
+          destination: "/your/local/path/inside/a/container" # used both by 'lsp-docker' and 'dap-docker'
+      debug:
+        type: docker # only docker is supported
+        subtype: image # use only image subtype for now, 'container' support is yet to be tested
+        name: <docker image that has the debugger in> # you can omit this field
+        # in this case the 'lsp-docker' ('server' section) image name is used
+        enabled: true # you can explicitly disable 'dap-docker' by using 'false'
+        provider: <your default language debug provider, double quoted string>
+        template: <your default language debug template, double quoted string>
+        launch_command: <an explicit command if you want to override a default one provided by the debug provider>
+        # e.g. if you have installed a debug server in a different directory
+    #+end_src
+
+
 ** [[https://emacs-lsp.github.io/dap-mode/page/features/][Features]]
 ** [[https://emacs-lsp.github.io/dap-mode/page/configuration/][Configuration]]
 ** [[https://emacs-lsp.github.io/dap-mode/page/gallery][Gallery]]
