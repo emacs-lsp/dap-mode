@@ -18,7 +18,7 @@
 ;; Author: Andrei Mochalov <factyy@gmail.com>
 ;; Keywords: languages, debug, docker
 ;; URL: https://github.com/emacs-lsp/dap-mode
-;; Package-Requires: ((emacs "26.1") (dash "2.18.0") (lsp-mode "6.0") (f "0.20.0") (s "1.12.0") (ht "2.3") (lsp-docker "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.18.0") (lsp-mode "6.0") (f "0.20.0") (s "1.12.0") (ht "2.3") (lsp-docker "1.0.0") (yaml "0.2.0"))
 ;; Version: 0.2
 
 ;;; Commentary:
@@ -33,6 +33,7 @@
 (require 's)
 (require 'ht)
 (require 'dash)
+(require 'yaml)
 
 (defvar dap-docker-supported-server-types-subtypes
   (ht ('docker (list 'container 'image)))
@@ -42,18 +43,20 @@
   "Check whether debugging is enabled"
   (-if-let* ((server-info (gethash 'debug config))
              (server-enabled (gethash 'enabled server-info)))
-      't
+      (if (equal server-enabled :false)
+          nil
+        't)
     nil))
 
 (defun dap-docker--get-debug-provider-name (config)
-  "Check whether debugging is enabled"
+  "Get the debug provider name also checking whether debugging is enabled"
   (-if-let* ((server-info (gethash 'debug config))
                (server-enabled (dap-docker--is-enabled? config)))
       (gethash 'provider server-info)
     (user-error "Either debug is not enabled or the config is invalid!")))
 
 (defun dap-docker--get-debug-template-name (config)
-  "Check whether debugging is enabled"
+  "Get the debug template name also checking whether debugging is enabled"
   (-if-let* ((server-info (gethash 'debug config))
                (server-enabled (dap-docker--is-enabled? config)))
       (gethash 'template server-info)
@@ -236,12 +239,15 @@
 (defun dap-docker-register ()
   "Make the current project debugger docker-aware"
   (interactive)
-  (let* ((config (lsp-docker-get-config-from-lsp))
-         (project-root (lsp-workspace-root))
-         (original-provider-name (dap-docker--get-debug-provider-name config))
-         (original-template-name (dap-docker--get-debug-template-name config)))
-    (dap-docker--dockerize-debug-provider original-provider-name config project-root)
-    (dap-docker--dockerize-debug-template original-template-name config project-root)))
+  (-if-let* ((config (lsp-docker-get-config-from-lsp))
+             (project-root (lsp-workspace-root))
+             (original-provider-name (dap-docker--get-debug-provider-name config))
+             (original-template-name (dap-docker--get-debug-template-name config))
+             (containerized-debugging-enabled (dap-docker--is-enabled? config)))
+      (progn
+        (dap-docker--dockerize-debug-provider original-provider-name config project-root)
+        (dap-docker--dockerize-debug-template original-template-name config project-root))
+    (user-error "Containerized debugging is not enabled or the config is invalid!")))
 
 (provide 'dap-docker)
 ;;; dap-docker.el ends here
