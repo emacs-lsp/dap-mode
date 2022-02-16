@@ -468,3 +468,28 @@ support you also need customize `dap-netcore-download-url`:
 
 Start debugging by selecting ".Net Core Launch (Console)" or ".Net
 Core Attach (Console)" from `dap-debug` menu.
+
+## Unity
+
+1.  Installation
+
+	- Automatic Installation:
+
+		- Add `dap-unity` to your configuration file
+
+		- Call `dap-unity-setup` to automatically download and extract the debugger
+
+		- If automatic installation fails, see the manual installation steps below
+
+	- Manual Installation:
+
+		- Download the unity-debug extension from the [VisualStudio Marketplace](https://marketplace.visualstudio.com/items?itemName=Unity.unity-debug)
+		
+		- Extract the extension contents (Default path: "{emacsconfigdir}/.extension/vscode/Unity.unity-debug/")
+		
+		- On non-Windows os, the debugger "{extensiondir}/extension/bin/UnityDebug.exe" must be flagged as executable
+			Using your favorite terminal: `chmod u+x UnityDebug.exe`
+		
+2.  Usage
+
+	Call `dap-debug` and select the "Unity Editor" template
