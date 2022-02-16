@@ -519,6 +519,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#unity" class="md-nav__link">
+    Unity
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -865,6 +872,13 @@
         <li class="md-nav__item">
   <a href="#netcoredbg" class="md-nav__link">
     Netcoredbg
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unity" class="md-nav__link">
+    Unity
   </a>
   
 </li>
@@ -1385,6 +1399,47 @@ support you also need customize <code>dap-netcore-download-url</code>:</p>
 <p><code>M-x</code> <code>customize</code> <code>RET</code> <code>dap-netcore-download-url</code> <code>RET</code></p>
 <p>Start debugging by selecting ".Net Core Launch (Console)" or ".Net
 Core Attach (Console)" from <code>dap-debug</code> menu.</p>
+<h2 id="unity">Unity<a class="headerlink" href="#unity" title="Permanent link">#</a></h2>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
+<p>Automatic Installation:</p>
+<ul>
+<li>
+<p>Add <code>dap-unity</code> to your configuration file</p>
+</li>
+<li>
+<p>Call <code>dap-unity-setup</code> to automatically download and extract the debugger</p>
+</li>
+<li>
+<p>If automatic installation fails, see the manual installation steps below</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Manual Installation:</p>
+<ul>
+<li>
+<p>Download the unity-debug extension from the <a href="https://marketplace.visualstudio.com/items?itemName=Unity.unity-debug">VisualStudio Marketplace</a></p>
+</li>
+<li>
+<p>Extract the extension contents (Default path: "{emacsconfigdir}/.extension/vscode/Unity.unity-debug/")</p>
+</li>
+<li>
+<p>On non-Windows os, the debugger "{extensiondir}/extension/bin/UnityDebug.exe" must be flagged as executable
+    Using your favorite terminal: <code>chmod u+x UnityDebug.exe</code></p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Usage</p>
+<p>Call <code>dap-debug</code> and select the "Unity Editor" template</p>
+</li>
+</ol>
                 
                   
                     
@@ -1393,7 +1448,7 @@ Core Attach (Console)" from <code>dap-debug</code> menu.</p>
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 12, 2022</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 16, 2022</span>
     
   </small>
 </div>
