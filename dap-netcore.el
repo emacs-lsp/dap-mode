@@ -43,6 +43,17 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
   :risky t
   :type 'string)
 
+(defun dap-netcore-update-debugger ()
+  "Update netcoredbg."
+  (interactive)
+  (let ((backup (concat dap-netcore-install-dir ".old")))
+    (f-move dap-netcore-install-dir backup)
+    (condition-case err
+	(dap-netcore--debugger-install)
+      (error (f-move backup dap-netcore-install-dir)
+	     (signal (car err) (cdr err)))
+      (:success (f-delete backup t)))))
+
 (defun dap-netcore--debugger-install ()
   "Download the latest version of netcoredbg and extract it to `dap-netcore-install-dir'."
   (let* ((temp-file (make-temp-file "netcoredbg" nil
@@ -69,7 +80,9 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
 				 (libxml-parse-html-region (point-min) (point-max))
 				 (lambda (node)
 				   (string-match-p (pcase system-type
-						     (`gnu/linux ".*linux.*\\.tar\\.gz")
+						     (`gnu/linux (if (string-match-p ".*arm")
+								     ".*linux-arm64\\.tar\\.gz"
+								   ".*linux-amd64\\.tar\\.gz"))
 						     (`darwin ".*osx.*\\.tar\\.gz")
 						     (`windows-nt ".*win64.*\\.zip"))
 						   (or (dom-attr node 'href) ""))))
