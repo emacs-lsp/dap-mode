@@ -145,7 +145,8 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
                              (list :type "coreclr"
                                    :request "launch"
                                    :mode "launch"
-                                   :name "NetCoreDbg::Launch"))
+                                   :name "NetCoreDbg::Launch"
+				   :dap-compilation "dotnet build"))
 
 (provide 'dap-netcore)
 ;;; dap-netcore.el ends here
