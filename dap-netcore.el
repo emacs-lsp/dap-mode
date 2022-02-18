@@ -127,7 +127,20 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
   (dap--put-if-absent conf :dap-server-path (list (dap-netcore--debugger-locate-or-install) "--interpreter=vscode"))
   (pcase (plist-get conf :mode)
     ("launch"
-     (dap--put-if-absent conf :program (expand-file-name (read-file-name "Select an executable:"))))
+     (dap--put-if-absent
+      conf
+      :program
+      (let ((project-dir (lsp-workspace-root)))
+	(save-mark-and-excursion
+	  (find-file (concat (f-slash project-dir) "*.*proj") t)
+	  (let ((res (if (libxml-available-p)
+			 (libxml-parse-xml-region (point-min) (point-max))
+		       (xml-parse-region (point-min) (point-max)))))
+	    (kill-buffer)
+	    (f-join project-dir "bin" "Debug"
+		    (dom-text (dom-by-tag res 'TargetFramework))
+		    (dom-text (dom-by-tag res 'RuntimeIdentifier))
+		    (concat (f-base project-dir) ".dll")))))))
     ("attach"
      (dap--put-if-absent conf :processId (string-to-number (read-string "Enter PID: " "2345"))))))
 
