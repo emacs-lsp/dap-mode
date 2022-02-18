@@ -43,6 +43,17 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
   :risky t
   :type 'string)
 
+(defun dap-netcore-update-debugger ()
+  "Update netcoredbg."
+  (interactive)
+  (let ((backup (concat dap-netcore-install-dir ".old")))
+    (f-move dap-netcore-install-dir backup)
+    (condition-case err
+	(dap-netcore--debugger-install)
+      (error (f-move backup dap-netcore-install-dir)
+	     (signal (car err) (cdr err)))
+      (:success (f-delete backup t)))))
+
 (defun dap-netcore--debugger-install ()
   "Download the latest version of netcoredbg and extract it to `dap-netcore-install-dir'."
   (let* ((temp-file (make-temp-file "netcoredbg" nil
@@ -69,7 +80,9 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
 				 (libxml-parse-html-region (point-min) (point-max))
 				 (lambda (node)
 				   (string-match-p (pcase system-type
-						     (`gnu/linux ".*linux.*\\.tar\\.gz")
+						     (`gnu/linux (if (string-match-p ".*arm")
+								     ".*linux-arm64\\.tar\\.gz"
+								   ".*linux-amd64\\.tar\\.gz"))
 						     (`darwin ".*osx.*\\.tar\\.gz")
 						     (`windows-nt ".*win64.*\\.zip"))
 						   (or (dom-attr node 'href) ""))))
@@ -96,7 +109,9 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
   (let ((file-ext (pcase system-type
                     (`windows-nt ".exe")
                     (_ ""))))
-    (expand-file-name (concat "netcoredbg" file-ext) (f-join dap-netcore-install-dir "netcoredbg"))))
+    (or
+     (executable-find "netcoredbg")
+     (expand-file-name (concat "netcoredbg" file-ext) (f-join dap-netcore-install-dir "netcoredbg")))))
 
 (defun dap-netcore--debugger-locate-or-install ()
   "Return the location of netcoredbg."
@@ -112,7 +127,20 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
   (dap--put-if-absent conf :dap-server-path (list (dap-netcore--debugger-locate-or-install) "--interpreter=vscode"))
   (pcase (plist-get conf :mode)
     ("launch"
-     (dap--put-if-absent conf :program (expand-file-name (read-file-name "Select an executable:"))))
+     (dap--put-if-absent
+      conf
+      :program
+      (let ((project-dir (lsp-workspace-root)))
+	(save-mark-and-excursion
+	  (find-file (concat (f-slash project-dir) "*.*proj") t)
+	  (let ((res (if (libxml-available-p)
+			 (libxml-parse-xml-region (point-min) (point-max))
+		       (xml-parse-region (point-min) (point-max)))))
+	    (kill-buffer)
+	    (f-join project-dir "bin" "Debug"
+		    (dom-text (dom-by-tag res 'TargetFramework))
+		    (dom-text (dom-by-tag res 'RuntimeIdentifier))
+		    (concat (f-base project-dir) ".dll")))))))
     ("attach"
      (dap--put-if-absent conf :processId (string-to-number (read-string "Enter PID: " "2345"))))))
 
@@ -130,7 +158,8 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
                              (list :type "coreclr"
                                    :request "launch"
                                    :mode "launch"
-                                   :name "NetCoreDbg::Launch"))
+                                   :name "NetCoreDbg::Launch"
+				   :dap-compilation "dotnet build"))
 
 (provide 'dap-netcore)
 ;;; dap-netcore.el ends here
