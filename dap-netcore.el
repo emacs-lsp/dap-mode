@@ -109,7 +109,9 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
   (let ((file-ext (pcase system-type
                     (`windows-nt ".exe")
                     (_ ""))))
-    (expand-file-name (concat "netcoredbg" file-ext) (f-join dap-netcore-install-dir "netcoredbg"))))
+    (or
+     (executable-find "netcoredbg")
+     (expand-file-name (concat "netcoredbg" file-ext) (f-join dap-netcore-install-dir "netcoredbg")))))
 
 (defun dap-netcore--debugger-locate-or-install ()
   "Return the location of netcoredbg."
