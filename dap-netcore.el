@@ -80,7 +80,7 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
 				 (libxml-parse-html-region (point-min) (point-max))
 				 (lambda (node)
 				   (string-match-p (pcase system-type
-						     (`gnu/linux (if (string-match-p ".*arm")
+						     (`gnu/linux (if (string-match-p (emacs-version) ".*arm")
 								     ".*linux-arm64\\.tar\\.gz"
 								   ".*linux-amd64\\.tar\\.gz"))
 						     (`darwin ".*osx.*\\.tar\\.gz")
