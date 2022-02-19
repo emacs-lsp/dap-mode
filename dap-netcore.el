@@ -47,12 +47,14 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
   "Update netcoredbg."
   (interactive)
   (let ((backup (concat dap-netcore-install-dir ".old")))
-    (f-move dap-netcore-install-dir backup)
+    (when (f-exists-p dap-netcore-install-dir)
+      (f-move dap-netcore-install-dir backup))
     (condition-case err
 	(dap-netcore--debugger-install)
       (error (f-move backup dap-netcore-install-dir)
 	     (signal (car err) (cdr err)))
-      (:success (f-delete backup t)))))
+      (:success (when (f-exists-p backup)
+		  (f-delete backup t))))))
 
 (defun dap-netcore--debugger-install ()
   "Download the latest version of netcoredbg and extract it to `dap-netcore-install-dir'."
@@ -67,7 +69,6 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
                          (_ (user-error (format "Unable to extract server - file %s cannot be extracted, please extract it manually" temp-file))))))
     (if (and (not dap-netcore-download-url)
 	     (fboundp 'libxml-available-p)
-	     (libxml-available-p)
 	     (fboundp 'dom-search)
 	     (fboundp 'dom-attr))
 	(url-retrieve "https://github.com/Samsung/netcoredbg/releases"
@@ -77,7 +78,9 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
 			       "https://github.com"
 			       (dom-attr
 				(dom-search
-				 (libxml-parse-html-region (point-min) (point-max))
+				 (if (libxml-available-p)
+				     (libxml-parse-html-region (point-min) (point-max))
+				   (xml-parse-region (point-min) (point-max)))
 				 (lambda (node)
 				   (string-match-p (pcase system-type
 						     (`gnu/linux (if (string-match-p system-configuration ".*arm")
