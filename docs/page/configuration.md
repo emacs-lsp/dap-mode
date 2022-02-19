@@ -461,8 +461,7 @@ languages of Dotnet platform.
 (require 'dap-netcore)
 ```
 
-If you have Emacs 26 or older or if your Emacs built wilthout libxml2
-support you also need customize `dap-netcore-download-url`:
+If you have Emacs 26 or older you also need customize `dap-netcore-download-url`:
 
 `M-x` `customize` `RET` `dap-netcore-download-url` `RET`
 
