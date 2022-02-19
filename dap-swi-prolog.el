@@ -42,7 +42,7 @@
                   (dap--put-if-absent :type "swi-prolog")
                   (dap--put-if-absent :cwd default-directory)
                   (dap--put-if-absent :module (buffer-file-name))
-                  (dap--put-if-absent :goal (read-string "Goal: " nil nil "true"))
+                  (dap--put-if-absent :goal (read-string "?- " nil nil "true"))
                   (dap--put-if-absent :name "SWI-Prolog Debug"))))
     conf))
 
@@ -52,6 +52,11 @@
                              (list :type "swi-prolog"
                                    :request "launch"
                                    :name "SWI-Prolog::Run"))
+(dap-register-debug-template "SWI-Prolog Start Terminal"
+                             (list :type "swi-prolog"
+                                   :goal "$run_in_terminal"
+                                   :request "launch"
+                                   :name "SWI-Prolog::Terminal"))
 
 (provide 'dap-swi-prolog)
 ;;; dap-swi-prolog.el ends here
