@@ -491,7 +491,6 @@ FILE-NAME is the filename in which the breakpoints have been udpated."
 
     ;; Update all of the active sessions with the list of breakpoints.
     (mapc (lambda (session)
-            (debug)
             (let ((set-breakpoints-req (dap--set-breakpoints-request
                                         session
                                         file-name
