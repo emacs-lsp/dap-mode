@@ -135,8 +135,7 @@
 
 (defun dap-docker--get-path-mappings-from-container (container-name)
   "Get path mappings from a container"
-  (-let ((
-          (inspection-command-program . inspection-command-arguments)
+  (-let (((inspection-command-program . inspection-command-arguments)
           (--map-when
            (equal it "'{{.Mounts}}'")
            "'{{json .Mounts}}'"
