@@ -87,3 +87,4 @@
   - [[https://github.com/nbfalcon][Nikita Bloshchanevich]] - launch.json support (+ variable expansion), debugpy
     support, (with some groundwork by yyoncho) runInTerminal support, various
     bug fixes.
+  - [[https://github.com/factyy][Andrei Mochalov]] - Docker (debugging in containers) integration.
