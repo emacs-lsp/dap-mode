@@ -50,6 +50,10 @@
     patching it, registering a debug provider e.t.c). This function examines a configuration file or falls back to the default configuration
     (which can be patched using the ~.dir-locals~ approach, take a note that the default configuration doesn't provide any sane defaults for debugging)
     and then operates on the combination of the two. This mechanism is the same as in ~lsp-docker~.
+
+    Note: currently you cannot use this mode when using a network connection to connect to debuggers (this part is yet to be implemented).
+    Still want to talk to debuggers over network? In order to do so you have to look at the ~launch-args~ patching done by ~dap-docker--dockerize-start-file-args~, you have to somehow assign ~nil~ to ~dap-server-path~ before it is passed further into session creation.
+    
     If you want to stick to a configuration file, take a look at the example below:
     
     #+begin_src yaml
