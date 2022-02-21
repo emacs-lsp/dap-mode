@@ -41,12 +41,9 @@
 
 (defun dap-docker--is-enabled? (config)
   "Check whether debugging is enabled"
-  (-if-let* ((server-info (gethash 'debug config))
-             (server-enabled (gethash 'enabled server-info)))
-      (if (equal server-enabled :false)
-          nil
-        't)
-    nil))
+  (-when-let* ((server-info (gethash 'debug config))
+               (server-enabled (gethash 'enabled server-info)))
+      (not (equal server-enabled :false))))
 
 (defun dap-docker--get-debug-provider-name (config)
   "Get the debug provider name also checking whether debugging is enabled"
