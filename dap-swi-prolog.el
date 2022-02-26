@@ -1,6 +1,6 @@
 ;;; dap-swi-prolog.el --- Debug Adapter Protocol mode for SWI-Prolog      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021 Eshel Yaron
+;; Copyright (C) 2022 Eshel Yaron
 
 ;; Author: Eshel Yaron <eshelshay.yaron@gmail.com>
 ;; Keywords: languages
@@ -20,7 +20,7 @@
 
 ;; URL: https://github.com/yyoncho/dap-mode
 ;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0"))
-;; Version: 0.2
+;; Version: 0.3
 
 ;;; Commentary:
 ;; Adapter for https://www.swi-prolog.org
@@ -42,7 +42,7 @@
                   (dap--put-if-absent :type "swi-prolog")
                   (dap--put-if-absent :cwd default-directory)
                   (dap--put-if-absent :module (buffer-file-name))
-                  (dap--put-if-absent :goal (read-string "Goal: " nil nil "true"))
+                  (dap--put-if-absent :goal (read-string "?- " nil nil "true"))
                   (dap--put-if-absent :name "SWI-Prolog Debug"))))
     conf))
 
@@ -52,6 +52,22 @@
                              (list :type "swi-prolog"
                                    :request "launch"
                                    :name "SWI-Prolog::Run"))
+(dap-register-debug-template "SWI-Prolog Start Terminal"
+                             (list :type "swi-prolog"
+                                   :goal "$run_in_terminal"
+                                   :request "launch"
+                                   :name "SWI-Prolog::Terminal"))
+
+(defun dap-swi-prolog--populate-start-tcp-args (conf)
+  "Populate CONF with the required arguments."
+  (let ((conf (-> conf
+                  (dap--put-if-absent :host "localhost")
+                  (dap--put-if-absent :debugServer 3443)
+                  (dap--put-if-absent :request "attach")
+                  (dap--put-if-absent :name "SWI-Prolog::Connected"))))
+    conf))
+
+(dap-register-debug-provider "swi-prolog-tcp" #'dap-swi-prolog--populate-start-tcp-args)
 
 (provide 'dap-swi-prolog)
 ;;; dap-swi-prolog.el ends here
