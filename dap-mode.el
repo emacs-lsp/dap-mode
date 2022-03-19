@@ -1761,7 +1761,7 @@ be used to compile the project, spin up docker, ...."
                    (funcall launch-args #'dap-start-debugging-noexpand)
                  (dap-start-debugging-noexpand launch-args)))))
     (-if-let ((&plist :dap-compilation) launch-args)
-        (let ((default-directory (or (plist-get :dap-compilation-dir launch-args)
+        (let ((default-directory (or (plist-get launch-args :dap-compilation-dir)
                                      (lsp-workspace-root)
                                      default-directory)))
           (with-current-buffer (compilation-start dap-compilation t (lambda (&rest _)
