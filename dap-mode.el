@@ -832,7 +832,15 @@ will be reversed."
       ;; thread-id is the same as the active one
       (when (and (eq debug-session (dap--cur-session))
                  (eq thread-id (dap--debug-session-thread-id (dap--cur-session))))
-        (dap--go-to-stack-frame debug-session (cl-first stack-frames)))))
+        ;; filter stack frames excluding those associated to non-existing paths
+        ;; fall back to original stack-frames if none found
+        (-when-let (stack-frames
+                    (or (-filter (lambda(stack-frame)
+                                   (-when-let (path (dap--get-path-for-frame stack-frame))
+                                     (file-exists-p path)))
+                                 stack-frames)
+                        stack-frames))
+          (dap--go-to-stack-frame debug-session (cl-first stack-frames))))))
    debug-session))
 
 (defun dap--buffer-list ()
