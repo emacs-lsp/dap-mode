@@ -28,6 +28,7 @@
 
 (require 'dap-mode)
 (require 'f)
+(require 'dom)
 
 (defcustom dap-netcore-install-dir (f-join user-emacs-directory ".cache" "lsp" "netcoredbg")
   "Install directory for netcoredbg."
