@@ -206,6 +206,12 @@ locations."
   :type 'hook
   :group 'dap-mode)
 
+(defcustom dap-stack-trace-limit 0
+  "Number of stack frames to return in the automatic stack trace
+request on hitting a breakpoint. 0 means to return all frames."
+  :group 'dap-mode
+  :type 'number)
+
 (defvar dap--debug-providers (make-hash-table :test 'equal))
 
 (defcustom dap-debug-template-configurations nil
@@ -822,7 +828,7 @@ will be reversed."
     (run-hook-with-args 'dap-stopped-hook debug-session))
 
   (dap--send-message
-   (dap--make-request "stackTrace" (list :threadId thread-id))
+   (dap--make-request "stackTrace" (list :threadId thread-id :levels dap-stack-trace-limit))
    (dap--resp-handler
     (-lambda ((&hash "body" (&hash "stackFrames" stack-frames)))
       (puthash thread-id
