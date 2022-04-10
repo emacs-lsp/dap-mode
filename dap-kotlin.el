@@ -1,3 +1,6 @@
+;; Commentary:
+;; Adapter for https://github.com/fwcd/kotlin-debug-adapter
+
 (require 'lsp-kotlin)
 (require 'dap-mode)
 
