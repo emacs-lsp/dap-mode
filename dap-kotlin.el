@@ -19,6 +19,4 @@
 
 (dap-register-debug-provider "kotlin" #'dap-kotlin-populate-default-args)
 
-;;;###autoload(with-eval-after-load 'lsp-kotlin (require 'dap-kotlin))
-
 (provide 'dap-kotlin)
