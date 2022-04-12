@@ -8,7 +8,6 @@
 
 (source "gnu")
 (source "melpa")
-(source "jcs-elpa")  ; for package-build
 
 (depends-on "emacs" "26.1")
 (depends-on "lsp-java")
