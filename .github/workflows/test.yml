@@ -36,7 +36,7 @@ jobs:
 
       - uses: emacs-eask/setup-eask@master
         with:
-          version: 'snapshot'
+          version: '0.4.21'
 
       - name: Run tests
         run: make ci
