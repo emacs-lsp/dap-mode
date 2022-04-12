@@ -22,7 +22,7 @@ ci: clean build compile test
 
 build:
 	$(EASK) package
-	$(EASK) install --verbose 4
+	$(EASK) install
 	$(EASK) clean-elc
 
 compile:
