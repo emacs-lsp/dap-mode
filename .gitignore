@@ -1,4 +1,5 @@
 .eask
+/dist
 *.elc
 .classpath
 .project
