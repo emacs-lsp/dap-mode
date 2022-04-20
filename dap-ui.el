@@ -447,6 +447,31 @@ DEBUG-SESSION is the debug session triggering the event."
     (-some-> existing-breakpoint (plist-get :marker) (set-marker nil))
     (dap--breakpoints-changed (cl-remove existing-breakpoint file-breakpoints) file-name)))
 
+(defun dap-ui-breakpoints-browse ()
+  "Browse all breakpoints."
+  (interactive)
+  (let* ((completion-entries
+          (-map (lambda (data)
+                  (let* ((filename (plist-get data :file-name))
+                         (linenumber (save-window-excursion
+                                       (find-file filename)
+                                       (line-number-at-pos
+                                        (plist-get (plist-get data :breakpoint) :point))))
+                         (content (save-window-excursion
+                                    (find-file filename)
+                                    (save-excursion
+                                      (goto-char (point-min))
+                                      (forward-line (1- linenumber))
+                                      (buffer-substring (line-beginning-position) (line-end-position))))))
+                    (format "%s: %s, %s %s" filename linenumber (plist-get data :icon-literal) content)))
+                (--filter (plist-member it :file-name) (dap-ui--breakpoints-data))))
+         (user-choice (split-string
+                       (completing-read "Select breakpoint: " completion-entries)
+                       "[:,]")))
+    (find-file (car user-choice))
+    (goto-char (point-min))
+    (forward-line (1- (string-to-number (nth 1 user-choice))))))
+
 (defun dap-ui-breakpoints-delete-selected ()
   "Delete breakpoint on the current line."
   (interactive)
