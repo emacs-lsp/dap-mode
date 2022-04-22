@@ -50,7 +50,11 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
       (dap--put-if-absent :type "gdb")
       (dap--put-if-absent :cwd default-directory)
       (dap--put-if-absent :target (expand-file-name (read-file-name "Select file to debug.")))
-      (dap--put-if-absent :name "GDB Debug")))
+      (dap--put-if-absent :name "GDB Debug")
+
+      ;; This may become unnecessary once https://github.com/WebFreak001/code-debug/issues/344 is resolved.
+      (dap--put-if-absent :valuesFormatting "prettyPrinters")
+      ))
 
 (dap-register-debug-provider "gdb" 'dap-gdb-lldb--populate-gdb)
 (dap-register-debug-template "GDB Run Configuration"
@@ -71,6 +75,9 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
       (dap--put-if-absent :cwd default-directory)
       (dap--put-if-absent :target (read-string "target?(host:port) "))
       (dap--put-if-absent :remote :json-true)
+
+      ;; This may become unnecessary once https://github.com/WebFreak001/code-debug/issues/344 is resolved.
+      (dap--put-if-absent :valuesFormatting "prettyPrinters")
       ))
 
 (dap-register-debug-provider "gdbserver" 'dap-gdb-lldb--populate-gdbserver)
@@ -99,7 +106,11 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
       (dap--put-if-absent :type "lldb")
       (dap--put-if-absent :cwd default-directory)
       (dap--put-if-absent :target (expand-file-name (read-file-name "Select file to debug.")))
-      (dap--put-if-absent :name "LLDB Debug")))
+      (dap--put-if-absent :name "LLDB Debug")
+
+      ;; This may become unnecessary once https://github.com/WebFreak001/code-debug/issues/344 is resolved.
+      (dap--put-if-absent :valuesFormatting "prettyPrinters")
+      ))
 
 (dap-register-debug-provider "lldb" 'dap-gdb-lldb--populate-lldb)
 (dap-register-debug-template "LLDB Run Configuration"
