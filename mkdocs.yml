@@ -8,6 +8,7 @@ nav:
   - How to: page/how-to.md
   - Tutorials:
       - Clojure: page/clojure.md
+      - Python, debbuging with poetry + pyenv: page/python-poetry-pyenv.md
   - Gallery:
       - page/gallery.md
   - Adding a new debug server: page/adding-debug-server.md
