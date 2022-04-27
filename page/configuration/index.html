@@ -520,6 +520,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#go-vs-code-debug-adapter" class="md-nav__link">
+    Go (VS Code debug adapter)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#javascript" class="md-nav__link">
     Javascript
   </a>
@@ -908,6 +915,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#go-vs-code-debug-adapter" class="md-nav__link">
+    Go (VS Code debug adapter)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#javascript" class="md-nav__link">
     Javascript
   </a>
@@ -1230,6 +1244,60 @@ LLDB configuration.</p>
 <p>Installation</p>
 <ul>
 <li>
+<p>install gopls</p>
+</li>
+<li>
+<p>Install the delve command by following instructions on <a href="https://github.com/go-delve/delve/tree/master/Documentation/installation">delve -
+    installation</a>.</p>
+</li>
+<li>
+<p>install lsp-mode</p>
+</li>
+<li>
+<p>Put in your emacs configuration.</p>
+<p><div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-dlv-go</span><span class="p">)</span>
+</code></pre></div>
+    <!-- end list --></p>
+</li>
+<li>
+<p>Usage</p>
+<p>assume you have your code at \~/src/cool/cmd/app/app.go</p>
+<ul>
+<li>open your main package file e.g \~/src/cool/cmd/app/app.go</li>
+<li>or open a test file e.g app<sub>test</sub>.go</li>
+<li>add folder to lsp session where your go.mod is or would be<ul>
+<li>M-x lsp-workspace-folders-add \~/src/cool</li>
+</ul>
+</li>
+<li>set break point</li>
+<li>M-x dap-debug</li>
+<li>if you are debugging test files use "Go Dlv Launch File
+    Configuration"</li>
+<li>if you want to debug already running application select
+    "Go Dlv Attach Configuration"</li>
+<li>if you want to debug remote application you need start
+    delve on remote machine first: <code>dlv --headless
+    --accept-multiclient attach 123 -l :1080</code>
+    and select "Go Dlv Remote Debug"</li>
+</ul>
+</li>
+<li>
+<p>Trouble shooting</p>
+<ul>
+<li>put (setq dap-print-io t) and check messages buffer</li>
+<li>e.g linter can return note at debug session response
+    resulting debug session to fail</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="go-vs-code-debug-adapter">Go (VS Code debug adapter)<a class="headerlink" href="#go-vs-code-debug-adapter" title="Permanent link">#</a></h2>
+<ol>
+<li>
+<p>Installation</p>
+<ul>
+<li>
 <p>For easier of setting up vscode extension, you only need call
     <code>dap-go-setup</code> after requiring <code>dap-go</code>.</p>
 <ul>
@@ -1497,7 +1565,7 @@ Core Attach (Console)" from <code>dap-debug</code> menu.</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 26, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 27, 2022</span>
       
     
   </small>
