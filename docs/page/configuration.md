@@ -284,6 +284,49 @@ To fully support rust and pretty printing of strings when debugging, remember to
 
 1.  Installation
 
+      - install gopls
+
+      - Install the delve command by following instructions on [delve -
+        installation](https://github.com/go-delve/delve/tree/master/Documentation/installation).
+
+      - install lsp-mode
+
+      - Put in your emacs configuration.
+
+        ``` elisp
+        (require 'dap-dlv-go)
+        ```
+    <!-- end list -->
+
+    1.  Usage
+
+        assume you have your code at \~/src/cool/cmd/app/app.go
+
+          - open your main package file e.g \~/src/cool/cmd/app/app.go
+          - or open a test file e.g app<sub>test</sub>.go
+          - add folder to lsp session where your go.mod is or would be
+              - M-x lsp-workspace-folders-add \~/src/cool
+          - set break point
+          - M-x dap-debug
+          - if you are debugging test files use "Go Dlv Launch File
+            Configuration"
+          - if you want to debug already running application select
+            "Go Dlv Attach Configuration"
+		  - if you want to debug remote application you need start
+            delve on remote machine first: `dlv --headless
+            --accept-multiclient attach 123 -l :1080`
+			and select "Go Dlv Remote Debug"
+
+    2.  Trouble shooting
+
+          - put (setq dap-print-io t) and check messages buffer
+          - e.g linter can return note at debug session response
+            resulting debug session to fail
+
+## Go (VS Code debug adapter)
+
+1.  Installation
+
       - For easier of setting up vscode extension, you only need call
         `dap-go-setup` after requiring `dap-go`.
 
