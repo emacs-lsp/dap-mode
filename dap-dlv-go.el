@@ -101,7 +101,6 @@
                                    :name "Launch File"
                                    :mode "auto"
                                    :program nil
-                                   :buildFlags nil
                                    :args nil
                                    :env nil))
 
@@ -109,8 +108,7 @@
                              (list :type "go"
                                    :request "attach"
                                    :name "Attach to running process"
-                                   :mode "auto"
-                                   :env nil))
+                                   :mode "auto"))
 
 (dap-register-debug-template "Go Dlv Launch Executable Configuration"
                              (list :type "go"
@@ -118,7 +116,6 @@
                                    :name "Launch Executable"
                                    :mode "exec"
                                    :program nil
-                                   :buildFlags nil
                                    :args nil
                                    :env nil))
 
@@ -126,7 +123,6 @@
                              (list :type "go"
                                    :request "attach"
                                    :name "Dlv Remote Debug"
-                                   :mode "remote"
-                                   :env nil))
+                                   :mode "remote"))
 (provide 'dap-dlv-go)
 ;;; dap-dlv-go.el ends here

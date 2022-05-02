@@ -308,14 +308,15 @@ To fully support rust and pretty printing of strings when debugging, remember to
               - M-x lsp-workspace-folders-add \~/src/cool
           - set break point
           - M-x dap-debug
-          - if you are debugging test files use "Go Dlv Launch File
-            Configuration"
+          - if you want to launch a binary or test to debug, use "Go
+            Dlv Launch File Configuration"
           - if you want to debug already running application select
             "Go Dlv Attach Configuration"
-		  - if you want to debug remote application you need start
-            delve on remote machine first: `dlv --headless
-            --accept-multiclient attach 123 -l :1080`
-			and select "Go Dlv Remote Debug"
+          - if you want to debug remote application you need start
+            delve on remote machine first, for example: `dlv --headless
+            --accept-multiclient attach 123 -l :1080` (see dlv usage
+            documentation for more command-line options) and select
+            "Go Dlv Remote Debug"
 
     2.  Trouble shooting
 
