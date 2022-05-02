@@ -1285,14 +1285,15 @@ LLDB configuration.</p>
 </li>
 <li>set break point</li>
 <li>M-x dap-debug</li>
-<li>if you are debugging test files use "Go Dlv Launch File
-    Configuration"</li>
+<li>if you want to launch a binary or test to debug, use "Go
+    Dlv Launch File Configuration"</li>
 <li>if you want to debug already running application select
     "Go Dlv Attach Configuration"</li>
 <li>if you want to debug remote application you need start
-    delve on remote machine first: <code>dlv --headless
-    --accept-multiclient attach 123 -l :1080</code>
-    and select "Go Dlv Remote Debug"</li>
+    delve on remote machine first, for example: <code>dlv --headless
+    --accept-multiclient attach 123 -l :1080</code> (see dlv usage
+    documentation for more command-line options) and select
+    "Go Dlv Remote Debug"</li>
 </ul>
 </li>
 <li>
@@ -1579,7 +1580,7 @@ Core Attach (Console)" from <code>dap-debug</code> menu.</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 28, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 2, 2022</span>
       
     
   </small>
