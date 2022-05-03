@@ -314,9 +314,9 @@ To fully support rust and pretty printing of strings when debugging, remember to
             "Go Dlv Attach Configuration"
           - if you want to debug remote application you need start
             delve on remote machine first, for example: `dlv --headless
-            --accept-multiclient attach 123 -l :1080` (see dlv usage
-            documentation for more command-line options) and select
-            "Go Dlv Remote Debug"
+            --accept-multiclient attach 123 -l :1080` (see [dlv usage
+            documentation](https://github.com/go-delve/delve/tree/master/Documentation/usage#using-delve)
+            for more command-line options) and select "Go Dlv Remote Debug"
 
     2.  Trouble shooting
 
