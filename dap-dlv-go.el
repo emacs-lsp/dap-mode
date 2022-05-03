@@ -101,6 +101,7 @@
                                    :name "Launch File"
                                    :mode "auto"
                                    :program nil
+				   :buildFlags nil
                                    :args nil
                                    :env nil))
 
