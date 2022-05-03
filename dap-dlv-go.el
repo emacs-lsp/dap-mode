@@ -113,7 +113,7 @@
 
 (dap-register-debug-template "Go Dlv Launch Executable Configuration"
                              (list :type "go"
-                                   :request "exec"
+                                   :request "launch"
                                    :name "Launch Executable"
                                    :mode "exec"
                                    :program nil
