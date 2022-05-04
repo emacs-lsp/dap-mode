@@ -30,6 +30,8 @@
 (require 'dap-mode)
 (require 'dap-utils)
 (require 'f)
+(require 'lsp-mode)
+(require 'dash)
 
 (defcustom dap-dlv-go-delve-path
   (or (executable-find "dlv")
@@ -50,6 +52,8 @@
   (setq conf (pcase (plist-get conf :mode)
                ("auto"
 		(dap-dlv-go--populate-auto-args conf))
+	       ("test"
+		(dap-dlv-go--populate-test-args conf))
                ("debug"
 		(dap--put-if-absent
 		 conf :program (f-dirname (buffer-file-name))))
@@ -78,6 +82,10 @@
     (plist-put conf :debugServer debug-port))
 
   (if (stringp (plist-get conf :args)) (plist-put conf :args (split-string (plist-get conf :args))) ())
+
+  (when (string= (plist-get conf :name) "Test function")
+    (-when-let ((name (dap-dlv-go--extract-current--method-or-function-name t)))
+      (dap--put-if-absent conf :args (list (format "-test.run=^%s$" name)))))
   
   (-> conf
       (dap--put-if-absent :dlvToolPath dap-dlv-go-delve-path)
@@ -92,6 +100,25 @@
   (if (string-suffix-p "_test.go" (buffer-file-name))
       (plist-put conf :mode "test")
     (plist-put conf :mode "debug")))
+
+(defun dap-dlv-go--populate-test-args (conf)
+  "Populate auto arguments according to CONF."
+  (dap--put-if-absent conf :program "."))
+
+(defun dap-dlv-go--extract-current--method-or-function-name (&optional no-signal?)
+  "Extract current method or function name."
+  (let ((symbols (lsp--get-document-symbols)))
+    (or (->> symbols
+             (-keep
+              (-lambda ((&DocumentSymbol :kind :range :selection-range))
+                (-let (((beg . end) (lsp--range-to-region range)))
+                  (and (or (= lsp/symbol-kind-method kind)
+			   (= lsp/symbol-kind-function kind))
+		       (<= beg (point) end)
+		       (lsp-region-text selection-range)))))
+             (car))
+	(unless no-signal?
+	  (user-error "No method or function at point")))))
 
 (dap-register-debug-provider "go" 'dap-dlv-go--populate-default-args)
 
@@ -125,5 +152,14 @@
                                    :request "attach"
                                    :name "Dlv Remote Debug"
                                    :mode "remote"))
+
+(dap-register-debug-template "Go Dlv Test Current Function Configuration"
+                             (list :type "go"
+                                   :request "launch"
+                                   :name "Test function"
+                                   :mode "test"
+                                   :program nil
+                                   :args nil
+                                   :env nil))
 (provide 'dap-dlv-go)
 ;;; dap-dlv-go.el ends here

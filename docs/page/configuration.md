@@ -310,6 +310,8 @@ To fully support rust and pretty printing of strings when debugging, remember to
           - M-x dap-debug
           - if you want to launch a binary or test to debug, use "Go
             Dlv Launch File Configuration"
+          - if you want to debug current test function inside test
+            file use "Go Dlv Test Current Function Configuration"
           - if you want to debug already running application select
             "Go Dlv Attach Configuration"
           - if you want to debug remote application you need start
