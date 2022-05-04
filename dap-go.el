@@ -55,7 +55,7 @@ Update `dap-go' using `C-u M-x dap-go-setup'")
   :group 'dap-go
   :type 'string)
 
-(dap-utils-vscode-setup-function "dap-go" "golang" "go" dap-go-debug-path "0.22.1")
+(dap-utils-vscode-setup-function "dap-go" "golang" "go" dap-go-debug-path "0.32.0")
 
 (defun dap-go--populate-default-args (conf)
   "Populate CONF with the default arguments."
