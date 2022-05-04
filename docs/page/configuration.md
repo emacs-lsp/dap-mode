@@ -319,6 +319,25 @@ To fully support rust and pretty printing of strings when debugging, remember to
             --accept-multiclient attach 123 -l :1080` (see [dlv usage
             documentation](https://github.com/go-delve/delve/tree/master/Documentation/usage#using-delve)
             for more command-line options) and select "Go Dlv Remote Debug"
+          - if your build environment differs from your development
+            environment or you use `-trimpath` build flag you can use
+            `substitutePath`. `M-x` `dap-debug-edit-template` then
+            select some template and add `substitutePath` option to
+            it:
+            ```elisp
+            (dap-register-debug-template
+             "Launch Executable trimmed path"
+             (list :type "go"
+                   :request "launch"
+                   :name "Launch Executable trimmed path"
+                   :mode "exec"
+                   :program nil
+                   :args nil
+                   :env nil
+                   :substitutePath (vector (ht ("from" "/home/user/projects/tribonacci") ("to" "github.com/s-kostyaev/tribonacci")))))
+            ```
+            and after evaluation you can select this edited template
+            and debug as usual.
 
     2.  Trouble shooting
 
