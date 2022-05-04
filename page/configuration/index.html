@@ -1296,6 +1296,24 @@ LLDB configuration.</p>
     --accept-multiclient attach 123 -l :1080</code> (see <a href="https://github.com/go-delve/delve/tree/master/Documentation/usage#using-delve">dlv usage
     documentation</a>
     for more command-line options) and select "Go Dlv Remote Debug"</li>
+<li>if your build environment differs from your development
+    environment or you use <code>-trimpath</code> build flag you can use
+    <code>substitutePath</code>. <code>M-x</code> <code>dap-debug-edit-template</code> then
+    select some template and add <code>substitutePath</code> option to
+    it:
+    <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-register-debug-template</span>
+ <span class="s">&quot;Launch Executable trimmed path&quot;</span>
+ <span class="p">(</span><span class="nf">list</span> <span class="nb">:type</span> <span class="s">&quot;go&quot;</span>
+       <span class="nb">:request</span> <span class="s">&quot;launch&quot;</span>
+       <span class="nb">:name</span> <span class="s">&quot;Launch Executable trimmed path&quot;</span>
+       <span class="nb">:mode</span> <span class="s">&quot;exec&quot;</span>
+       <span class="nb">:program</span> <span class="no">nil</span>
+       <span class="nb">:args</span> <span class="no">nil</span>
+       <span class="nb">:env</span> <span class="no">nil</span>
+       <span class="nb">:substitutePath</span> <span class="p">(</span><span class="nf">vector</span> <span class="p">(</span><span class="nv">ht</span> <span class="p">(</span><span class="s">&quot;from&quot;</span> <span class="s">&quot;/home/user/projects/tribonacci&quot;</span><span class="p">)</span> <span class="p">(</span><span class="s">&quot;to&quot;</span> <span class="s">&quot;github.com/s-kostyaev/tribonacci&quot;</span><span class="p">)))))</span>
+</code></pre></div>
+    and after evaluation you can select this edited template
+    and debug as usual.</li>
 </ul>
 </li>
 <li>
