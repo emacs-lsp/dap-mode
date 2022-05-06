@@ -21,8 +21,14 @@
 (require 'dap-mode)
 (require 'dap-utils)
 
+(defcustom dap-codelldb-extension-version "1.7.0"
+  "The version of the cpptools vscode extension."
+  :group 'dap-cpptools
+  :type 'string)
+
 (defcustom dap-codelldb-download-url
-  (format "https://github.com/vadimcn/vscode-lldb/releases/download/v1.6.1/codelldb-x86_64-%s.vsix"
+  (format "https://github.com/vadimcn/vscode-lldb/releases/download/v%s/codelldb-x86_64-%s.vsix"
+          dap-codelldb-extension-version
           (alist-get system-type
                      '((windows-nt . "windows")
                        (darwin . "darwin")
