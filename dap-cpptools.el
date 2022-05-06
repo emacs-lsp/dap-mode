@@ -32,7 +32,13 @@
   :group 'dap-cpptools
   :type 'string)
 
-(defcustom dap-cpptools-extension-version "1.9.8"
+(defcustom dap-cpptools-extension-version
+  (let ((current-ver "1.9.8")
+        (installed-ver (dap-utils-vscode-get-installed-extension-version dap-cpptools-debug-path)))
+    (when (and installed-ver (version< installed-ver current-ver))
+      (warn "You have an old cpptools v%s. Please run `C-u 1 M-x dap-cpptools-setup' \
+to install the new v%s." installed-ver current-ver))
+    current-ver)
   "The version of the cpptools vscode extension."
   :group 'dap-cpptools
   :type 'string)
