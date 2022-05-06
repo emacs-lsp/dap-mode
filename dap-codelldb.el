@@ -22,8 +22,8 @@
 (require 'dap-utils)
 
 (defcustom dap-codelldb-extension-version "1.7.0"
-  "The version of the cpptools vscode extension."
-  :group 'dap-cpptools
+  "The version of the codelldb vscode extension."
+  :group 'dap-codelldb
   :type 'string)
 
 (defcustom dap-codelldb-download-url
