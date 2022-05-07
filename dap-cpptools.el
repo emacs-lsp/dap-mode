@@ -32,13 +32,19 @@
   :group 'dap-cpptools
   :type 'string)
 
-(defcustom dap-cpptools-extension-version "0.29.0"
+(defcustom dap-cpptools-extension-version
+  (let ((current-ver "1.9.8")
+        (installed-ver (dap-utils-vscode-get-installed-extension-version dap-cpptools-debug-path)))
+    (when (and installed-ver (version< installed-ver current-ver))
+      (warn "You have an old cpptools v%s. Please run `C-u 1 M-x dap-cpptools-setup' \
+to install the new v%s." installed-ver current-ver))
+    current-ver)
   "The version of the cpptools vscode extension."
   :group 'dap-cpptools
   :type 'string)
 
 (defcustom dap-cpptools-download-url
-  (format "https://github.com/microsoft/vscode-cpptools/releases/download/%s/cpptools-%s.vsix"
+  (format "https://github.com/microsoft/vscode-cpptools/releases/download/v%s/cpptools-%s.vsix"
           dap-cpptools-extension-version
           (alist-get system-type
                      '((windows-nt . "win32")
@@ -49,10 +55,8 @@
   :type 'string)
 
 (defcustom dap-cpptools-debug-program
-  `(,(concat dap-cpptools-debug-path
-             (if (eq system-type 'windows-nt)
-                 "/extension/debugAdapters/bin/OpenDebugAD7.exe"
-               "/extension/debugAdapters/OpenDebugAD7")))
+  `(,(concat dap-cpptools-debug-path "/extension/debugAdapters/bin/OpenDebugAD7"
+             (if (eq system-type 'windows-nt) ".exe" "")))
   "The path to the cpptools debug adapter."
   :group 'dap-cpptools
   :type '(repeat string))
@@ -64,16 +68,23 @@ With prefix, FORCED to redownload the extension."
   (unless (and (not forced) (file-exists-p dap-cpptools-debug-path))
     (dap-utils--get-extension dap-cpptools-download-url dap-cpptools-debug-path)
     (let* ((adapter-binary (cl-first dap-cpptools-debug-program))
-           (mono (f-join (f-parent adapter-binary) "mono.linux-x86_64"))
-           (mono-mac (f-join (f-parent adapter-binary) "mono.osx"))
-           (lldb-mi (f-join (f-parent adapter-binary) "lldb-mi/bin/lldb-mi")))
+           (adapters-path (f-parent (f-parent adapter-binary)))
+           (extension-bins-path (f-join (f-parent adapters-path) "bin"))
+           (bins
+            (append (mapcar (lambda (path) (f-join extension-bins-path path))
+                            '("cpptools" "cpptools-srv"))
+                    (mapcar (lambda (path) (f-join adapters-path path))
+                            '("bin/createdump" ;; In Linux and OSX versions
+                              ;; Exists in OSX version
+                              "lldb-mi/bin/lldb-mi"
+                              "lldb/bin/lldb-mi"
+                              "lldb/bin/debugserver"
+                              "lldb/bin/lldb-argdumper"
+                              "lldb/bin/lldb-launcher")))))
       (set-file-modes adapter-binary #o0700)
-      (when (f-exists? mono)
-        (set-file-modes mono #o0700))
-      (when (f-exists? mono-mac)
-        (set-file-modes mono-mac #o0700))
-      (when (f-exists? lldb-mi)
-        (set-file-modes lldb-mi #o0700)))
+      (dolist (bin bins)
+        (when (f-exists? bin)
+          (set-file-modes bin #o700))))
 
     (message "%s: Downloading done!" "dap-cpptools")))
 

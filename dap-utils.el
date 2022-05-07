@@ -85,6 +85,16 @@ PATH is the download destination path."
                    (f-join dap-utils-extension-path "github" (concat owner "." repo)))))
     (dap-utils--get-extension url dest)))
 
+(defun dap-utils-vscode-get-installed-extension-version (path)
+  "Check the version of the vscode extension installed in PATH.
+Returns nil if the extension is not installed."
+  (require 'xml)
+  (require 'dom)
+  (let* ((extension-manifest (f-join path "extension.vsixmanifest")))
+    (when (f-exists? extension-manifest)
+      (let ((pkg-identity (dom-by-tag (xml-parse-file extension-manifest) 'Identity)))
+        (dom-attr pkg-identity 'Version)))))
+
 (defmacro dap-utils-vscode-setup-function (dapfile publisher name &optional path version callback)
   "Helper to create DAPFILE setup function for vscode debug extension.
 PUBLISHER is the vscode extension publisher.
