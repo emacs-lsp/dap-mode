@@ -91,11 +91,9 @@ Returns nil if the extension is not installed."
   (require 'xml)
   (require 'dom)
   (let* ((extension-manifest (f-join path "extension.vsixmanifest")))
-    (if (f-exists? extension-manifest)
-        (progn
-          (let ((pkg-identity (dom-by-tag (xml-parse-file extension-manifest) 'Identity)))
-            (dom-attr pkg-identity 'Version)))
-      nil)))
+    (when (f-exists? extension-manifest)
+      (let ((pkg-identity (dom-by-tag (xml-parse-file extension-manifest) 'Identity)))
+        (dom-attr pkg-identity 'Version)))))
 
 (defmacro dap-utils-vscode-setup-function (dapfile publisher name &optional path version callback)
   "Helper to create DAPFILE setup function for vscode debug extension.
