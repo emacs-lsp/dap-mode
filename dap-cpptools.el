@@ -71,9 +71,9 @@ With prefix, FORCED to redownload the extension."
            (adapters-path (f-parent (f-parent adapter-binary)))
            (extension-bins-path (f-join (f-parent adapters-path) "bin"))
            (bins
-            (append (mapcar #'(lambda (path) (f-join extension-bins-path path))
+            (append (mapcar (lambda (path) (f-join extension-bins-path path))
                             '("cpptools" "cpptools-srv"))
-                    (mapcar #'(lambda (path) (f-join adapters-path path))
+                    (mapcar (lambda (path) (f-join adapters-path path))
                             '("bin/createdump" ;; In Linux and OSX versions
                               ;; Exists in OSX version
                               "lldb-mi/bin/lldb-mi"
