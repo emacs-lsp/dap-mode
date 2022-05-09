@@ -29,6 +29,18 @@
 (require 'dap-mode)
 (require 'dap-utils)
 
+(defcustom dap-gdb-lldb-extension-version "0.26.0"
+  "The version of the gdb-lldb vscode extension."
+  :group 'dap-gdb-lldb
+  :type 'string)
+
+(defcustom dap-gdb-lldb-download-url
+  (format "https://github.com/WebFreak001/code-debug/releases/download/v%s/debug-%s.vsix"
+          dap-gdb-lldb-extension-version dap-gdb-lldb-extension-version)
+  "The download url."
+  :group 'dap-gdb-lldb
+  :type 'string)
+
 (defcustom dap-gdb-lldb-path (expand-file-name "vscode/webfreak.debug" dap-utils-extension-path)
   "The path to the place at which the webfreak.debug extension.
 Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
@@ -41,7 +53,13 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
   :group 'dap-gdb-lldb
   :type '(repeat string))
 
-(dap-utils-vscode-setup-function "dap-gdb-lldb" "webfreak" "debug" dap-gdb-lldb-path)
+(defun dap-gdb-lldb-setup (&optional forced)
+  "Downloading webfreak.debug to path specified.
+With prefix, FORCED to redownload the extension."
+  (interactive "P")
+  (unless (and (not forced) (file-exists-p dap-gdb-lldb-path))
+    (dap-utils--get-extension dap-gdb-lldb-download-url dap-gdb-lldb-path)
+    (message "%s: Downloading done!" "dap-gdb-lldb")))
 
 (defun dap-gdb-lldb--populate-gdb (conf)
   "Populate CONF with the required arguments."
@@ -53,8 +71,8 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
       (dap--put-if-absent :name "GDB Debug")
 
       ;; This may become unnecessary once https://github.com/WebFreak001/code-debug/issues/344 is resolved.
-      (dap--put-if-absent :valuesFormatting "prettyPrinters")
-      ))
+      (dap--put-if-absent :valuesFormatting "prettyPrinters")))
+      
 
 (dap-register-debug-provider "gdb" 'dap-gdb-lldb--populate-gdb)
 (dap-register-debug-template "GDB Run Configuration"
@@ -77,8 +95,8 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
       (dap--put-if-absent :remote :json-true)
 
       ;; This may become unnecessary once https://github.com/WebFreak001/code-debug/issues/344 is resolved.
-      (dap--put-if-absent :valuesFormatting "prettyPrinters")
-      ))
+      (dap--put-if-absent :valuesFormatting "prettyPrinters")))
+      
 
 (dap-register-debug-provider "gdbserver" 'dap-gdb-lldb--populate-gdbserver)
 (dap-register-debug-template "GDBServer Connect Configuration"
@@ -91,8 +109,8 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
                                    :debugger_args nil
                                    :env nil
                                    :showDevDebugOutput :json-false
-                                   :printCalls :json-false
-                                   ))
+                                   :printCalls :json-false))
+                                   
 
 (defcustom dap-gdb-lldb-path-lldb `("node" ,(expand-file-name (f-join dap-gdb-lldb-path "extension/out/src/lldb.js")))
   "The path to the LLDB debugger."
@@ -109,8 +127,8 @@ Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
       (dap--put-if-absent :name "LLDB Debug")
 
       ;; This may become unnecessary once https://github.com/WebFreak001/code-debug/issues/344 is resolved.
-      (dap--put-if-absent :valuesFormatting "prettyPrinters")
-      ))
+      (dap--put-if-absent :valuesFormatting "prettyPrinters")))
+      
 
 (dap-register-debug-provider "lldb" 'dap-gdb-lldb--populate-lldb)
 (dap-register-debug-template "LLDB Run Configuration"
