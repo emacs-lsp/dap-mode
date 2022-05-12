@@ -28,6 +28,8 @@
 ;;; Code:
 
 (require 'dap-mode)
+(require 'xml)
+(require 'dom)
 
 (defconst dap-utils--ext-unzip-script "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'"
   "Unzip script to unzip vscode extension package file.")
@@ -88,8 +90,6 @@ PATH is the download destination path."
 (defun dap-utils-vscode-get-installed-extension-version (path)
   "Check the version of the vscode extension installed in PATH.
 Returns nil if the extension is not installed."
-  (require 'xml)
-  (require 'dom)
   (let* ((extension-manifest (f-join path "extension.vsixmanifest")))
     (when (f-exists? extension-manifest)
       (let ((pkg-identity (dom-by-tag (xml-parse-file extension-manifest) 'Identity)))
