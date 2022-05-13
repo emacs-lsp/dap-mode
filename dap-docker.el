@@ -95,9 +95,9 @@
         (intern (gethash 'server server-info))
       (gethash 'server server-info))))
 
-(defun dap-docker--get-path-mappings (config)
+(defun dap-docker--get-path-mappings (config project-root)
   "Get the server path mappings"
-  (lsp-docker-get-path-mappings config))
+  (lsp-docker-get-path-mappings config project-root))
 
 (defun dap-docker--get-launch-command (config)
   "Get the server launch command"
@@ -188,7 +188,7 @@
                                     (plist-get conf :dap-server-path)))
          (original-name (plist-get conf :name))
          (launch-command (or (dap-docker--get-launch-command project-config) original-launch-command))
-         (path-mappings (dap-docker--get-path-mappings project-config))
+         (path-mappings (dap-docker--get-path-mappings project-config project-root))
          (server-type (car (dap-docker--check-server-type-subtype dap-docker-supported-server-types-subtypes (dap-docker--get-server-type-subtype project-config))))
          (server-subtype (cdr (dap-docker--check-server-type-subtype dap-docker-supported-server-types-subtypes (dap-docker--get-server-type-subtype project-config))))
          (container-name (dap-docker--get-server-container-name project-config))
