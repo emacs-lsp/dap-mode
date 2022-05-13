@@ -1268,18 +1268,19 @@ DEBUG-SESSION is the active debug session."
 
 (defun dap--set-exception-breakpoints (debug-session callback)
   (-let [(&dap-session 'current-capabilities 'launch-args (&plist :type)) debug-session]
-    (dap--send-message
-     (dap--make-request "setExceptionBreakpoints"
-                        (list :filters
-                              (or (-some->> current-capabilities
-                                    (gethash "exceptionBreakpointFilters")
-                                    (-keep (-lambda ((&hash "default" "filter"))
-                                             (when (dap--breakpoint-filter-enabled filter type default)
-                                               filter))))
-                                  [])))
-     (lambda (_result)
-       (funcall callback))
-     debug-session)))
+    (-if-let (exception-breakpoint-filters (-some->> current-capabilities
+                                             (gethash "exceptionBreakpointFilters")
+                                             (-keep (-lambda ((&hash "default" "filter"))
+                                                      (when (dap--breakpoint-filter-enabled filter type default)
+                                                        filter)))))
+        (dap--send-message
+         (dap--make-request "setExceptionBreakpoints"
+                            (list :filters
+                                  exception-breakpoint-filters))
+         (lambda (_result)
+           (funcall callback))
+         debug-session)
+      (funcall callback))))
 
 (defun dap--configure-breakpoints (debug-session breakpoints callback)
   "Configure breakpoints for DEBUG-SESSION.
