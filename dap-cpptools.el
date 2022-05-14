@@ -46,10 +46,12 @@ to install the new v%s." installed-ver current-ver))
 (defcustom dap-cpptools-download-url
   (format "https://github.com/microsoft/vscode-cpptools/releases/download/v%s/cpptools-%s.vsix"
           dap-cpptools-extension-version
-          (alist-get system-type
-                     '((windows-nt . "win32")
-                       (darwin . "osx")
-                       (gnu/linux . "linux"))))
+          (plist-get (list 'windows-nt "win32"
+                 'darwin (if (string-match "^aarch64.*" system-configuration)
+                             "osx-arm64"
+                             "osx")
+                 'gnu/linux "linux")
+           system-type))
   "The download url."
   :group 'dap-cpptools
   :type 'string)
