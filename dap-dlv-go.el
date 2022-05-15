@@ -84,7 +84,7 @@
   (if (stringp (plist-get conf :args)) (plist-put conf :args (split-string (plist-get conf :args))) ())
 
   (when (string= (plist-get conf :name) "Test function")
-    (-when-let ((name (dap-dlv-go--extract-current--method-or-function-name t)))
+    (-when-let (name (dap-dlv-go--extract-current--method-or-function-name t))
       (dap--put-if-absent conf :args (list (format "-test.run=^%s$" name)))))
   
   (-> conf
