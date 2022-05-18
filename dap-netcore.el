@@ -126,6 +126,34 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
         (error "Cannot start debugger configuration without netcoredbg")))
     dbg))
 
+(defun dap-netcore--locate-dominating-file-wildcard (file name)
+  "Starting at FILE, look up directory hierarchy for directory containing NAME.
+FILE can be a file or a directory.  If it's a file, its directory will
+serve as the starting point for searching the hierarchy of directories.
+Stop at the first parent directory containing a file NAME,
+and return the directory.  Return nil if not found.
+Instead of a string, NAME can also be a predicate taking one argument
+\(a directory) and returning a non-nil value if that directory is the one for
+which we're looking.  The predicate will be called with every file/directory
+the function needs to examine, starting with FILE."
+  ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
+  ;; `name' in /home or in /.
+  (setq file (abbreviate-file-name (expand-file-name file)))
+  (let ((root nil)
+        try)
+    (while (not (or root
+                    (null file)
+                    (string-match locate-dominating-stop-dir-regexp file)))
+      (setq try (if (stringp name)
+                    (and (file-directory-p file)
+			 (file-expand-wildcards (f-join file name)))
+                  (funcall name file)))
+      (cond (try (setq root file))
+            ((equal file (setq file (file-name-directory
+                                     (directory-file-name file))))
+             (setq file nil))))
+    (if root (file-name-as-directory root))))
+
 (defun dap-netcore--populate-args (conf)
   "Populate CONF with arguments to launch or attach netcoredbg."
   (dap--put-if-absent conf :dap-server-path (list (dap-netcore--debugger-locate-or-install) "--interpreter=vscode"))
@@ -134,7 +162,11 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
      (dap--put-if-absent
       conf
       :program
-      (let ((project-dir (lsp-workspace-root)))
+      (let ((project-dir (f-full
+			  (or
+			   (dap-netcore--locate-dominating-file-wildcard
+			    default-directory "*.*proj")
+			   (lsp-workspace-root)))))
 	(save-mark-and-excursion
 	  (find-file (concat (f-slash project-dir) "*.*proj") t)
 	  (let ((res (if (libxml-available-p)
@@ -144,7 +176,7 @@ Will be set automatically in Emacs 27.1 or newer with libxml2 support."
 	    (f-join project-dir "bin" "Debug"
 		    (dom-text (dom-by-tag res 'TargetFramework))
 		    (dom-text (dom-by-tag res 'RuntimeIdentifier))
-		    (concat (f-base project-dir) ".dll")))))))
+		    (concat (car (-take-last 1 (f-split project-dir))) ".dll")))))))
     ("attach"
      (dap--put-if-absent conf :processId (string-to-number (read-string "Enter PID: " "2345"))))))
 
