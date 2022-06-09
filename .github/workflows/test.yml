@@ -26,11 +26,11 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
 
       - uses: emacs-eask/setup-eask@master
         with:
-          version: '0.4.29'
+          version: 'snapshot'
 
       - name: Run tests
         run: make ci
