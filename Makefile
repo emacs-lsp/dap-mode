@@ -3,7 +3,7 @@
 EMACS ?= emacs
 EASK ?= eask
 
-ci: clean build compile test checkdoc lint
+ci: clean build compile test checkdoc
 
 build:
 	$(EASK) package
