@@ -320,10 +320,11 @@ To fully support rust and pretty printing of strings when debugging, remember to
             documentation](https://github.com/go-delve/delve/tree/master/Documentation/usage#using-delve)
             for more command-line options) and select "Go Dlv Remote Debug"
           - if your build environment differs from your development
-            environment or you use `-trimpath` build flag you can use
-            `substitutePath`. `M-x` `dap-debug-edit-template` then
-            select some template and add `substitutePath` option to
-            it:
+            environment (for example, you build project inside docker
+            container or in CI pipeline) or you use `-trimpath` build
+            flag you can use `substitutePath`. `M-x`
+            `dap-debug-edit-template` then select some template and
+            add `substitutePath` option to it:
             ```elisp
             (dap-register-debug-template
              "Launch Executable trimmed path"
@@ -337,11 +338,26 @@ To fully support rust and pretty printing of strings when debugging, remember to
                    :substitutePath (vector (ht ("from" "/home/user/projects/tribonacci") ("to" "github.com/s-kostyaev/tribonacci")))))
             ```
             and after evaluation you can select this edited template
-            and debug as usual.
+            and debug as usual. You also can use
+            [dir-locals](https://www.gnu.org/software/emacs/manual/html_node/emacs/Directory-Variables.html)
+            to save this template for your project. Create
+            `.dir-locals.el` in root directory of your project:
+			```elisp
+            ((go-mode  . ((eval . (progn
+                                    (dap-register-debug-template
+                                     "Remote debug in docker container"
+                                     (list :type "go"
+                                           :request "attach"
+                                           :name "Remote debug in docker container"
+                                           :mode "remote"
+                                           :substitutePath (vector (ht ("from" "/home/user/projects/tribonacci") ("to" "/app"))))))))))
+            ```
 
     2.  Trouble shooting
 
           - put (setq dap-print-io t) and check messages buffer
+          - add `--log --log-output debugger,rpc,dap` to `dlv` command
+            and check `dlv` logs
           - e.g linter can return note at debug session response
             resulting debug session to fail
 
