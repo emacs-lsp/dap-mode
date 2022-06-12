@@ -363,6 +363,8 @@ To fully support rust and pretty printing of strings when debugging, remember to
 
 ## Go (VS Code debug adapter)
 
+This debug adapter is deprecated. Use `dap-dlv-go` instead.
+
 1.  Installation
 
       - For easier of setting up vscode extension, you only need call
