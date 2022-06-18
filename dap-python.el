@@ -204,7 +204,7 @@ strings, for the sake of launch.json feature parity."
                             (if module (concat " -m " (shell-quote-argument module)) "")
                             (if program (shell-quote-argument program) "")
                             (if (not (string-empty-p python-args)) (concat " " python-args) "")))
-         (plist-put conf :debugServer debug-port)
+         (plist-put conf :debugPort debug-port)
          (plist-put conf :port debug-port)
          (plist-put conf :hostName host)
          (plist-put conf :host host)))
@@ -244,7 +244,7 @@ strings, for the sake of launch.json feature parity."
                  (host (or (plist-get connect :host) "localhost"))
                  (port (or (plist-get connect :port) 5678)))
             (plist-put conf :host host)
-            (plist-put conf :debugServer port)
+            (plist-put conf :debugPort port)
             (cl-remf conf :connect)))))
 
       (_ (error "`dap-python': unknown :debugger type %S" debugger)))
