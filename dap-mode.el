@@ -38,6 +38,7 @@
 (require 'lsp-docker)
 
 (require 'dap-launch)
+(require 'dap-tasks)
 
 (defcustom dap-breakpoints-file (expand-file-name (locate-user-emacs-file ".dap-breakpoints"))
   "Where to persist breakpoints"
@@ -1686,6 +1687,12 @@ list are called and their results (which must be lists) are
 concatenated. The user can then choose one of them from the
 resulting list.")
 
+(defconst dap-tasks-configuration-providers
+  '(dap-tasks-find-parse-tasks-json)
+  "List of functions that can contribute task configurations to dap-debug.
+When a launch configuration specifies a 'preLaunchTask', it can pull from
+the results of these functions.")
+
 (defun dap-start-debugging (conf)
   "Like `dap-start-debugging-noexpand', but expand variables.
 CONF's variables are expanded before being passed to
@@ -1769,6 +1776,36 @@ By default, it is hidden."
   :type 'boolean
   :group 'dap-mode)
 
+(defun dap-debug-run-task (tasks cb)
+  "Given either a task or list of task TASKS, attempt to execute them in sequence.
+If all succeed, then run CB."
+  (let* ((task (if (listp tasks)
+                   (car tasks)
+                 tasks))
+         (default-directory (or (dap-tasks--get-key :cwd task)
+                                (lsp-workspace-root)
+                                default-directory))
+         (command (dap-tasks-configuration-get-command task))
+         (name (dap-tasks-configuration-get-name task)))
+    (with-current-buffer
+        (compilation-start command t (lambda (&rest _) (format "*DAP compilation:%s*" name)))
+      (let (window)
+        (cl-labels ((cf (buf status &rest _)
+                        (with-current-buffer buf
+                          (remove-hook 'compilation-finish-functions #'cf t)
+                          (if (string= "finished\n" status)
+                              (progn
+                                (when (and (not dap-debug-compilation-keep)
+                                           (window-live-p window)
+                                           (eq buf (window-buffer window)))
+                                  (delete-window window))
+                                (if (length= tasks 0)
+                                    (funcall cb)
+                                  (dap-debug-run-task (cdr tasks) cb)))
+                            (lsp--error "Compilation step failed")))))
+          (add-hook 'compilation-finish-functions #'cf nil t)
+          (setq window (display-buffer (current-buffer))))))))
+
 ;;;###autoload
 (defun dap-debug (debug-args)
   "Run debug configuration DEBUG-ARGS.
@@ -1791,6 +1828,7 @@ be used to compile the project, spin up docker, ...."
   ;; expand them properly. Any python configuration that uses variables in :args
   ;; will fail.
   (let* ((debug-args (dap-variables-expand-in-launch-configuration debug-args))
+         (taskConfigurations (dap-tasks-configuration-get-all))
          (launch-args (or (-some-> (plist-get debug-args :type)
                             (gethash dap--debug-providers)
                             (funcall debug-args))
@@ -1802,26 +1840,18 @@ be used to compile the project, spin up docker, ...."
                    (funcall launch-args #'dap-start-debugging-noexpand)
                  (dap-start-debugging-noexpand launch-args)))))
     (-if-let ((&plist :dap-compilation) launch-args)
-        (let ((default-directory (or (plist-get launch-args :dap-compilation-dir)
-                                     (lsp-workspace-root)
-                                     default-directory)))
-          (with-current-buffer (compilation-start dap-compilation t (lambda (&rest _)
-                                                                      "*DAP compilation*"))
-            (let (window)
-              (cl-labels ((cf (buf status &rest _)
-                              (with-current-buffer buf
-                                (remove-hook 'compilation-finish-functions #'cf t)
-                                (if (string= "finished\n" status)
-                                    (progn
-                                      (when (and (not dap-debug-compilation-keep)
-                                                 (window-live-p window)
-                                                 (eq buf (window-buffer window)))
-                                        (delete-window window))
-                                      (funcall cb))
-                                  (lsp--error "Compilation step failed")))))
-                (add-hook 'compilation-finish-functions #'cf nil t)
-                (setq window (display-buffer (current-buffer)))))))
-      (funcall cb))))
+        (dap-debug-run-task `(:cwd ,(or (plist-get launch-args :dap-compilation-dir)
+                                        (lsp-workspace-root)
+                                        default-directory)
+                              :command ,dap-compilation
+                              :label ,(truncate-string-to-width dap-compilation 20)) cb)
+      (-if-let ((&plist :preLaunchTask) launch-args)
+          (let* ((task (dap-tasks-get-configuration-by-label preLaunchTask))
+                 (tasks (dap-tasks-configuration-get-depends task)))
+            (if tasks
+                (dap-debug-run-task tasks cb)
+              (user-error "No valid tasks found labelled \"%s\". Please check your tasks.json" preLaunchTask)))
+        (funcall cb)))))
 
 (defun dap-debug-edit-template (&optional debug-args)
   "Edit registered template DEBUG-ARGS.

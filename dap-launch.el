@@ -26,27 +26,6 @@
 (require 'lsp-mode)
 (require 'json)
 
-(defun dap-launch-sanitize-json ()
-  "Remove all C-style comments and trailing commas in the current buffer.
-Comments in strings are ignored. The buffer is modified in place.
-Replacement starts at point, and strings before it are ignored,
-so you may want to move point to `point-min' with `goto-char'
-first. This function moves `point'. Both // and /**/ comments are
-supported."
-  (while (re-search-forward
-          (rx
-           (or (group
-                (or (: "//" (* nonl) eol)
-                    (: "/*" (* (or (not (any ?*))
-                                   (: (+ ?*) (not (any ?/))))) (+ ?*) ?/)
-                    (: "," (group (* (any blank space ?\v ?\u2028 ?\u2029))
-                                  (any ?\} ?\])))))
-               (: "\"" (* (or (not (any ?\\ ?\")) (: ?\\ nonl))) "\"")))
-          nil t)
-    ;; we matched a comment
-    (when (match-beginning 1)
-      (replace-match (or (match-string 2) "")))))
-
 (declare-function dap-variables-find-vscode-config "dap-variables" (f root))
 (defun dap-launch-find-launch-json ()
   "Return the path to current project's launch.json file.
@@ -57,6 +36,7 @@ Yields nil if it cannot be found or there is no project."
 
 (defun dap-launch-get-launch-json ()
   "Parse the project's launch.json as json data and return the result."
+  (require 'dap-utils)
   (when-let ((launch-json (dap-launch-find-launch-json))
              (json-object-type 'plist)
              ;; Use 'vector instead of 'list. With 'list for array type,
@@ -88,7 +68,7 @@ Yields nil if it cannot be found or there is no project."
     (with-temp-buffer
       ;; NOTE: insert-file-contents does not move point
       (insert-file-contents launch-json)
-      (dap-launch-sanitize-json)
+      (dap-utils-sanitize-json)
       ;; dap-launch-remove-comments does move point
       (goto-char (point-min))
 
