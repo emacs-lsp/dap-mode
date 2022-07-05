@@ -410,6 +410,19 @@
     Usage
   </a>
   
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-usage" class="md-nav__link">
+    Docker usage
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -779,6 +792,19 @@
     Usage
   </a>
   
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-usage" class="md-nav__link">
+    Docker usage
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -870,6 +896,45 @@ hits a breakpoint by using the following code.</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;dap-stopped-hook</span>
           <span class="p">(</span><span class="nb">lambda</span> <span class="p">(</span><span class="nv">arg</span><span class="p">)</span> <span class="p">(</span><span class="nf">call-interactively</span> <span class="nf">#&#39;</span><span class="nv">dap-hydra</span><span class="p">)))</span>
 </code></pre></div>
+<h3 id="docker-usage">Docker usage<a class="headerlink" href="#docker-usage" title="Permanent link">#</a></h3>
+<p>You can also use this tool with dockerized debug servers: configure it
+either with a <code>.dir-locals</code> file or drop an <code>.lsp-docker.yml</code>
+configuration file (use
+<a href="https://github.com/emacs-lsp/lsp-docker">lsp-docker</a> for general
+reference). Basically you have one function <code>dap-docker-register</code> that
+performs all the heavy lifting (finding the original debug template,
+patching it, registering a debug provider e.t.c). This function examines
+a configuration file or falls back to the default configuration (which
+can be patched using the <code>.dir-locals</code> approach, take a note that the
+default configuration doesn't provide any sane defaults for debugging)
+and then operates on the combination of the two. This mechanism is the
+same as in <code>lsp-docker</code>.</p>
+<p>Note: currently you cannot use this mode when using a network connection
+to connect to debuggers (this part is yet to be implemented). Still want
+to talk to debuggers over network? In order to do so you have to look at
+the <code>launch-args</code> patching done by
+<code>dap-docker--dockerize-start-file-args</code>, you have to somehow assign
+<code>nil</code> to <code>dap-server-path</code> before it is passed further into session
+creation.</p>
+<p>If you want to stick to a configuration file, take a look at the example
+below:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">lsp</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">server</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># &#39;lsp-docker&#39; fields</span><span class="w"></span>
+<span class="w">  </span><span class="nt">mappings</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/your/host/source/path&quot;</span><span class="w"> </span><span class="c1"># used both by &#39;lsp-docker&#39; and &#39;dap-docker&#39;</span><span class="w"></span>
+<span class="w">      </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/your/local/path/inside/a/container&quot;</span><span class="w"> </span><span class="c1"># used both by &#39;lsp-docker&#39; and &#39;dap-docker&#39;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">debug</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker</span><span class="w"> </span><span class="c1"># only docker is supported</span><span class="w"></span>
+<span class="w">    </span><span class="nt">subtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">image</span><span class="w"> </span><span class="c1"># or &#39;container&#39;</span><span class="w"></span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;docker image or container that has the debugger in&gt;</span><span class="w"> </span><span class="c1"># you can omit this field</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># in this case the &#39;lsp-docker&#39; (&#39;server&#39; section) image name is used</span><span class="w"></span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># you can explicitly disable &#39;dap-docker&#39; by using &#39;false&#39;</span><span class="w"></span>
+<span class="w">    </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;your default language debug provider, double quoted string&gt;</span><span class="w"></span>
+<span class="w">    </span><span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;your default language debug template, double quoted string&gt;</span><span class="w"></span>
+<span class="w">    </span><span class="nt">launch_command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;an explicit command if you want to override a default one provided by the debug provider&gt;</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># e.g. if you have installed a debug server in a different directory, not used with &#39;container&#39; subtype debuggers</span><span class="w"></span>
+</code></pre></div>
 <h2 id="features"><a href="https://emacs-lsp.github.io/dap-mode/page/features/">Features</a><a class="headerlink" href="#features" title="Permanent link">#</a></h2>
 <h2 id="configuration"><a href="https://emacs-lsp.github.io/dap-mode/page/configuration/">Configuration</a><a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
 <h2 id="gallery"><a href="https://emacs-lsp.github.io/dap-mode/page/gallery">Gallery</a><a class="headerlink" href="#gallery" title="Permanent link">#</a></h2>
@@ -892,6 +957,8 @@ hits a breakpoint by using the following code.</p>
 <li><a href="https://github.com/nbfalcon">Nikita Bloshchanevich</a> - launch.json
     support (+ variable expansion), debugpy support, (with some
     groundwork by yyoncho) runInTerminal support, various bug fixes.</li>
+<li><a href="https://github.com/factyy">Andrei Mochalov</a> - Docker (debugging in
+    containers) integration.</li>
 </ul>
 
   <hr>
