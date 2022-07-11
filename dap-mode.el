@@ -848,7 +848,7 @@ will be reversed."
         ;; fall back to original stack-frames if none found
         (-when-let (stack-frames
                     (or (-filter (lambda(stack-frame)
-                                   (-when-let (path (dap--get-path-for-frame stack-frame))
+                                   (-when-let (path (dap--get-path-for-frame debug-session stack-frame))
                                      (file-exists-p path)))
                                  stack-frames)
                         stack-frames))
