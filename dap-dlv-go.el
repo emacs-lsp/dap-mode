@@ -70,6 +70,9 @@
                 (dap--put-if-absent
 		 conf :processId (string-to-number (read-string "enter pid: " "2345"))))))
 
+  (when-let ((env-file (plist-get conf :envFile)))
+    (plist-put conf :env (dap-dlv-go--parse-env-file env-file)))
+
   (let ((debug-port (if (string= (plist-get conf :mode)
 				 "remote")
 			(plist-get conf :debugPort)
@@ -119,6 +122,20 @@
              (car))
 	(unless no-signal?
 	  (user-error "No method or function at point")))))
+
+(defun dap-dlv-go--parse-env-file (file)
+  "Parse env FILE."
+  (with-temp-buffer
+    (save-match-data
+      (find-file file)
+      (setq-local buffer-file-name nil)
+      (replace-regexp "[[:space:]]*#.*$" "" nil (point-min) (point-max))
+      (let ((res (make-hash-table)))
+	(goto-char (point-min))
+	(while (search-forward-regexp "\\(^[^=].*\\)=\\(.*\\)$" nil t)
+	  (ht-set res (match-string 1) (match-string 2)))
+	(kill-buffer)
+	res))))
 
 (dap-register-debug-provider "go" 'dap-dlv-go--populate-default-args)
 
