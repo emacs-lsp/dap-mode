@@ -54,6 +54,16 @@ number - expand N levels."
                  (number :tag "Expand level"))
   :group 'dap-ui)
 
+(defcustom dap-ui-controls-screen-position #'posframe-poshandler-frame-top-center
+  "On-screen position of controls when they are visible."
+  :type '(choice (const :tag "Top center" posframe-poshandler-frame-top-center)
+                 (const :tag "Top left" posframe-poshandler-frame-top-left-corner)
+                 (const :tag "Top right" posframe-poshandler-frame-top-right-corner)
+                 (const :tag "Bottom center" posframe-poshandler-frame-bottom-center)
+                 (const :tag "Bottom left" posframe-poshandler-frame-bottom-left-corner)
+                 (const :tag "Bottom right" posframe-poshandler-frame-bottom-right-corner))
+  :group 'dap-ui)
+
 (define-obsolete-variable-alias
   'dap-ui-expressiosn-expand-depth 'dap-ui-expressions-expand-depth
   "dap-mode 0.2.0"
@@ -573,7 +583,7 @@ DEBUG-SESSION is the debug session triggering the event."
               (select-frame (frame-parent pos-frame)))
             (posframe-show dap-ui--control-buffer
                            :string content
-                           :poshandler #'posframe-poshandler-frame-top-center
+                           :poshandler dap-ui-controls-screen-position
                            :internal-border-width 8))
         (posframe-hide dap-ui--control-buffer)))))
 
