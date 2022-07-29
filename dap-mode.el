@@ -626,10 +626,11 @@ thread exection but the server will log message."
     (while (not (string-empty-p chunk))
       (if (not (dap--parser-reading-body p))
           ;; Read headers
-          (let* ((body-sep-pos (string-match-p "\r\n\r\n" chunk)))
+          (let* ((body-sep-pos (string-match-p "\r\n\r\n" chunk))
+                 (header-pos (string-match-p "Content-Length" chunk)))
             (if body-sep-pos
                 ;; We've got all the headers, handle them all at once:
-                (let* ((header-raw (substring chunk 0 body-sep-pos))
+                (let* ((header-raw (substring chunk header-pos body-sep-pos))
                        (content (substring chunk (+ body-sep-pos 4)))
                        (headers
                         (mapcar 'dap--parse-header
