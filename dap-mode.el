@@ -1738,10 +1738,8 @@ before starting the debug process."
 
               (dap--set-sessions (cons debug-session debug-sessions)))
             (let ((translated-launch-args (cl-copy-list launch-args)))
-              (if cwd
-                  (plist-put translated-launch-args :cwd (funcall (dap--debug-session-local-to-remote-path-fn debug-session) cwd)))
-              (if program
-                  (plist-put translated-launch-args :program (funcall (dap--debug-session-local-to-remote-path-fn debug-session) program)))
+              (when cwd (plist-put translated-launch-args :cwd (funcall (dap--debug-session-local-to-remote-path-fn debug-session) cwd)))
+              (when program (plist-put translated-launch-args :program (funcall (dap--debug-session-local-to-remote-path-fn debug-session) program)))
               (dap--send-message
                (dap--make-request request (-> translated-launch-args
                                               (cl-copy-list)
