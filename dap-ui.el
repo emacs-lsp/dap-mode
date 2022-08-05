@@ -561,20 +561,19 @@ DEBUG-SESSION is the debug session triggering the event."
                           (dap-ui--create-command "disconnect.png" #'dap-disconnect "Disconnect")
                           " "
                           (dap-ui--create-command "restart.png" #'dap-debug-restart "Restart")))
-                posframe-mouse-banish
                 (pos-frame (-first
                             (lambda (frame)
                               (let ((buffer-info (frame-parameter frame 'posframe-buffer)))
                                 (or (equal dap-ui--control-buffer (car buffer-info))
                                     (equal dap-ui--control-buffer (cdr buffer-info)))))
                             (frame-list))))
-            (ignore posframe-mouse-banish)
             (when (eq (selected-frame) pos-frame)
               (select-frame (frame-parent pos-frame)))
             (posframe-show dap-ui--control-buffer
                            :string content
                            :poshandler #'posframe-poshandler-frame-top-center
-                           :internal-border-width 8))
+                           :internal-border-width 8
+                           :accept-focus t))
         (posframe-hide dap-ui--control-buffer)))))
 
 ;;;###autoload
@@ -590,7 +589,6 @@ DEBUG-SESSION is the debug session triggering the event."
     (add-hook 'dap-session-changed-hook 'dap-ui--update-controls)
     (add-hook 'dap-continue-hook 'dap-ui--update-controls)
     (add-hook 'dap-stack-frame-changed-hook 'dap-ui--update-controls)
-    (setq posframe-mouse-banish nil)
     (dap-ui--update-controls))
    (t
     (remove-hook 'dap-session-changed-hook 'dap-ui--update-controls)
@@ -598,7 +596,6 @@ DEBUG-SESSION is the debug session triggering the event."
     (remove-hook 'dap-session-changed-hook 'dap-ui--update-controls)
     (remove-hook 'dap-continue-hook 'dap-ui--update-controls)
     (remove-hook 'dap-stack-frame-changed-hook 'dap-ui--update-controls)
-    (setq posframe-mouse-banish t)
     (posframe-hide dap-ui--control-buffer))))
 
 
