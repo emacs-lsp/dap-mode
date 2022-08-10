@@ -77,19 +77,25 @@ settings.
 
 1.  Installation
 
-      - install latest version of ptvsd.
+    - install debugpy
+    ``` bash
+    pip install "debugpy"
+    ```
+	- Or install ptvsd
+	```bash
+	pip install "ptvsd>=4.2"
+	```
+	NOTE: ptvsd is depracated, and as of 8/10/2022, ptvsd caused dap to break when it hits a breakpoint.
+	This comment and issue has context: https://github.com/emacs-lsp/dap-mode/issues/625#issuecomment-1128961454
 
-        ``` bash
-        pip install "ptvsd>=4.2"
-        ```
-
-          - Then add the following line in your config:
-
-            ``` elisp
-            (require 'dap-python)
-            ```
-
-        This will add the python related configuration to `dap-debug`.
+    - Then add the following line in your config:
+    ```elisp
+    (require 'dap-python)
+    ;; if you installed debugpy, you need to set this
+    ;; https://github.com/emacs-lsp/dap-mode/issues/306
+    (setq dap-python-debugger 'debugpy)
+    ```
+    This will add the python related configuration to `dap-debug`.
 
 2.  Usage
 
