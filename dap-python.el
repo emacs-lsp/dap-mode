@@ -269,6 +269,14 @@ strings, for the sake of launch.json feature parity."
                                    :request "launch"
                                    :name "Python :: Run file (buffer)"))
 
+(dap-register-debug-template "Python :: Run file from project directory"
+                             (list :type "python"
+                                   :args ""
+                                   :cwd "${workspaceFolder}"
+                                   :module nil
+                                   :program nil
+                                   :request "launch"))
+
 (dap-register-debug-template "Python :: Run pytest (buffer)"
                              (list :type "python"
                                    :args ""
