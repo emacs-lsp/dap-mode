@@ -130,9 +130,9 @@ With prefix, FORCED to redownload the extension."
       (dap--put-if-absent :valuesFormatting "prettyPrinters")))
       
 
-(dap-register-debug-provider "lldb" 'dap-gdb-lldb--populate-lldb)
+(dap-register-debug-provider "lldb-mi" 'dap-gdb-lldb--populate-lldb)
 (dap-register-debug-template "LLDB Run Configuration"
-                             (list :type "lldb"
+                             (list :type "lldb-mi"
                                    :request "launch"
                                    :name "LLDB::Run"
                                    :target nil

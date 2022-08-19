@@ -60,7 +60,7 @@ With prefix, FORCED to redownload the extension."
     (message "%s: Downloading done!" "dap-codelldb")))
 
 (dap-register-debug-provider
- "codelldb"
+ "lldb"
  (lambda (conf)
    (let ((debug-port (dap--find-available-port)))
      (plist-put conf :program-to-start (format "%s --port %s" dap-codelldb-debug-program debug-port))
