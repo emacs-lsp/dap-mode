@@ -218,8 +218,7 @@ program is not executing.
 
 This function must return nil if it doesn't handle EVENT."
   (when (and (eventp event) dap-tooltip-mode)
-    (dap-tooltip-at-point (posn-point (event-end event))))
-  "")
+    (dap-tooltip-at-point (posn-point (event-end event)))))
 
 (provide 'dap-mouse)
 ;;; dap-mouse.el ends here
