@@ -27,12 +27,20 @@
   :type 'string)
 
 (defcustom dap-codelldb-download-url
-  (format "https://github.com/vadimcn/vscode-lldb/releases/download/v%s/codelldb-x86_64-%s.vsix"
+  (format "https://github.com/vadimcn/vscode-lldb/releases/download/v%s/codelldb-%s.vsix"
           dap-codelldb-extension-version
-          (alist-get system-type
-                     '((windows-nt . "windows")
-                       (darwin . "darwin")
-                       (gnu/linux . "linux"))))
+          (plist-get
+           (list 'windows-nt
+                 (cond ((string-match "\\(?:arm\\|aarch\\).?64" system-configuration) "aarch64-windows")
+                       (t "x86_64-windows"))
+                 'darwin
+                 (cond ((string-match "^aarch64.*" system-configuration) "aarch64-darwin")
+                       (t "x86_64-darwin"))
+                 'gnu/linux
+                 (cond ((string-match "^aarch64.*" system-configuration) "aarch64-linux")
+                       ((string-match "^arm.*" system-configuration) "arm-linux")
+                       (t "x86_64-linux")))
+           system-type))
   "The download url."
   :group 'dap-codelldb
   :type 'string)
