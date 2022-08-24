@@ -48,7 +48,7 @@ to install the new v%s." installed-ver current-ver))
           dap-cpptools-extension-version
           (plist-get
            (list 'windows-nt
-                 (cond ((string-match "arm.?64" system-configuration) "win-arm64")
+                 (cond ((string-match "\\(?:arm\\|aarch\\).?64" system-configuration) "win-arm64")
                        ((string-match "64" system-configuration) "win64")
                        (t "win32"))
                  'darwin
