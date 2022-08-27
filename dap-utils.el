@@ -31,6 +31,7 @@
 (require 'xml)
 (require 'dom)
 
+
 (defconst dap-utils--ext-unzip-script "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'"
   "Unzip script to unzip vscode extension package file.")
 
@@ -90,6 +91,8 @@ PATH is the download destination path."
 (defun dap-utils-vscode-get-installed-extension-version (path)
   "Check the version of the vscode extension installed in PATH.
 Returns nil if the extension is not installed."
+  (require 'xml)
+  (require 'dom)
   (let* ((extension-manifest (f-join path "extension.vsixmanifest")))
     (when (f-exists? extension-manifest)
       (let ((pkg-identity (dom-by-tag (xml-parse-file extension-manifest) 'Identity)))
@@ -146,6 +149,38 @@ With prefix, FORCED to redownload the extension." extension-name)))
        (unless (file-exists-p ,dest)
          (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
                   ,dapfile ,extension-name ,dapfile)))))
+
+(defun dap-utils-sanitize-json ()
+  "Remove all C-style comments and trailing commas in the current buffer.
+Comments in strings are ignored. The buffer is modified in place.
+Replacement starts at point, and strings before it are ignored,
+so you may want to move point to `point-min' with `goto-char'
+first. This function moves `point'. Both // and /**/ comments are
+supported."
+  (while (re-search-forward
+          (rx
+           (or (group
+                (or (: "//" (* nonl) eol)
+                    (: "/*" (* (or (not (any ?*))
+                                   (: (+ ?*) (not (any ?/))))) (+ ?*) ?/)
+                    (: "," (group (* (any blank space ?\v ?\u2028 ?\u2029))
+                                  (any ?\} ?\])))))
+               (: "\"" (* (or (not (any ?\\ ?\")) (: ?\\ nonl))) "\"")))
+          nil t)
+    ;; we matched a comment
+    (when (match-beginning 1)
+      (replace-match (or (match-string 2) "")))))
+
+(defun dap-utils-get-os-key ()
+  "Get an applicable OS name used for keys in launch/tasks configurations."
+  (pcase system-type
+    ('darwin "osx")
+    ('gnu/linux "linux")
+    (_ "windows")))
+
+(defun dap-utils-string-to-keyword (str)
+  "Convert a STR to a keyword symbol."
+  (intern-soft (format ":%s" str)))
 
 (provide 'dap-utils)
 ;;; dap-utils.el ends here
