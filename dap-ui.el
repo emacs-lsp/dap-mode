@@ -39,6 +39,8 @@
 (require 'lsp-treemacs)
 (require 'posframe)
 
+(defvar posframe-mouse-banish)
+
 (defcustom dap-ui-breakpoints-ui-list-displayed-hook nil
   "List of functions to run when breakpoints list is displayed."
   :type 'hook
