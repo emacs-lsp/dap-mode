@@ -909,33 +909,29 @@ request."
 
 (defvar dap-ui--locals-timer nil)
 
+(defun dap-ui-locals-get-data ()
+  (or (-some->> (dap--cur-session)
+        (dap--debug-session-active-frame)
+        (gethash "id")
+        (dap-request (dap--cur-session) "scopes" :frameId)
+        (gethash "scopes")
+        (-map (-lambda ((&hash "name" "variablesReference" variables-reference))
+                (list :key name
+                      :label name
+                      :icon 'dap-scope
+                      :children (-partial #'dap-ui-render-variables
+                                          (dap--cur-session)
+                                          variables-reference
+                                          0)))))
+      '((:label "Nothing to display..."
+                :key "foo"
+                :icon :empty))))
+
 (defun dap-ui-locals--refresh (&rest _)
   (save-excursion
     (setq dap-ui--locals-timer nil)
-    (with-current-buffer (get-buffer-create dap-ui--locals-buffer)
-      (or (-some--> (dap--cur-session)
-            (dap--debug-session-active-frame it)
-            (gethash "id" it)
-            (dap-request (dap--cur-session) "scopes" :frameId it)
-            (gethash "scopes" it)
-            (-map (-lambda ((&hash "name" "variablesReference" variables-reference))
-                    (list :key name
-                          :label name
-                          :icon 'dap-scope
-                          :children (-partial #'dap-ui-render-variables
-                                              (dap--cur-session)
-                                              variables-reference
-                                              0)))
-                  it)
-            (lsp-treemacs-render it " Locals " dap-ui-locals-expand-depth  dap-ui--locals-buffer)
-            (or it t))
-          (lsp-treemacs-render
-           '((:label "Nothing to display..."
-                     :key "foo"
-                     :icon :empty))
-           " Locals :: no locals info "
-           nil
-           dap-ui--locals-buffer)))))
+    (lsp-treemacs-wcb-unless-killed dap-ui--locals-buffer
+      (lsp-treemacs-generic-update (dap-ui-locals-get-data)))))
 
 (defun dap-ui-locals--refresh-schedule (&rest _)
   (lsp-treemacs-wcb-unless-killed dap-ui--locals-buffer
@@ -951,14 +947,15 @@ request."
 ;;;###autoload
 (defun dap-ui-locals ()
   (interactive)
-  (dap-ui--show-buffer (get-buffer-create dap-ui--locals-buffer))
-  (dap-ui-locals--refresh-schedule)
+
   (with-current-buffer dap-ui--locals-buffer
     (add-hook 'dap-terminated-hook #'dap-ui-locals--refresh-schedule)
     (add-hook 'dap-session-changed-hook #'dap-ui-locals--refresh-schedule)
     (add-hook 'dap-continue-hook #'dap-ui-locals--refresh-schedule)
     (add-hook 'dap-stack-frame-changed-hook #'dap-ui-locals--refresh-schedule)
-    (add-hook 'kill-buffer-hook #'dap-ui-locals--cleanup-hooks nil t)))
+    (add-hook 'kill-buffer-hook #'dap-ui-locals--cleanup-hooks nil t))
+  (lsp-treemacs-render (dap-ui-locals-get-data) " Locals " dap-ui-locals-expand-depth  dap-ui--locals-buffer)
+  (dap-ui--show-buffer (get-buffer-create dap-ui--locals-buffer)))
 
 ;; watch expressions
 
