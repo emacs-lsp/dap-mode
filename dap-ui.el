@@ -949,15 +949,14 @@ request."
 ;;;###autoload
 (defun dap-ui-locals ()
   (interactive)
-
-  (with-current-buffer dap-ui--locals-buffer
+  (with-current-buffer (get-buffer-create dap-ui--locals-buffer)
     (add-hook 'dap-terminated-hook #'dap-ui-locals--refresh-schedule)
     (add-hook 'dap-session-changed-hook #'dap-ui-locals--refresh-schedule)
     (add-hook 'dap-continue-hook #'dap-ui-locals--refresh-schedule)
     (add-hook 'dap-stack-frame-changed-hook #'dap-ui-locals--refresh-schedule)
-    (add-hook 'kill-buffer-hook #'dap-ui-locals--cleanup-hooks nil t))
-  (lsp-treemacs-render (dap-ui-locals-get-data) " Locals " dap-ui-locals-expand-depth  dap-ui--locals-buffer)
-  (dap-ui--show-buffer (get-buffer-create dap-ui--locals-buffer)))
+    (add-hook 'kill-buffer-hook #'dap-ui-locals--cleanup-hooks nil t)
+    (lsp-treemacs-render (dap-ui-locals-get-data) " Locals " dap-ui-locals-expand-depth  dap-ui--locals-buffer)
+    (dap-ui--show-buffer (current-buffer))))
 
 ;; watch expressions
 
