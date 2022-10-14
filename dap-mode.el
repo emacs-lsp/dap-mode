@@ -777,25 +777,24 @@ will be reversed."
 
 (defun dap--request-source-for-frame-by-reference (debug-session stack-frame line column name)
   "Request source string for a STACK-FRAME using the sourceReference."
-  (with-lsp-workspace (dap--debug-session-workspace debug-session)
-    (-when-let* ((source (gethash "source" stack-frame))
-                 (sourceReference (gethash "sourceReference" source))
-                 (sourceReferenceKey (format "%s-%s" name sourceReference)))
-      (select-window (get-mru-window (selected-frame) nil))
-      (if-let* ((existing-buffer (get-buffer sourceReferenceKey)))
-          (switch-to-buffer existing-buffer)
-        (dap--send-message
-         (dap--make-request "source" (list :sourceReference sourceReference))
-         (dap--resp-handler
-          (-lambda ((&hash "body" (&hash "content" content)))
-            (switch-to-buffer (generate-new-buffer sourceReferenceKey))
-            (insert content)
-            (goto-char (point-min))
-            (forward-line (1- line))
-            (forward-char column))
-          (lambda (errmsg)
-            (message "No source code for %s. Cursor at %s:%s. Error: %s." name line column errmsg)))
-         debug-session)))))
+  (-when-let* ((source (gethash "source" stack-frame))
+               (sourceReference (gethash "sourceReference" source))
+               (sourceReferenceKey (format "%s-%s" name sourceReference)))
+    (select-window (get-mru-window (selected-frame) nil))
+    (if-let* ((existing-buffer (get-buffer sourceReferenceKey)))
+        (switch-to-buffer existing-buffer)
+      (dap--send-message
+       (dap--make-request "source" (list :sourceReference sourceReference))
+       (dap--resp-handler
+        (-lambda ((&hash "body" (&hash "content" content)))
+          (switch-to-buffer (generate-new-buffer sourceReferenceKey))
+          (insert content)
+          (goto-char (point-min))
+          (forward-line (1- line))
+          (forward-char column))
+        (lambda (errmsg)
+          (message "No source code for %s. Cursor at %s:%s. Error: %s." name line column errmsg)))
+       debug-session))))
 
 (defun dap--get-path-for-frame (debug-session stack-frame)
   "Get file path for a STACK-FRAME."
@@ -808,23 +807,22 @@ will be reversed."
 
 (defun dap--go-to-stack-frame (debug-session stack-frame)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
-  (with-lsp-workspace (dap--debug-session-workspace debug-session)
-    (when stack-frame
-      (-let* (((&hash "line" line "column" column "name" name) stack-frame)
-              (path (dap--get-path-for-frame debug-session stack-frame)))
-        (setf (dap--debug-session-active-frame debug-session) stack-frame)
-        ;; If we have a source file with path attached, open it and
-        ;; position the point in the line/column referenced in the
-        ;; stack trace.
-        (if (and path (file-exists-p path))
-            (progn
-              (select-window (get-mru-window (selected-frame) nil))
-              (find-file path)
-              (goto-char (point-min))
-              (forward-line (1- line))
-              (forward-char column))
-          (dap--request-source-for-frame-by-reference debug-session stack-frame line column name))))
-    (run-hook-with-args 'dap-stack-frame-changed-hook debug-session)))
+  (when stack-frame
+    (-let* (((&hash "line" line "column" column "name" name) stack-frame)
+            (path (dap--get-path-for-frame debug-session stack-frame)))
+      (setf (dap--debug-session-active-frame debug-session) stack-frame)
+      ;; If we have a source file with path attached, open it and
+      ;; position the point in the line/column referenced in the
+      ;; stack trace.
+      (if (and path (file-exists-p path))
+          (progn
+            (select-window (get-mru-window (selected-frame) nil))
+            (find-file path)
+            (goto-char (point-min))
+            (forward-line (1- line))
+            (forward-char column))
+        (dap--request-source-for-frame-by-reference debug-session stack-frame line column name))))
+  (run-hook-with-args 'dap-stack-frame-changed-hook debug-session))
 
 (defun dap--select-thread-id (debug-session thread-id &optional force)
   "Make the thread with id=THREAD-ID the active thread for DEBUG-SESSION."
