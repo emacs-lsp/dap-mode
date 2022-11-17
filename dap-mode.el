@@ -1020,7 +1020,7 @@ PARAMS are the event params.")
   (-let* (((&hash "arguments" (&hash? "args" "cwd" "title" "kind") "seq")
            parsed-msg)
           (default-directory cwd)
-          (command-to-run (string-join args " "))
+          (command-to-run (combine-and-quote-strings args " "))
           (kind (or kind dap-default-terminal-kind)))
     (or
      (when (string= kind "external")
