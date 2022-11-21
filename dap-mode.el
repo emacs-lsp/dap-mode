@@ -1256,8 +1256,7 @@ FILE-BREAKPOINTS is a list of the breakpoints to set for FILE-NAME."
       (dap--make-request
        "setBreakpoints"
        (list :source (list :name file-name-only
-                           :path remote-file-path
-                           )
+                           :path local-file-path)
              :breakpoints (->> file-breakpoints
                                (-map (-lambda ((it &as &plist :condition :hit-condition :log-message))
                                        (let ((result (->> it dap-breakpoint-get-point line-number-at-pos (list :line))))
