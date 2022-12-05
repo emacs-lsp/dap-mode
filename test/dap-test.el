@@ -130,7 +130,7 @@
     (insert s)
     (goto-char (point-min))
 
-    (dap-launch-sanitize-json)
+    (dap-utils-sanitize-json)
     (buffer-string)))
 
 (ert-deftest dap-launch-test--delete-comments ()
