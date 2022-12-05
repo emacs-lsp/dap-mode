@@ -30,6 +30,7 @@
 (require 'ert)
 (require 'dap-mode)
 (require 'dap-variables)
+(require 'dap-utils)
 
 (ert-deftest dap-mode--parser-read--multiple-messages ()
   (let* ((p (make-dap--parser))
@@ -130,7 +131,7 @@
     (insert s)
     (goto-char (point-min))
 
-    (dap-launch-sanitize-json)
+    (dap-utils-sanitize-json)
     (buffer-string)))
 
 (ert-deftest dap-launch-test--delete-comments ()
