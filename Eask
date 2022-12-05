@@ -1,6 +1,9 @@
 (package "dap-mode"
-         "8.0.0"
+         "0.7"
          "Debug Adapter Protocol mode")
+
+(website-url "https://github.com/emacs-lsp/dap-mode")
+(keywords "languages" "debug")
 
 (package-file "dap-mode.el")
 
