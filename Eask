@@ -13,10 +13,15 @@
 (source "melpa")
 
 (depends-on "emacs" "26.1")
-(depends-on "lsp-java")
-(depends-on "markdown-mode")
-(depends-on "tree-mode")
+(depends-on "lsp-mode")
+(depends-on "lsp-treemacs")
+(depends-on "lsp-docker")
+(depends-on "posframe")
 (depends-on "bui")
+(depends-on "dash")
+(depends-on "f")
+(depends-on "s")
+(depends-on "ht")
 
 (development
  (depends-on "ecukes")
