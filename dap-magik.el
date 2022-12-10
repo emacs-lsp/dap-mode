@@ -42,7 +42,7 @@
   :group `dap-magik
   :package-version '(dap-mode . "0.9.1"))
 
-(defcustom dap-magik-download-url-dap (format "https://github.com/StevenLooman/magik-tools/releases/download/%s/magik-debug-adapter-%s.jar" dap-magik-version dap-magik-version)
+(defcustom dap-magik-download-url-da (format "https://github.com/StevenLooman/magik-tools/releases/download/%s/magik-debug-adapter-%s.jar" dap-magik-version dap-magik-version)
   "URL of DAP server to download."
   :type `string
   :group `dap-magik
@@ -50,7 +50,7 @@
 
 (lsp-dependency
  'magik-da
- `(:download :url dap-magik-download-url-dap
+ `(:download :url dap-magik-download-url-da
              :store-path ,(f-join lsp-server-install-dir "magik-lsp" (format "magik-debug-adapter-%s.jar" dap-magik-version))))
 
 (defcustom dap-magik-da-path
