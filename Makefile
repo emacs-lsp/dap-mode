@@ -9,14 +9,14 @@ ci: clean build compile test
 build:
 	$(EASK) package
 	$(EASK) install
-	$(EASK) clean-elc
+	$(EASK) clean elc
 
 compile:
 	@echo "Compiling..."
 	$(EASK) compile
 
 clean:
-	$(EASK) clean-all
+	$(EASK) clean all
 
 test:
 	@echo "Testing..."
