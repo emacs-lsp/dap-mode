@@ -30,6 +30,7 @@
 (require 'dap-mode)
 (require 'xml)
 (require 'dom)
+(require 'json)
 
 
 (defconst dap-utils--ext-unzip-script "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'"
@@ -59,6 +60,12 @@
   :group 'dap-utils
   :type 'string)
 
+(defcustom dap-utils-openvsx-extension-api-url
+  "https://open-vsx.org/api/%s/%s/%s/"
+  "Open VSX extension api url."
+  :group 'dap-utils
+  :type 'string)
+
 (defcustom dap-utils-github-extension-url
   "https://github.com/%s/%s/archive/v%s.zip"
   "Github extension template url."
@@ -78,6 +85,21 @@ PATH is the download destination dir."
          (url (format dap-utils-vscode-ext-url publisher name version))
          (dest (or path
                    (f-join dap-utils-extension-path "vscode" (concat publisher "." name)))))
+    (dap-utils--get-extension url dest)))
+
+(defun dap-utils-get-openvsx-extension (publisher name &optional version path)
+  "Get openvsx extension from PUBLISHER named NAME.
+VERSION is the version of the extenssion, otherwise the latest.
+PATH is the download destination dir."
+  (let* ((version (or version "latest"))
+         (api-url (format dap-utils-openvsx-extension-api-url publisher name version))
+         (url (alist-get 'download
+                         (alist-get 'files
+                                    (with-temp-buffer
+                                      (url-insert-file-contents api-url)
+                                      (json-read)))))
+         (dest (or path
+                   (f-join dap-utils-extension-path "openvsx" (concat publisher "." name)))))
     (dap-utils--get-extension url dest)))
 
 (defun dap-utils-get-github-extension (owner repo version &optional path)
@@ -116,6 +138,31 @@ With prefix, FORCED to redownload the extension." extension-name)))
          (interactive "P")
          (unless (and (not forced) (file-exists-p ,dest))
            (dap-utils-get-vscode-extension ,publisher ,name ,version ,dest)
+           (message "%s: Downloading done!" ,dapfile)))
+       (when ,callback
+         (funcall ,callback))
+       (unless (file-exists-p ,dest)
+         (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
+                  ,dapfile ,extension-name ,dapfile)))))
+
+(defmacro dap-utils-openvsx-setup-function (dapfile publisher name &optional path version callback)
+  "Helper to create DAPFILE setup function for openvsx debug extension.
+PUBLISHER is the openvsx extension publisher.
+NAME is the openvsx extension name.
+PATH is the download destination dir.
+if VERSION is nil, use latest version from openvsx registry.
+If CALLBACK is non nil, call it after download the extension."
+  (let* ((extension-name (concat publisher "." name))
+         (dest (or path
+                   (f-join dap-utils-extension-path "openvsx" extension-name)))
+         (help-string (format "Downloading %s to path specified.
+With prefix, FORCED to redownload the extension." extension-name)))
+    `(progn
+       (defun ,(intern (format "%s-setup" dapfile)) (&optional forced)
+         ,help-string
+         (interactive "P")
+         (unless (and (not forced) (file-exists-p ,dest))
+           (dap-utils-get-openvsx-extension ,publisher ,name ,version ,dest)
            (message "%s: Downloading done!" ,dapfile)))
        (when ,callback
          (funcall ,callback))
