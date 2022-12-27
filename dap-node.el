@@ -39,8 +39,8 @@
   :group 'dap-node
   :type '(repeat string))
 
-(dap-utils-vscode-setup-function "dap-node" "ms-vscode" "node-debug2"
-                                 dap-node-debug-path)
+(dap-utils-openvsx-setup-function "dap-node" "ms-vscode" "node-debug2"
+                                  dap-node-debug-path)
 
 (defun dap-node--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
