@@ -204,19 +204,30 @@ Replacement starts at point, and strings before it are ignored,
 so you may want to move point to `point-min' with `goto-char'
 first. This function moves `point'. Both // and /**/ comments are
 supported."
-  (while (re-search-forward
-          (rx
-           (or (group
-                (or (: "//" (* nonl) eol)
-                    (: "/*" (* (or (not (any ?*))
-                                   (: (+ ?*) (not (any ?/))))) (+ ?*) ?/)
-                    (: "," (group (* (any blank space ?\v ?\u2028 ?\u2029))
-                                  (any ?\} ?\])))))
-               (: "\"" (* (or (not (any ?\\ ?\")) (: ?\\ nonl))) "\"")))
-          nil t)
-    ;; we matched a comment
-    (when (match-beginning 1)
-      (replace-match (or (match-string 2) "")))))
+  (let ((saved-point (point)))
+    ;; First pass: remove comments
+    (while (re-search-forward
+            (rx
+             (or (group
+                  (or (: "//" (* nonl) eol)
+                      (: "/*" (* (or (not (any ?*))
+                                     (: (+ ?*) (not (any ?/))))) (+ ?*) ?/)))
+                 (: "\"" (* (or (not (any ?\\ ?\")) (: ?\\ nonl))) "\"")))
+            nil t)
+      ;; we matched a comment
+      (when (match-beginning 1)
+        (replace-match (or (match-string 2) ""))))
+    (goto-char saved-point)
+    ;; Second pass: remove trailing commas
+    (while (re-search-forward
+            (rx
+             (or (group (: "," (group (* (any blank space ?\v ?\u2028 ?\u2029))
+                                      (any ?\} ?\]))))
+                 (: "\"" (* (or (not (any ?\\ ?\")) (: ?\\ nonl))) "\"")))
+            nil t)
+      ;; we matched a trailing commas
+      (when (match-beginning 1)
+        (replace-match (or (match-string 2) ""))))))
 
 (defun dap-utils-get-os-key ()
   "Get an applicable OS name used for keys in launch/tasks configurations."
