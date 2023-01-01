@@ -21,7 +21,7 @@
 (require 'dap-mode)
 (require 'dap-utils)
 
-(defcustom dap-codelldb-extension-version "1.7.4"
+(defcustom dap-codelldb-extension-version "1.8.1"
   "The version of the codelldb vscode extension."
   :group 'dap-codelldb
   :type 'string)

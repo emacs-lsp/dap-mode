@@ -29,7 +29,7 @@
 (require 'dap-mode)
 (require 'dap-utils)
 
-(defcustom dap-gdb-lldb-extension-version "0.26.0"
+(defcustom dap-gdb-lldb-extension-version "0.26.1"
   "The version of the gdb-lldb vscode extension."
   :group 'dap-gdb-lldb
   :type 'string)
