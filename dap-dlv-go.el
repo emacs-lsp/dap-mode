@@ -89,6 +89,13 @@
   (when (string= (plist-get conf :name) "Test function")
     (-when-let (name (dap-dlv-go--extract-current--method-or-function-name t))
       (dap--put-if-absent conf :args (list (format "-test.run=^%s$" name)))))
+
+  (when (string= (plist-get conf :name) "Test subtest")
+    (-when-let (name (concat
+		      (dap-dlv-go--extract-current--method-or-function-name t)
+		      "/"
+		      (shell-quote-argument (dap-dlv-go--extract-current-subtest-name t))))
+      (dap--put-if-absent conf :args (list (format "-test.run=^%s" name)))))
   
   (-> conf
       (dap--put-if-absent :dlvToolPath dap-dlv-go-delve-path)
@@ -122,6 +129,16 @@
              (car))
 	(unless no-signal?
 	  (user-error "No method or function at point")))))
+
+(defun dap-dlv-go--extract-current-subtest-name (&optional no-signal?)
+  "Extract current subtest name."
+  (save-excursion
+    (save-restriction
+      (search-backward-regexp "^[[:space:]]*{" nil t)
+      (search-forward-regexp "name:[[:space:]]+[\"`]\\(.*\\)[\"`]\," nil t)
+      (or (match-string-no-properties 1)
+	  (unless no-signal?
+	    (user-error "No subtest at point"))))))
 
 (defun dap-dlv-go--parse-env-file (file)
   "Parse env FILE."
@@ -174,6 +191,15 @@
                              (list :type "go"
                                    :request "launch"
                                    :name "Test function"
+                                   :mode "test"
+                                   :program nil
+                                   :args nil
+                                   :env nil))
+
+(dap-register-debug-template "Go Dlv Test Current Subtest Configuration"
+                             (list :type "go"
+                                   :request "launch"
+                                   :name "Test subtest"
                                    :mode "test"
                                    :program nil
                                    :args nil
