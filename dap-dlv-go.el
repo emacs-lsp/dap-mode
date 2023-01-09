@@ -154,6 +154,55 @@
 	(kill-buffer)
 	res))))
 
+(defun dap-dlv-go--get-cmd-pid (cmd)
+  "Return pid of CMD."
+  (string-to-number
+   (cadr
+    (s-split-words
+     (car
+      (seq-filter
+       (lambda(s) (s-contains? cmd s))
+       (process-lines (executable-find "ps") "aux")))))))
+
+(defun dap-dlv-go--run-cmd-in-vterm (cmd buf)
+  "Run CMD with vterm in BUF."
+  (with-current-buffer buf
+    (require 'vterm)
+    (let ((vterm-shell cmd)
+          (vterm-kill-buffer-on-exit nil))
+      (vterm-mode))))
+
+(defun dap-dlv-go--run-cmd-in-vterm-get-pid (cmd buf)
+  "Run CMD in vterm inside BUF and return pid."
+  (dap-dlv-go--run-cmd-in-vterm cmd buf)
+  (dap-dlv-go--get-cmd-pid cmd))
+
+(defun dap-dlv-go-debug-in-vterm ()
+  "Debug go program in vterm."
+  (interactive)
+  (let* ((cmd (f-expand (read-file-name "enter path to executable: ")))
+	 (buf (generate-new-buffer
+	       (format "*%s console*"
+		       (f-base cmd))))
+	 (debug-port (dap--find-available-port))
+	 (pid (dap-dlv-go--run-cmd-in-vterm-get-pid cmd buf)))
+    (dap-start-debugging-noexpand (list :type "go"
+					:request "attach"
+					:name "Attach to running process"
+					:mode "local"
+					:host "localhost"
+					:debugServer debug-port
+					:processId pid
+					:dlvToolPath dap-dlv-go-delve-path
+					:program-to-start
+					(format
+					 "%s dap --listen 127.0.0.1:%s %s"
+					 dap-dlv-go-delve-path
+					 debug-port
+					 dap-dlv-go-extra-args)))
+    (display-buffer buf)
+    (dap-ui--show-buffer buf)))
+
 (dap-register-debug-provider "go" 'dap-dlv-go--populate-default-args)
 
 (dap-register-debug-template "Go Dlv Launch File Configuration"
