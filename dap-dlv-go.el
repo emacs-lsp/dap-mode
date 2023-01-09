@@ -178,12 +178,16 @@
   (dap-dlv-go--get-cmd-pid cmd))
 
 (defun dap-dlv-go-debug-in-vterm ()
-  "Debug go program in vterm."
+  "Debug go program in vterm.
+With `C-u' you can edit command before run."
   (interactive)
-  (let* ((cmd (f-expand (read-file-name "enter path to executable: ")))
+  (let* ((exe (f-expand (read-file-name "enter path to executable: ")))
+	 (cmd (if (equal (car current-prefix-arg) 4)
+		  (read-string "command: " exe)
+		exe))
 	 (buf (generate-new-buffer
 	       (format "*%s console*"
-		       (f-base cmd))))
+		       (f-base exe))))
 	 (debug-port (dap--find-available-port))
 	 (pid (dap-dlv-go--run-cmd-in-vterm-get-pid cmd buf)))
     (dap-start-debugging-noexpand (list :type "go"
