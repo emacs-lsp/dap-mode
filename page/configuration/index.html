@@ -1068,18 +1068,24 @@ as classpath. JVM arguments can be specified with <code>:vmArgs</code>:</p>
 <li>
 <p>Installation</p>
 <ul>
+<li>install debugpy
+<div class="highlight"><pre><span></span><code>pip install <span class="s2">&quot;debugpy&quot;</span>
+</code></pre></div></li>
 <li>
-<p>install latest version of ptvsd.</p>
+<p>Or install ptvsd
 <div class="highlight"><pre><span></span><code>pip install <span class="s2">&quot;ptvsd&gt;=4.2&quot;</span>
 </code></pre></div>
-<ul>
-<li>
-<p>Then add the following line in your config:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-python</span><span class="p">)</span>
-</code></pre></div>
+NOTE: ptvsd is depracated, and as of 8/10/2022, ptvsd caused dap to break when it hits a breakpoint.
+This comment and issue has context: https://github.com/emacs-lsp/dap-mode/issues/625#issuecomment-1128961454</p>
 </li>
-</ul>
-<p>This will add the python related configuration to <code>dap-debug</code>.</p>
+<li>
+<p>Then add the following line in your config:
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-python</span><span class="p">)</span>
+<span class="c1">;; if you installed debugpy, you need to set this</span>
+<span class="c1">;; https://github.com/emacs-lsp/dap-mode/issues/306</span>
+<span class="p">(</span><span class="k">setq</span> <span class="nv">dap-python-debugger</span> <span class="ss">&#39;debugpy</span><span class="p">)</span>
+</code></pre></div>
+This will add the python related configuration to <code>dap-debug</code>.</p>
 </li>
 </ul>
 </li>
@@ -1616,7 +1622,7 @@ Core Attach (Console)" from <code>dap-debug</code> menu.</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 9, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 10, 2023</span>
       
     
   </small>
