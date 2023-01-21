@@ -1294,9 +1294,19 @@ LLDB configuration.</p>
 <li>if you want to launch a binary or test to debug, use "Go
     Dlv Launch File Configuration"</li>
 <li>if you want to debug current test function inside test
-    file use "Go Dlv Test Current Function Configuration"</li>
+    file use "Go Dlv Test Current Function Configuration"<ul>
+<li>if you want to debug current subtest put your cursor on this
+subtest and use "Go Dlv Test Current Subtest Configuration"</li>
+</ul>
+</li>
 <li>if you want to debug already running application select
-    "Go Dlv Attach Configuration"</li>
+    "Go Dlv Attach Configuration"<ul>
+<li>if you want to debug binary and need to interact with your
+application, install <code>vterm</code> package and call <code>M-x</code>
+<code>dap-dlv-go-debug-in-vterm</code>. If you need to add arguments
+to your command, use <code>C-u</code> <code>M-x</code> <code>dap-dlv-go-debug-in-vterm</code></li>
+</ul>
+</li>
 <li>if you want to debug remote application you need start
     delve on remote machine first, for example: <code>dlv --headless
     --accept-multiclient attach 123 -l :1080</code> (see <a href="https://github.com/go-delve/delve/tree/master/Documentation/usage#using-delve">dlv usage
@@ -1332,7 +1342,8 @@ LLDB configuration.</p>
                                <span class="nb">:name</span> <span class="s">&quot;Remote debug in docker container&quot;</span>
                                <span class="nb">:mode</span> <span class="s">&quot;remote&quot;</span>
                                <span class="nb">:substitutePath</span> <span class="p">(</span><span class="nf">vector</span> <span class="p">(</span><span class="nv">ht</span> <span class="p">(</span><span class="s">&quot;from&quot;</span> <span class="s">&quot;/home/user/projects/tribonacci&quot;</span><span class="p">)</span> <span class="p">(</span><span class="s">&quot;to&quot;</span> <span class="s">&quot;/app&quot;</span><span class="p">))))))))))</span>
-</code></pre></div></li>
+</code></pre></div>
+If you need to provide build flags, use <code>:buildFlags</code> key.</li>
 </ul>
 </li>
 <li>
@@ -1622,7 +1633,7 @@ Core Attach (Console)" from <code>dap-debug</code> menu.</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 10, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 21, 2023</span>
       
     
   </small>
