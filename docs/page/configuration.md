@@ -318,8 +318,14 @@ To fully support rust and pretty printing of strings when debugging, remember to
             Dlv Launch File Configuration"
           - if you want to debug current test function inside test
             file use "Go Dlv Test Current Function Configuration"
+	  - if you want to debug current subtest put your cursor on this
+	    subtest and use "Go Dlv Test Current Subtest Configuration"
           - if you want to debug already running application select
             "Go Dlv Attach Configuration"
+	  - if you want to debug binary and need to interact with your
+	    application, install `vterm` package and call `M-x`
+	    `dap-dlv-go-debug-in-vterm`. If you need to add arguments
+	    to your command, use `C-u` `M-x` `dap-dlv-go-debug-in-vterm`
           - if you want to debug remote application you need start
             delve on remote machine first, for example: `dlv --headless
             --accept-multiclient attach 123 -l :1080` (see [dlv usage
@@ -358,6 +364,7 @@ To fully support rust and pretty printing of strings when debugging, remember to
                                            :mode "remote"
                                            :substitutePath (vector (ht ("from" "/home/user/projects/tribonacci") ("to" "/app"))))))))))
             ```
+	    If you need to provide build flags, use `:buildFlags` key.
 
     2.  Trouble shooting
 
