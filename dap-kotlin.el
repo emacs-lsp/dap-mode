@@ -5,11 +5,12 @@
 (require 'dap-mode)
 
 (defun dap-kotlin-populate-launch-args (conf)
-  ;; we require mainClass and projectRoot to be filled in in the launch configuration.
+  ;; we require mainClass to be filled in in the launch configuration.
   ;; dap-kotlin does currently not support a fallback if not defined
   (-> conf
-	  (dap--put-if-absent :request "launch")
-	  (dap--put-if-absent :name "Kotlin Launch")))
+      (dap--put-if-absent :request "launch")
+      (dap--put-if-absent :name "Kotlin Launch")
+      (dap--put-if-absent :projectRoot (lsp-workspace-root))))
 
 (defun dap-kotlin-populate-attach-args (conf)
   (-> conf
