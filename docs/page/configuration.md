@@ -115,6 +115,25 @@ settings.
             :name "My App"))
     ```
 
+3. Template parameters
+
+These parameters are handled by templates of type `python`:
+
+- `:target-module`: path to some python file to be executed
+                    (supersedes `:program`)
+- `:program`: path to some python script/program to be executed
+              (defaults to the buffer's file-name)
+- `:module`: Python module to be executed using `-m …`.
+             If given, this will be added to the argument list in
+             front of program resp. target-module.
+- `:args`: either a string or a list of strings (`["foo" "bar"]`)
+           If a string, it will be split into arguments and shell-unqouted.
+- `:debugger`: Debugger to use, either `"debugpy"` or `"ptvsd"`
+               (defaults to the value defined in `dap-python-debugger`)
+
+Remaining parameters are forwarded to the respective debugger.
+
+
 ## Ruby
 
   - Download and extract [VSCode Ruby
