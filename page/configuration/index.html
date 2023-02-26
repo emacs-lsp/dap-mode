@@ -1067,6 +1067,8 @@ as classpath. JVM arguments can be specified with <code>:vmArgs</code>:</p>
 <ol>
 <li>
 <p>Installation</p>
+<p>Make sure to install the required modules in the project's virtual
+environment (if any).</p>
 <ul>
 <li>install debugpy
 <div class="highlight"><pre><span></span><code>pip install <span class="s2">&quot;debugpy&quot;</span>
@@ -1105,7 +1107,25 @@ execute a setuptools based script. In such case, define a template:</p>
         <span class="nb">:name</span> <span class="s">&quot;My App&quot;</span><span class="p">))</span>
 </code></pre></div>
 </li>
+<li>
+<p>Template parameters</p>
+</li>
 </ol>
+<p>These parameters are handled by templates of type <code>python</code>:</p>
+<ul>
+<li><code>:target-module</code>: path to some python file to be executed
+                    (supersedes <code>:program</code>)</li>
+<li><code>:program</code>: path to some python script/program to be executed
+              (defaults to the buffer's file-name)</li>
+<li><code>:module</code>: Python module to be executed using <code>-m …</code>.
+             If given, this will be added to the argument list in
+             front of program resp. target-module.</li>
+<li><code>:args</code>: either a string or a list of strings (<code>["foo" "bar"]</code>)
+           If a string, it will be split into arguments and shell-unqouted.</li>
+<li><code>:debugger</code>: Debugger to use, either <code>"debugpy"</code> or <code>"ptvsd"</code>
+               (defaults to the value defined in <code>dap-python-debugger</code>)</li>
+</ul>
+<p>Remaining parameters are forwarded to the respective debugger.</p>
 <h2 id="ruby">Ruby<a class="headerlink" href="#ruby" title="Permanent link">#</a></h2>
 <ul>
 <li>
@@ -1629,7 +1649,7 @@ Core Attach (Console)" from <code>dap-debug</code> menu.</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 23, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 26, 2023</span>
       
     
   </small>
