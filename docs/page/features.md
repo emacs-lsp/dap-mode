@@ -99,7 +99,8 @@ addition to optional `company-mode` autocompletion.
 
 DAP supports `launch.json` files out of the box, and there is nothing that needs
 to be enabled. All that needs to be done is to add a `launch.json` file at the
-project root and to run `dap-debug`. All configurations stored in the
+project root or the `.vscode` directory within the project root
+and to run `dap-debug`. All configurations stored in the
 `launch.json` will automatically show up in the selection. `launch.json` files in
 DAP are just like in VSCode and even support variables. See:
 
