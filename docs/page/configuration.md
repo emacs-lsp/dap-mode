@@ -77,6 +77,9 @@ settings.
 
 1.  Installation
 
+	Make sure to install the required modules in the project's virtual
+    environment (if any).
+
     - install debugpy
     ``` bash
     pip install "debugpy"
