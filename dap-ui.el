@@ -832,7 +832,7 @@ array variables."
    (dap--resp-handler)
    session))
 
-(defun dap-ui-render-variables (debug-session variables-reference indexed-variables _node)
+(defun dap-ui-render-variables (debug-session variables-reference &optional indexed-variables named-variables _node)
   "Render hierarchical variables for treemacs.
 Usable as the `treemacs' :children argument, when DEBUG-SESSION
 and VARIABLES-REFERENCE are applied partially.
@@ -845,14 +845,19 @@ adapter for acquiring nested variables and must not be 0."
   (when (dap--session-running debug-session)
     (->> (apply #'dap-request debug-session "variables"
                 :variablesReference  variables-reference
-                (when (and indexed-variables
-                           (< 0 indexed-variables))
-                  (list :start 0
-                        :count dap-ui-default-fetch-count)))
+                (append (when (and indexed-variables (< 0 indexed-variables))
+                          (list :start 0
+                                :filter "indexed"
+                                :count (1- (min indexed-variables dap-ui-default-fetch-count))))
+                        (when (and named-variables (< 0 indexed-variables))
+                          (list :start 0
+                                :filter "named"
+                                :count (1- (min named-variables dap-ui-default-fetch-count))))))
          (gethash "variables")
          (-map (-lambda ((&hash "value" "name"
                                 "variablesReference" variables-reference
-                                "indexedVariables" indexed-variables))
+                                "indexedVariables" indexed-variables
+                                "namedVariables" named-variables))
                  `(:label ,(concat (propertize (format "%s" name)
                                                'face 'font-lock-variable-name-face)
                                    ": "
@@ -869,7 +874,7 @@ adapter for acquiring nested variables and must not be 0."
                           ,@(unless (zerop variables-reference)
                               (list :children
                                     (-partial #'dap-ui-render-variables debug-session
-                                              variables-reference indexed-variables)))))))))
+                                              variables-reference indexed-variables named-variables)))))))))
 
 (defun dap-ui-render-value
     (debug-session expression value variables-reference)
