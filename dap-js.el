@@ -18,7 +18,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;; URL: https://github.com/yyoncho/dap-mode
+;; URL: https://github.com/emacs-lsp/dap-mode
 ;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0"))
 ;; Version: 0.2
 
@@ -27,16 +27,30 @@
 (require 'dap-mode)
 (require 'dap-utils)
 
-(defcustom dap-js-debug-path (expand-file-name "vscode/ms-vscode.node-debug2"
-                                               dap-utils-extension-path)
-  "The path to node vscode extension."
+(defcustom dap-js-path (expand-file-name "js-debug" dap-utils-extension-path)
+  "The path to the place at which the webfreak.debug extension.
+Link: https://marketplace.visualstudio.com/items?itemName=webfreak.debug ."
   :group 'dap-js
   :type 'string)
 
-(defcustom dap-js-debug-program `("node" "/home/yyoncho/Downloads/dist/src/dapDebugServer.js")
-  "The path to the node debugger."
+(defcustom dap-js-debug-program `("node" ,(f-join dap-js-path "src" "dapDebugServer.js"))
+  "The path to the JS debugger."
   :group 'dap-js
   :type '(repeat string))
+
+(defun dap-js-setup (&optional forced)
+  "Downloading webfreak.debug to path specified.
+With prefix, FORCED to redownload the extension."
+  (interactive "P")
+  (unless (and (not forced) (file-exists-p dap-js-path))
+    (lsp-download-install
+     (lambda (&rest _) (lsp--info "Downloaded extension!"))
+     (lambda (error)  (lsp--error "Failed Downloaded extension %s!" error))
+     :url (lsp--find-latest-gh-release-url
+           "https://api.github.com/repos/microsoft/vscode-js-debug/releases/latest"
+           "js-debug-dap")
+     :store-path dap-js-path
+     :decompress :targz)))
 
 (defun dap-js--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
