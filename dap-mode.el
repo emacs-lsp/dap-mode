@@ -956,8 +956,9 @@ PARAMS are the event params.")
                                                             breakpoints)))
                                                  (cl-first))))
                       (when (eq debug-session (dap--cur-session))
-                        (with-current-buffer (find-file file-name)
-                          (run-hooks 'dap-breakpoints-changed-hook)))))
+                        (when-let (buffer (find-buffer-visiting file-name))
+                          (with-current-buffer buffer
+                            (run-hooks 'dap-breakpoints-changed-hook))))))
       ("thread" (-let [(&hash "threadId" id "reason") body]
                   (puthash id reason (dap--debug-session-thread-states debug-session))
                   (run-hooks 'dap-session-changed-hook)
