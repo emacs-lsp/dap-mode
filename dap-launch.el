@@ -83,11 +83,34 @@ Yields nil if it cannot be found or there is no project."
 Extract the name from the :name property."
   (push (dap-launch-configuration-get-name conf) conf))
 
+(defun dap--launch-extract-environment (conf)
+  "Transform environment config into dap-mode format.
+This handles a single configuration plist."
+  (if (not (plist-get conf :environment))
+      ;; No environment specified, just return the old configuration
+      conf
+    ;; Standard format for the "environment" key is
+    ;;   {"name": "foo", "value": "bar"},
+    ;; which results in a (:name "foo" :value "bar) plist.
+    ;; We need to transform this into a ("foo" . "bar") cons cell.
+    (let ((environ-spec (mapcar
+                         (lambda (env-plist)
+                           (cons (plist-get env-plist :name)
+                                 (plist-get env-plist :value)))
+                         (plist-get conf :environment))))
+      (plist-put conf :environment-variables environ-spec))))
+
+(defun dap--launch-extract-environments (conflist)
+	"Transform environment config into dap-mode format.
+This is intended to be run on a list of configurations."
+	(mapcar #'dap--launch-extract-environment conflist))
+
 (defun dap-launch-parse-launch-json (json)
   "Return a list of all launch configurations in JSON.
 JSON must have been acquired with `dap-launch--get-launch-json'."
   (mapcar #'dap-launch-configuration-prepend-name
-          (or (plist-get json :configurations) (list json))))
+          (dap--launch-extract-environments
+           (or (plist-get json :configurations) (list json)))))
 
 (defun dap-launch-find-parse-launch-json ()
   "Return a list of all launch configurations for the current project.
