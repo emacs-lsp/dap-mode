@@ -849,12 +849,13 @@ adapter for acquiring nested variables and must not be 0."
                           (list :start 0
                                 :filter "indexed"
                                 :count (1- (min indexed-variables dap-ui-default-fetch-count))))
-                        (when (and named-variables (< 0 indexed-variables))
+                        (when (and named-variables (< 0 named-variables))
                           (list :start 0
                                 :filter "named"
                                 :count (1- (min named-variables dap-ui-default-fetch-count))))))
          (gethash "variables")
-         (-map (-lambda ((&hash "value" "name"
+         (-map (-lambda ((&hash "value"
+                                "name"
                                 "variablesReference" variables-reference
                                 "indexedVariables" indexed-variables
                                 "namedVariables" named-variables))
@@ -891,7 +892,9 @@ request."
                (list :children
                      (-partial #'dap-ui-render-variables
                                debug-session
-                               variables-reference)))))
+                               variables-reference
+                               nil
+                               nil)))))
    "" nil (buffer-name)))
 
 (defun dap-ui-eval-in-buffer (expression)
@@ -940,7 +943,8 @@ request."
                       :children (-partial #'dap-ui-render-variables
                                           (dap--cur-session)
                                           variables-reference
-                                          0)))))
+                                          nil
+                                          nil)))))
       '((:label "Nothing to display..."
                 :key "foo"
                 :icon :empty))))
