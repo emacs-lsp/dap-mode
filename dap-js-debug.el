@@ -21,7 +21,8 @@
 ;; URL: https://github.com/emacs-lsp/dap-mode
 
 ;;; Commentary:
-;; Adapter for microsoft/vscode-js-debug, see: https://github.com/microsoft/vscode-js-debug
+;; Adapter for microsoft/vscode-js-debug,
+;;    see: https://github.com/microsoft/vscode-js-debug
 ;; Package-Requires: ((dap-mode "0.8"))
 ;; Also requires vscode-js-debug v1.77.2+ which can be installed here
 
@@ -42,7 +43,8 @@
   :type 'string)
 
 (defcustom dap-js-debug-program `("node"
-                                  ,(f-join dap-js-debug-path "extension/dist/src/dapDebugServer.js"))
+                                  ,(f-join dap-js-debug-path
+                                           "extension/dist/src/dapDebugServer.js"))
   "The path and program for the ms-vscode js-debugger."
   :group 'dap-js-debug
   :type 'string)
@@ -53,24 +55,26 @@
   :type 'boolean)
 
 (defcustom dap-js-debug-extension-version "latest"
-  "The version of the github release found at https://github.com/microsoft/vscode-js-debug/releases"
+  "The version of the github release found at
+https://github.com/microsoft/vscode-js-debug/releases"
   :group 'dap-js-debug
   :type 'string)
 
 (dap-utils-github-extension-setup-function "dap-js-debug" "microsoft" "vscode-js-debug"
-                                           dap-js-debug-extension-version dap-js-debug-path
+                                           dap-js-debug-extension-version
+                                           dap-js-debug-path
                                            #'dap-js-debug-extension-build)
 
 (defun dap-js-debug-extension-build ()
-  "Callback from setup function in order to install extension node_module deps and compile."
+  "Callback from setup function in order to install extension node deps and compile."
   (message "Building ms-vscode.js-debug in %s directory." dap-js-debug-path)
   (let ((buf (get-buffer-create "*dap-js-debug extension build*"))
         (default-directory (concat dap-js-debug-path "/extension")))
-    ;;(async-shell-command "npm install --sav-dev --force; npm run compile -- vsDebugServerBundle" buf buf)))
-    (async-shell-command "npm install --sav-dev --force; npm run compile -- dapDebugServer" buf buf)))
+    (async-shell-command
+     "npm install --sav-dev --force; npm run compile -- dapDebugServer" buf buf)))
 
 (cl-defun dap-js-debug-extension-update (&optional (ask-upgrade t))
-  "Check for update, and then if `ask-upgrade' arg is non-nil will prompt user to upgrade."
+  "Check for update, and if `ask-upgrade' arg is non-nil will prompt user to upgrade."
   (interactive)
   (let* ((url (format dap-utils-github-extension-releases-info-url "microsoft"
                       "vscode-js-debug" "latest"))
@@ -100,9 +104,10 @@
                   cur-version))))))
     (if (string= cur-version latest-version)
         (when ask-upgrade
-          (message "ms-vscode.js-debug extension is up to date at version: %s" latest-version))
-      (let ((msg (format "Newer version (%s) of vscode/ms-vscode.js-debug exists than currently \
-installed version (%s)." latest-version cur-version)))
+          (message "ms-vscode.js-debug extension is up to date at version: %s"
+                   latest-version))
+      (let ((msg (format "Newer version (%s) of vscode/ms-vscode.js-debug exists than \
+currently installed version (%s)." latest-version cur-version)))
         (if ask-upgrade
             (when (y-or-n-p (concat msg " Do you want to upgrade now?"))
               (dap-js-debug-setup t))
@@ -112,8 +117,9 @@ installed version (%s)." latest-version cur-version)))
 (dap-js-debug-extension-update nil)
 
 (defun dap-js-debug--populate-start-file-args (conf)
-  "Load up the start config for the debug adapter from launch.json, and required ones if missing.
-   See full options: `https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md'"
+  "Load up the start config CONF for the debug adapter from launch.json, and default
+   required attributes if missing. See full options:
+   `https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md'"
   (dap--put-if-absent conf :type "pwa-chrome")
   (dap--put-if-absent conf :cwd (lsp-workspace-root))
   (dap--put-if-absent conf :request "launch")
@@ -134,14 +140,15 @@ Install it with M-x dap-js-debug-setup." dap-js-debug-path)
                                   (plist-get conf :host)))))
   (if (plist-member conf :url)
       (progn
-        ;;(plist-put conf :mode "url")        
+        ;;(plist-put conf :mode "url")
         (dap--put-if-absent conf :url (read-string
                                        "Browse url: "
                                        "http://localhost:3000" t))
-        (dap--put-if-absent conf :webRoot (lsp-workspace-root))))  
+        (dap--put-if-absent conf :webRoot (lsp-workspace-root))))
   (if (plist-member conf :file)
       (if (plist-get conf :url)
-          (error "Both \"file\" and \"url\" properties are set in launch.json.  Choose one.")
+          (error "Both \"file\" and \"url\" properties are set in launch.json. \
+Choose one.")
         (progn
           (plist-put conf :mode "file")
           (dap--put-if-absent conf :file
@@ -154,15 +161,17 @@ Install it with M-x dap-js-debug-setup." dap-js-debug-path)
   (when (string= "node-terminal" (plist-get conf :type))
     (error "In launch.json \"node-terminal\" debug type is currently not supported."))
   (when (string= "integratedTerminal" (plist-get conf :console))
-    (error "In launch.json \"console\":\"integratedTerminal\" not supported at this time, \
-use \"console\":\"internalConsole\" instead"))
-  (dap--put-if-absent conf :output-filter-function #'dap-js-debug--output-filter-function)
+    (error "In launch.json \"console\":\"integratedTerminal\" not supported at this \
+time, use \"console\":\"internalConsole\" instead"))
+  (dap--put-if-absent conf
+                      :output-filter-function #'dap-js-debug--output-filter-function)
   (unless dap-inhibit-io
     (message "dap-js-debug--populate-start-file-args: %s" conf))
   conf)
 
-;;  Note, vscode-js-debug prefers now not using `pwa-' prefix, but still takes.  Need to deprecate
-;; and replace: dap-chrome.el, dap-edge.el, dap-node.el before can remove `pwa-' here.
+;; Note, vscode-js-debug prefers now not using `pwa-' prefix, but still takes.
+;; Need to deprecate and replace: dap-chrome.el, dap-edge.el, dap-node.el before can
+;; remove `pwa-' here.
 (dap-register-debug-provider "pwa-node" #'dap-js-debug--populate-start-file-args)
 (dap-register-debug-provider "pwa-chrome" #'dap-js-debug--populate-start-file-args)
 (dap-register-debug-provider "pwa-msedge" #'dap-js-debug--populate-start-file-args)
@@ -206,8 +215,10 @@ use \"console\":\"internalConsole\" instead"))
         (progn
           (if (and (bound-and-true-p dap-js-debug-output-telemetry)
                    (string= (gethash "category" body) "telemetry"))
-              (dap--print-to-output-buffer debug-session (concat (dap--json-encode body) "\n"))
-            (dap--print-to-output-buffer debug-session (concat (dap--output-buffer-format body) "\n")))))))
+              (dap--print-to-output-buffer
+               debug-session (concat (dap--json-encode body) "\n"))
+            (dap--print-to-output-buffer
+             debug-session (concat (dap--output-buffer-format body) "\n")))))))
 
 (add-hook 'dap-terminated-hook #'dap-js-debug--term-parent)
 (defun dap-js-debug--term-parent (debug-session)
@@ -219,7 +230,7 @@ use \"console\":\"internalConsole\" instead"))
             (makunbound 'parent-debug-session)
             (set-process-query-on-exit-flag proc nil)
             (with-current-buffer (process-buffer proc)
-              ;; Switching mode, prevents triggering to open error file after killing proc
+              ;; Switching mode, prevents triggering to open err file after killing proc
               (shell-script-mode)
               (kill-buffer))
             (dap-delete-session debug-session)))))
@@ -227,22 +238,25 @@ use \"console\":\"internalConsole\" instead"))
 
 (add-hook 'dap-executed-hook #'dap-js-debug--reverse-request-handler)
 (defun dap-js-debug--reverse-request-handler (debug-session command)
-  "Callback hook to get messages from dap-mode reverse requests.  This is set with `add-hook' above."
+  "Callback hook to get messages from dap-mode reverse requests."
+  ;;This is set with `add-hook' above.
   (unless dap-inhibit-io
     (message "dap-js-debug--reverse-request-handler -> command: %s" command))
   (pcase command
     ((guard (string= command "startDebugging"))
-     ;; Assume current session becomes parent requesting start debugging in child session
+     ;; Assume current session now parent requesting start debugging in child session
      (setq parent-debug-session debug-session)
      (-let [(&hash "seq" "command" "arguments"
                    (&hash "request" "configuration"
                           (&hash? "type" "__pendingTargetId")))
             (dap--debug-session-metadata debug-session)]
-       (-let (((&plist  :mode :url :file :webroot :program :outputCapture :skipFiles :timeout :host :name :debugPort)
+       (-let (((&plist  :mode :url :file :webroot :program :outputCapture
+                        :skipFiles :timeout :host :name :debugPort)
                (dap--debug-session-launch-args debug-session))
               (conf `(:request ,request)))
+         ;; DAP Spec says not to include client variables to start child, including type
          ;;(plist-put conf :type type)
-         (plist-put conf :name (concat type "-"  command))
+         (plist-put conf :name (concat type "-" command))
          (plist-put conf :__pendingTargetId __pendingTargetId)
          (plist-put conf :outputCapture outputCapture)
          (plist-put conf :skipFiles skipFiles)
@@ -261,10 +275,17 @@ use \"console\":\"internalConsole\" instead"))
          (unless dap-inhibit-io
            (message "dap-js-debug startDebugging conf: %s" conf))
          (dap-start-debugging-noexpand conf)
+         ;; Remove child session if stored in list of recent/last configurations to
+         ;; allow `dap-debug-last' to work by getting parent not child.
+         (when-let ((last-conf (cdr (cl-first dap--debug-configuration)))
+                    (_ptid-equal (string= __pendingTargetId
+                                          (plist-get last-conf :__pendingTargetId))))
+           (pop dap--debug-configuration))
          ;; success
          (dap--send-message (dap--make-success-response seq command)
                             (dap--resp-handler) debug-session))))
-    ;; This is really just confirmation response, but good place to ensure session selected
+    ;; This is really just confirmation response, but good place to ensure session
+    ;; selected
     ("launch" (dap--switch-to-session debug-session))
     (_
      (unless dap-inhibit-io
