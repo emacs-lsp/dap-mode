@@ -73,6 +73,52 @@ settings.
                                        :env '(("DEV" . "1"))))
     ```
 
+## Kotlin
+
+1.  Installation 
+    To use dap-mode with Kotlin, you need to download the [kotlin-debug-adapter](https://github.com/fwcd/kotlin-debug-adapter). 
+    The releases are a bit infrequent, so it is recommended to build it from source yourself.
+    You will also need to have installed `lsp-mode`, as `dap-kotlin` shares some configuration with it.
+    After building it, point the variable `lsp-kotlin-debug-adapter-path ` to the path of the kotlin-debug-adapter executable.
+    You will find this in the path `adapter/build/install/adapter/bin` (from the kotlin-debug-adapter root).
+    You should also make sure that `lsp-kotlin-debug-adapter-enabled` is set to true.
+
+2.  Usage
+    **First of all, each time you you want to debug, make sure you BUILD YOUR PROJECT FIRST!**
+    Simply running your regular build with Maven or Gradle should be enough.
+    
+    You can set up debug templates using Kotlin. `dap-kotlin`provides some sensible defaults, 
+    but there are one parameters you MUST give yourself:
+    - `:mainClass`: The class name, including package for the main class you want to run. If the class takes argument, you can give them as well.
+    If project root path needs to be different, you can give it using the parameter `:projectRoot`. 
+    Other parameters include:
+    - `:type`: `launch` or `attach`
+    - `:hostName`: If type is `attach`, you can specify a hostname to connect to. Defaults to `localhost`.
+    - `:port`: If type is `attach`, you can specify a port to connect to. Defaults to `5005`.
+    - `:noDebug`: Whether or not to use a debug session
+    - `:enableJsonLogging`: Enable logging of adapter communication logs.
+    - `:jsonLogFile`: File to log to.
+   
+   
+   Thanks to interop with `lsp-kotlin`, you can have it set up code lenses with run/debug-options for main classes.
+   For this to work, you need kotlin-langauge-server running, be in a file with a main method, and have activated `lsp-kotlin-lens-mode`
+   
+   Sadly, there is no test-running functionality like in Java `dap-mode`. This can be combated by setting up a debug template with
+   the Junit5 `ConsoleLauncher`. Remember that this class needs to be part of your classpath. Sometimes this is included in bigger frameworks
+   testing utilities, but can also be included explicitly by adding the `junit-platform-console` dependency.
+   
+   ```elisp
+   (dap-register-debug-template "Kotlin tests with launcher"
+                             (list :type "kotlin"
+                                   :request "launch"
+                                   :mainClass "org.junit.platform.console.ConsoleLauncher --scan-class-path"
+                                   :enableJsonLogging nil
+                                   :noDebug nil))
+   ```
+   This will run all tests in the projects in debug mode, with no json logging. You can experiment with the 
+   arguments to `ConsoleLauncher`. Arguments are documented on [the official JUnit website](https://junit.org/junit5/docs/current/user-guide/#running-tests-console-launcher-options).
+   
+
 ## Python
 
 1.  Installation
