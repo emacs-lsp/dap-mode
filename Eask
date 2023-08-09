@@ -14,7 +14,7 @@
 (source "gnu")
 (source "melpa")
 
-(depends-on "emacs" "26.1")
+(depends-on "emacs" "27.1")
 (depends-on "lsp-mode")
 (depends-on "lsp-treemacs")
 (depends-on "lsp-docker")
