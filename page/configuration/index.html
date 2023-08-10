@@ -430,6 +430,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#kotlin" class="md-nav__link">
+    Kotlin
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#python" class="md-nav__link">
     Python
   </a>
@@ -839,6 +846,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#kotlin" class="md-nav__link">
+    Kotlin
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#python" class="md-nav__link">
     Python
   </a>
@@ -1063,6 +1077,48 @@ as classpath. JVM arguments can be specified with <code>:vmArgs</code>:</p>
 </code></pre></div>
 </li>
 </ol>
+<h2 id="kotlin">Kotlin<a class="headerlink" href="#kotlin" title="Permanent link">#</a></h2>
+<ol>
+<li>
+<p>Installation 
+    To use dap-mode with Kotlin, you need to download the <a href="https://github.com/fwcd/kotlin-debug-adapter">kotlin-debug-adapter</a>. 
+    The releases are a bit infrequent, so it is recommended to build it from source yourself.
+    You will also need to have installed <code>lsp-mode</code>, as <code>dap-kotlin</code> shares some configuration with it.
+    After building it, point the variable <code>lsp-kotlin-debug-adapter-path</code> to the path of the kotlin-debug-adapter executable.
+    You will find this in the path <code>adapter/build/install/adapter/bin</code> (from the kotlin-debug-adapter root).
+    You should also make sure that <code>lsp-kotlin-debug-adapter-enabled</code> is set to true.</p>
+</li>
+<li>
+<p>Usage
+    <strong>First of all, each time you you want to debug, make sure you BUILD YOUR PROJECT FIRST!</strong>
+    Simply running your regular build with Maven or Gradle should be enough.</p>
+<p>You can set up debug templates using Kotlin. <code>dap-kotlin</code>provides some sensible defaults, 
+but there are one parameters you MUST give yourself:
+- <code>:mainClass</code>: The class name, including package for the main class you want to run. If the class takes argument, you can give them as well.
+If project root path needs to be different, you can give it using the parameter <code>:projectRoot</code>. 
+Other parameters include:
+- <code>:type</code>: <code>launch</code> or <code>attach</code>
+- <code>:hostName</code>: If type is <code>attach</code>, you can specify a hostname to connect to. Defaults to <code>localhost</code>.
+- <code>:port</code>: If type is <code>attach</code>, you can specify a port to connect to. Defaults to <code>5005</code>.
+- <code>:noDebug</code>: Whether or not to use a debug session
+- <code>:enableJsonLogging</code>: Enable logging of adapter communication logs.
+- <code>:jsonLogFile</code>: File to log to.</p>
+</li>
+</ol>
+<p>Thanks to interop with <code>lsp-kotlin</code>, you can have it set up code lenses with run/debug-options for main classes.
+   For this to work, you need kotlin-langauge-server running, be in a file with a main method, and have activated <code>lsp-kotlin-lens-mode</code></p>
+<p>Sadly, there is no test-running functionality like in Java <code>dap-mode</code>. This can be combated by setting up a debug template with
+   the Junit5 <code>ConsoleLauncher</code>. Remember that this class needs to be part of your classpath. Sometimes this is included in bigger frameworks
+   testing utilities, but can also be included explicitly by adding the <code>junit-platform-console</code> dependency.</p>
+<p><div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-register-debug-template</span> <span class="s">&quot;Kotlin tests with launcher&quot;</span>
+                          <span class="p">(</span><span class="nf">list</span> <span class="nb">:type</span> <span class="s">&quot;kotlin&quot;</span>
+                                <span class="nb">:request</span> <span class="s">&quot;launch&quot;</span>
+                                <span class="nb">:mainClass</span> <span class="s">&quot;org.junit.platform.console.ConsoleLauncher --scan-class-path&quot;</span>
+                                <span class="nb">:enableJsonLogging</span> <span class="no">nil</span>
+                                <span class="nb">:noDebug</span> <span class="no">nil</span><span class="p">))</span>
+</code></pre></div>
+   This will run all tests in the projects in debug mode, with no json logging. You can experiment with the 
+   arguments to <code>ConsoleLauncher</code>. Arguments are documented on <a href="https://junit.org/junit5/docs/current/user-guide/#running-tests-console-launcher-options">the official JUnit website</a>.</p>
 <h2 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h2>
 <ol>
 <li>
