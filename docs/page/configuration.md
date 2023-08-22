@@ -656,3 +656,23 @@ Core Attach (Console)" from `dap-debug` menu.
 2.  Usage
 
 	Call `dap-debug` and select the "Unity Editor" template
+
+## OCaml
+
+[earlybird](https://github.com/hackwaly/ocamlearlybird) is an OCaml debugger with support for DAP.
+
+1. Installation
+
+   - Install earlybird through `opam install earlybird`
+   
+   - Put in your configuration file:
+
+   ``` elisp
+   (require 'dap-ocaml)
+   ```
+
+2. Usage
+
+    Call `dap-debug` and edit the "OCaml Debug Template". Make sure to set the program field as the path of your *byte-code* compiled program.
+    Note that this debugger _only_ works with bytecode compiled OCaml programs.
+  
