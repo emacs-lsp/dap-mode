@@ -561,6 +561,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#ocaml" class="md-nav__link">
+    OCaml
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -973,6 +980,13 @@
         <li class="md-nav__item">
   <a href="#unity" class="md-nav__link">
     Unity
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ocaml" class="md-nav__link">
+    OCaml
   </a>
   
 </li>
@@ -1699,13 +1713,35 @@ Core Attach (Console)" from <code>dap-debug</code> menu.</p>
 <p>Call <code>dap-debug</code> and select the "Unity Editor" template</p>
 </li>
 </ol>
+<h2 id="ocaml">OCaml<a class="headerlink" href="#ocaml" title="Permanent link">#</a></h2>
+<p><a href="https://github.com/hackwaly/ocamlearlybird">earlybird</a> is an OCaml debugger with support for DAP.</p>
+<ol>
+<li>
+<p>Installation</p>
+</li>
+<li>
+<p>Install earlybird through <code>opam install earlybird</code></p>
+</li>
+<li>
+<p>Put in your configuration file:</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-ocaml</span><span class="p">)</span>
+</code></pre></div>
+<ol>
+<li>
+<p>Usage</p>
+<p>Call <code>dap-debug</code> and edit the "OCaml Debug Template". Make sure to set the program field as the path of your <em>byte-code</em> compiled program.
+Note that this debugger <em>only</em> works with bytecode compiled OCaml programs.</p>
+</li>
+</ol>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 10, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 22, 2023</span>
       
     
   </small>
