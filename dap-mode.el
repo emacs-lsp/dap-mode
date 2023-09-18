@@ -858,9 +858,18 @@ will be reversed."
   "Get all file backed buffers."
   (-filter 'buffer-file-name (buffer-list)))
 
+(defun dap--buffers-w-breakpoints ()
+  "Get only the buffers featuring at least one breakpoint"
+  ;; get the list from the keys of the breakpoint hash-table
+  (let ((buffers-w-bp ()))
+    (maphash
+     (lambda (k v) (push k buffers-w-bp))
+     (dap--get-breakpoints))
+    buffers-w-bp))
+
 (defun dap--refresh-breakpoints ()
   "Refresh breakpoints for DEBUG-SESSION."
-  (--each (dap--buffer-list)
+  (--each (dap--buffers-w-breakpoints)
     (when (buffer-live-p it)
       (with-current-buffer it
         (dap--set-breakpoints-in-file
@@ -1567,10 +1576,10 @@ When ALL? is non-nil select from threads in all debug sessions."
 
   (when new-session
     (let ((breakpoints (dap--get-breakpoints)))
-      (--each (dap--buffer-list) (with-current-buffer it
-                                   (->> breakpoints
-                                        (gethash buffer-file-name)
-                                        (dap--set-breakpoints-in-file buffer-file-name))))))
+      (--each (dap--buffers-w-breakpoints) (with-current-buffer it
+                                             (->> breakpoints
+                                                  (gethash buffer-file-name)
+                                                  (dap--set-breakpoints-in-file buffer-file-name))))))
 
   (run-hook-with-args 'dap-session-changed-hook lsp--cur-workspace)
 
