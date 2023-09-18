@@ -861,11 +861,7 @@ will be reversed."
 (defun dap--buffers-w-breakpoints ()
   "Get only the buffers featuring at least one breakpoint"
   ;; get the list from the keys of the breakpoint hash-table
-  (let ((buffers-w-bp ()))
-    (maphash
-     (lambda (k v) (push k buffers-w-bp))
-     (dap--get-breakpoints))
-    buffers-w-bp))
+  (ht-keys (dap--get-breakpoints)))
 
 (defun dap--refresh-breakpoints ()
   "Refresh breakpoints for DEBUG-SESSION."
