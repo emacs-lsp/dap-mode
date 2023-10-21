@@ -1046,7 +1046,7 @@ request."
                                                          'help-echo result))
                              :icon expression
                              ,@(when (and variables-reference (not (zerop variables-reference)))
-                                 (list :children (-partial #'dap-ui-render-variables debug-session variables-reference)))
+                                 (list :children (-partial #'dap-ui-render-variables debug-session variables-reference nil nil)))
                              :actions (["Remove" dap-ui-expressions-mouse-remove]
                                        "--"
                                        ["Add" dap-ui-expressions-add]
