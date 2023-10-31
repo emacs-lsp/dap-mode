@@ -177,7 +177,8 @@ strings, for the sake of launch.json feature parity."
                       (plist-get conf :program)
                       (buffer-file-name)))
          (module (plist-get conf :module))
-         (debugger (plist-get conf :debugger)))
+         (debugger (plist-get conf :debugger))
+         (targetPid (plist-get conf :processId)))
     ;; These are `dap-python'-specific and always ignored.
     (cl-remf conf :debugger)
     (cl-remf conf :target-module)
@@ -196,14 +197,17 @@ strings, for the sake of launch.json feature parity."
          (cl-remf conf :module)
          (cl-remf conf :args)
          (plist-put conf :program-to-start
-                    (format "%s%s -m ptvsd --wait --host %s --port %s%s %s%s"
+                    (format "%s%s -m ptvsd --wait --host %s --port %s %s"
                             (or dap-python-terminal "")
                             (shell-quote-argument python-executable)
                             host
                             debug-port
-                            (if module (concat " -m " (shell-quote-argument module)) "")
-                            (if program (shell-quote-argument program) "")
-                            (if (not (string-empty-p python-args)) (concat " " python-args) "")))
+                            (if targetPid
+                                (format "--pid %s" targetPid)
+                              (format "%s %s %s"
+                                      (if module (concat " -m " (shell-quote-argument module)) "")
+                                      (if program (shell-quote-argument program) "")
+                                      (if (not (string-empty-p python-args)) (concat " " python-args) "")))))
          (plist-put conf :debugServer debug-port)
          (plist-put conf :port debug-port)
          (plist-put conf :hostName host)
@@ -235,11 +239,12 @@ strings, for the sake of launch.json feature parity."
        (unless (plist-get conf :cwd)
          (cl-remf conf :cwd))
 
-       (pcase (plist-get conf :request)
-         ("launch"
+       (pcase (cons (plist-get conf :request) targetPid)
+         ((or `("launch" . nil)
+              `("attach" . ,(and pid (guard pid))))
           (plist-put conf :dap-server-path
                      (list python-executable "-m" "debugpy.adapter")))
-         ("attach"
+         (`("attach" . nil)
           (let* ((connect (plist-get conf :connect))
                  (host (or (plist-get connect :host) "localhost"))
                  (port (or (plist-get connect :port) 5678)))
@@ -260,6 +265,11 @@ strings, for the sake of launch.json feature parity."
   (dap-python--populate-start-file-args conf))
 
 (dap-register-debug-provider "python" 'dap-python--populate-start-file-args)
+(dap-register-debug-template "Python :: Attach to running process"
+                             (list :type "python"
+                                   :request "attach"
+                                   :processId "${command:pickProcess}"
+                                   :name "Python :: Attach to running process"))
 (dap-register-debug-template "Python :: Run file (buffer)"
                              (list :type "python"
                                    :args ""
