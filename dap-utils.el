@@ -61,7 +61,7 @@
   :type 'string)
 
 (defcustom dap-utils-openvsx-extension-api-url
-  "https://open-vsx.org/api/%s/%s/%s/"
+  "https://open-vsx.org/api/%s/%s/%s"
   "Open VSX extension api url."
   :group 'dap-utils
   :type 'string)
