@@ -32,7 +32,6 @@
 (require 'dom)
 (require 'json)
 
-
 (defconst dap-utils--ext-unzip-script "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'"
   "Unzip script to unzip vscode extension package file.")
 
@@ -55,7 +54,7 @@
     (shell-command (format dap-utils-unzip-script temp-file dest))))
 
 (defcustom dap-utils-vscode-ext-url
-  "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/%s/vsextensions/%s/%s/vspackage"
+  "https://marketplace.gallery.vsassets.io/_apis/public/gallery/publisher/%s/extension/%s/%s/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage"
   "Vscode extension template url."
   :group 'dap-utils
   :type 'string)
@@ -69,6 +68,12 @@
 (defcustom dap-utils-github-extension-url
   "https://github.com/%s/%s/archive/v%s.zip"
   "Github extension template url."
+  :group 'dap-utils
+  :type 'string)
+
+(defcustom dap-utils-github-extension-releases-info-url
+  "https://api.github.com/repos/%s/%s/releases/%s"
+  "Github extension's latest version information template url."
   :group 'dap-utils
   :type 'string)
 
@@ -113,8 +118,6 @@ PATH is the download destination path."
 (defun dap-utils-vscode-get-installed-extension-version (path)
   "Check the version of the vscode extension installed in PATH.
 Returns nil if the extension is not installed."
-  (require 'xml)
-  (require 'dom)
   (let* ((extension-manifest (f-join path "extension.vsixmanifest")))
     (when (f-exists? extension-manifest)
       (let ((pkg-identity (dom-by-tag (xml-parse-file extension-manifest) 'Identity)))
@@ -170,11 +173,11 @@ With prefix, FORCED to redownload the extension." extension-name)))
          (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
                   ,dapfile ,extension-name ,dapfile)))))
 
-(defmacro dap-utils-github-extension-setup-function (dapfile owner repo version &optional path callback)
+(defmacro dap-utils-github-extension-setup-function (dapfile owner repo &optional version path callback)
   "Helper to create DAPFILE setup function for debug extension from github.
 OWNER is the github owner.
 REPO is the github repository.
-VERSION is the github extension version.
+VERSION is the github extension version, if not set or set to `latest' then grab latest version.
 PATH is the download destination dir.
 CALLBACK is the fn to be called after the download."
   (let* ((extension-name (concat owner "." repo))
@@ -186,13 +189,33 @@ With prefix, FORCED to redownload the extension." extension-name)))
        (defun ,(intern (format "%s-setup" dapfile)) (&optional forced)
          ,help-string
          (interactive "P")
-         (unless (and (not forced) (file-exists-p ,dest))
-           (dap-utils-get-github-extension ,owner ,repo ,version ,dest)
-           (rename-file (concat ,dest "/" (concat ,repo "-" ,version))
-                        (concat ,dest "/extension"))
-           (message "%s: Downloading done!" ,dapfile)
-           (when ,callback
-             (funcall ,callback))))
+         (if (or (not ,version)
+                 (string= "latest" ,version))
+             (progn     ; Get the latest actual version
+               (let* ((url (format dap-utils-github-extension-releases-info-url ,owner ,repo ,version)))
+                 (with-current-buffer (url-retrieve-synchronously url)
+                   (goto-char (point-min))
+                   (re-search-forward "^$")
+                   (set ',version (substring (cdr (assoc 'tag_name (json-read))) 1)))))
+           (progn       ; Check that version requested exists.
+             (let* ((url (format dap-utils-github-extension-releases-info-url
+                                 ,owner ,repo (concat "tags/v" ,version)))
+                    (status (url-http-symbol-value-in-buffer 'url-http-response-status
+                                                             (url-retrieve-synchronously url))))
+               (unless (eql 200 status)
+                 (error "Error! Extension: %s.%s version: %s returned status: %s for: %s"
+                        ,owner ,repo ,version status url)))))
+         (if (or forced (not (file-exists-p ,dest)))
+             (progn 
+               (message "Installing %s.%s version: %s to %s" ,owner ,repo ,version ,dest)
+               (dap-utils-get-github-extension ,owner ,repo ,version ,dest)
+               (rename-file (concat ,dest "/" (concat ,repo "-" ,version))
+                            (concat ,dest "/extension"))
+               (message "%s: Downloading done!" ,dapfile)
+               (when ,callback
+                 (funcall ,callback)))
+           (message "Extension %s.%s exists already in %s. Remove extension, or pass the `forced' \
+argument." ,owner ,repo ,dest)))
        (unless (file-exists-p ,dest)
          (message "%s: %s debug extension are not set. You can download it with M-x %s-setup"
                   ,dapfile ,extension-name ,dapfile)))))

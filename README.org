@@ -93,3 +93,4 @@
     support, (with some groundwork by yyoncho) runInTerminal support, various
     bug fixes.
   - [[https://github.com/factyy][Andrei Mochalov]] - Docker (debugging in containers) integration.
+  - [[https://github.com/jeff-phil][Jeffrey Phillips]] - [[https://github.com/microsoft/vscode-js-debug][vscode-js-debug]] installation and integration.

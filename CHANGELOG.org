@@ -2,6 +2,10 @@
 #+STARTUP: content
 
 * Changelog
+** 0.9
+   - Added support for DAP Specification ~Reverse Requests~.
+   - Added ~vscode-js-debug~ latest Node.js, Chrome, Edge debuggers
+   - Updates for extension installations
 ** 0.8
    - [Breaking Change] Change debug provider names to match VS Code's naming: ~lldb~ to ~lldb-mi~ and ~codelldb~ to ~lldb~
    - Added ~dap-gdscript~
