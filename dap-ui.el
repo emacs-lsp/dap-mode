@@ -57,6 +57,11 @@ number - expand N levels."
                  (number :tag "Expand level"))
   :group 'dap-ui)
 
+(defcustom dap-ui-overlay-priority 100
+  "Overlay's base prioirty."
+  :type 'integer
+  :group 'dap-ui)
+
 (defcustom dap-ui-controls-screen-position #'posframe-poshandler-frame-top-center
   "On-screen position of controls when they are visible."
   :type '(choice (const :tag "Top center" posframe-poshandler-frame-top-center)
@@ -254,7 +259,7 @@ BREAKPOINT-DAP - nil or the data comming from DAP."
         :fringe (if (and breakpoint-dap (gethash "verified" breakpoint-dap))
                     'dap-ui-breakpoint-verified-fringe
                   'breakpoint-disabled)
-        :priority 1))
+        :priority (+ dap-ui-overlay-priority 1)))
 
 (defun dap-ui--refresh-breakpoints ()
   "Refresh breakpoints in FILE-NAME.
@@ -291,7 +296,7 @@ DEBUG-SESSION the new breakpoints for FILE-NAME."
                      :char ">"
                      :bitmap 'right-triangle
                      :fringe 'dap-ui-compile-errline
-                     :priority 2))))
+                     :priority (+ dap-ui-overlay-priority 2)))))
 
 (defun dap-ui--stack-frame-changed (debug-session)
   "Handler for `dap-stack-frame-changed-hook'.
