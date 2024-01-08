@@ -38,7 +38,7 @@
 
 (defcustom dap-firefox-debug-program `("node"
                                        ,(f-join dap-firefox-debug-path
-                                                "extension/out/firefoxDebugAdapter.js"))
+                                                "extension/dist/adapter.bundle.js"))
   "The path to the firefox debugger."
   :group 'dap-firefox
   :type '(repeat string))
