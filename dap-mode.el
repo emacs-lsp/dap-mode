@@ -1964,7 +1964,7 @@ If the current session it will be terminated."
                             (dap--set-sessions))
                        (when (eq (dap--cur-session) debug-session)
                          (dap--switch-to-session nil))
-                       (when output-buffer (kill-buffer buffer))
+                       (when output-buffer (kill-buffer output-buffer))
                        (dap--refresh-breakpoints))))
     (if (not (dap--session-running debug-session))
         (funcall cleanup-fn)
