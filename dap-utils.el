@@ -102,13 +102,24 @@ PATH is the download destination dir."
                    (f-join dap-utils-extension-path "openvsx" (concat publisher "." name)))))
     (dap-utils--get-extension url dest)))
 
-(defun dap-utils-get-github-extension (owner repo version &optional path)
+(defun dap-utils-get-github-extension (owner repo &optional version path)
   "Get extension from github named OWNER/REPO with VERSION.
 PATH is the download destination path."
-  (let* ((url (format dap-utils-github-extension-url owner repo version))
+  (let* ((version (or version (dap-utils-get-github-extension-latest-version owner repo)))
+         (url (format dap-utils-github-extension-url owner repo version))
          (dest (or path
                    (f-join dap-utils-extension-path "github" (concat owner "." repo)))))
     (dap-utils--get-extension url dest)))
+
+(defun dap-utils-get-github-extension-latest-version (owner repo)
+  (let ((latest
+         (with-temp-buffer
+           (url-insert-file-contents
+            (format
+             "https://api.github.com/repos/%s/%s/releases/latest"
+             owner repo))
+           (json-parse-buffer :object-type 'plist))))
+    (car (last (split-string (plist-get latest :html_url) "/")))))
 
 (defun dap-utils-vscode-get-installed-extension-version (path)
   "Check the version of the vscode extension installed in PATH.
