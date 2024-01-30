@@ -48,23 +48,47 @@
 
 (defun dap-firefox--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
-  (-> conf
-      (dap--put-if-absent :dap-server-path dap-firefox-debug-program)
-      (dap--put-if-absent :type "Firefox")
-      (dap--put-if-absent :cwd default-directory)
-      (dap--put-if-absent :file (read-file-name "Select the file to open in the browser:" nil (buffer-file-name) t))
-      (dap--put-if-absent :name "Firefox Debug")))
+  (setq conf (-> conf
+                 (plist-put :type "firefox")
+                 (plist-put :dap-server-path dap-firefox-debug-program)
+                 (dap--put-if-absent :cwd (expand-file-name default-directory))))
+
+  (dap--plist-delete
+   (pcase (plist-get conf :mode)
+     ("url" (-> conf
+                (dap--put-if-absent :url (read-string
+                                          "Browse url: "
+                                          "http://localhost:5371" t))
+                (dap--put-if-absent :webRoot (lsp-workspace-root))))
+
+     ("file" (dap--put-if-absent conf :file
+		 (read-file-name "Select the file to open in the browser:" nil (buffer-file-name) t)))
+     (_ conf))
+   :mode))
 
 (dap-register-debug-provider "firefox" 'dap-firefox--populate-start-file-args)
 
-(dap-register-debug-template "Firefox Run Configuration"
+(dap-register-debug-template "Firefox Browse File"
                              (list :type "firefox"
+                                   :mode "file"
                                    :cwd nil
                                    :request "launch"
                                    :file nil
                                    :reAttach t
+				   :program nil
+                                   :name "Firefox Browse File"))
+
+(dap-register-debug-template "Firefox Browse URL"
+                             (list :type "firefox"
+                                   :mode "url"
+                                   :cwd nil
+                                   :request "launch"
+                                   :webRoot nil
+                                   :url nil
+                                   :reAttach t
                                    :program nil
-                                   :name "Firefox::Run"))
+                                   :name "Firefox Browse URL"))
+
 
 (provide 'dap-firefox)
 ;;; dap-firefox.el ends here
