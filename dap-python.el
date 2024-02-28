@@ -298,7 +298,7 @@ strings, for the sake of launch.json feature parity."
 
 (dap-register-debug-provider "python-test-at-point" 'dap-python--populate-test-at-point)
 (dap-register-debug-template "Python :: Run pytest (at point)"
-                             (list :type "python"
+                             (list :type "python-test-at-point"
                                    :args ""
                                    :program nil
                                    :module "pytest"
