@@ -1,5 +1,5 @@
 (package "dap-mode"
-         "0.7"
+         "0.8"
          "Debug Adapter Protocol mode")
 
 (website-url "https://github.com/emacs-lsp/dap-mode")

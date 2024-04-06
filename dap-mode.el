@@ -19,7 +19,7 @@
 ;; Keywords: languages, debug
 ;; URL: https://github.com/emacs-lsp/dap-mode
 ;; Package-Requires: ((emacs "27.1") (dash "2.18.0") (lsp-mode "6.0") (bui "1.1.0") (f "0.20.0") (s "1.12.0") (lsp-treemacs "0.1") (posframe "0.7.0") (ht "2.3") (lsp-docker "1.0.0"))
-;; Version: 0.7
+;; Version: 0.8
 
 ;;; Commentary:
 ;; Debug Adapter Protocol client for Emacs.
