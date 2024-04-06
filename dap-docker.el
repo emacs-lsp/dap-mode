@@ -15,12 +15,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;; Author: Andrei Mochalov <factyy@gmail.com>
-;; Keywords: languages, debug, docker
-;; URL: https://github.com/emacs-lsp/dap-mode
-;; Package-Requires: ((emacs "26.1") (dash "2.18.0") (lsp-mode "6.0") (f "0.20.0") (s "1.12.0") (ht "2.3") (lsp-docker "1.0.0") (yaml "0.2.0"))
-;; Version: 0.2
-
 ;;; Commentary:
 ;; Debug Adapter Protocol client support for Emacs and docker-wrapped servers.
 
@@ -37,25 +31,26 @@
 
 (defvar dap-docker-supported-server-types-subtypes
   (ht ('docker (list 'container 'image)))
-  "A list of all supported server types and subtypes, currently only docker is supported")
+  "A list of all supported server types and subtypes, currently only docker
+is supported.")
 
 (defun dap-docker--is-enabled? (config)
   "Check whether debugging is enabled"
   (-when-let* ((server-info (gethash 'debug config))
                (server-enabled (gethash 'enabled server-info)))
-      (not (equal server-enabled :false))))
+    (not (equal server-enabled :false))))
 
 (defun dap-docker--get-debug-provider-name (config)
   "Get the debug provider name also checking whether debugging is enabled"
   (-if-let* ((server-info (gethash 'debug config))
-               (server-enabled (dap-docker--is-enabled? config)))
+             (server-enabled (dap-docker--is-enabled? config)))
       (gethash 'provider server-info)
     (user-error "Either debug is not enabled or the config is invalid!")))
 
 (defun dap-docker--get-debug-template-name (config)
   "Get the debug template name also checking whether debugging is enabled"
   (-if-let* ((server-info (gethash 'debug config))
-               (server-enabled (dap-docker--is-enabled? config)))
+             (server-enabled (dap-docker--is-enabled? config)))
       (gethash 'template server-info)
     (user-error "Either debug is not enabled or the config is invalid!")))
 
@@ -105,7 +100,8 @@
     (gethash 'launch_command server-info)))
 
 (defun dap-docker--check-server-type-subtype (supported-server-types-subtypes server-type-subtype)
-  "Verify that the combination of server (type . subtype) is supported by the current implementation"
+  "Verify that the combination of server (type . subtype) is supported by the
+current implementation"
   (if (not server-type-subtype)
       (user-error "No server type and subtype specified!"))
   (if (ht-find (lambda (type subtypes)
@@ -124,7 +120,8 @@
           path-mappings))
 
 (defun dap-docker--verify-path-mappings-against-container (path-mappings container-name)
-  "Verify that specified path mappings are all included in container's path mappings"
+  "Verify that specified path mappings are all included in container's
+path mappings."
   (--all? (let ((source (car it))
                 (destination (cdr it)))
             (-any? (lambda (mapping)
@@ -141,9 +138,9 @@
            "'{{json .Mounts}}'"
            (s-split " " (format "%s container inspect -f '{{.Mounts}}' %s" lsp-docker-command container-name)))))
     (-let (((exit-code . raw-output) (with-temp-buffer
-                                  (cons
-                                   (apply #'call-process inspection-command-program nil (current-buffer) nil inspection-command-arguments)
-                                   (buffer-string)))))
+                                       (cons
+                                        (apply #'call-process inspection-command-program nil (current-buffer) nil inspection-command-arguments)
+                                        (buffer-string)))))
       (if (equal exit-code 0)
           (let* ((output (s-chop-prefix "'" (s-chop-suffix "'" (s-chomp raw-output))))
                  (raw-mappings (append (json-parse-string output) nil)) ; using append to convert a vector to a list
@@ -155,7 +152,8 @@
 (defconst dap-docker-container-start-string "docker start -i &name&")
 
 (defun dap-docker--prepare-image-start-path (image-name path-mappings entrypoint)
-  "Get a command (splitted by spaces in a list form) for launching a server in a docker image"
+  "Get a command (splitted by spaces in a list form) for launching a server in
+a docker image."
   (let* ((command (copy-sequence dap-docker-image-start-string))
          (mappings-list (--map (s-join " " (list "-v" (s-join ":" (list (car it) (cdr it))))) path-mappings))
          (mappings (s-join " " mappings-list)))
@@ -165,13 +163,14 @@
          (s-replace "&entrypoint&" entrypoint it))))
 
 (defun dap-docker--prepare-container-start-path (container-name _ _)
-  "Get a command (splitted by spaces in a list form) for launching a server in a docker container"
+  "Get a command (splitted by spaces in a list form) for launching a server in
+a docker container."
   (let ((command (copy-sequence dap-docker-container-start-string)))
     (--> command
          (s-replace "&name&" container-name it))))
 
 (defun dap-docker--get-dockerized-debug-provider-name (debug-provider-name project-root)
-  "Create a new debug provider name using the original one and the project root"
+  "Create a new debug provider name using the original one and the project root."
   (s-join "-"
           (list
            (->> project-root
@@ -212,8 +211,8 @@
   "Make a particular debug provider docker-aware in a project folder"
   (-if-let* ((original-debug-provider (gethash debug-provider-name dap--debug-providers)))
       (dap-register-debug-provider (dap-docker--get-dockerized-debug-provider-name debug-provider-name project-root)
-               `(lambda (conf)
-                  (funcall #'dap-docker--dockerize-start-file-args (funcall (quote ,original-debug-provider) conf) ,project-config ,project-root)))))
+                                   `(lambda (conf)
+                                      (funcall #'dap-docker--dockerize-start-file-args (funcall (quote ,original-debug-provider) conf) ,project-config ,project-root)))))
 
 (defun dap-docker--dockerize-debug-template (debug-template-name project-config project-root)
   "Make a particular debug template docker-aware in a project folder"

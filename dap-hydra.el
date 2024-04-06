@@ -1,4 +1,4 @@
-;;; hydra-dap.el --- dap-mode integration with hydra -*- lexical-binding: t; -*-
+;;; hydra-dap.el --- dap-mode integration with hydra  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018  Ivan Yonchovski
 
@@ -17,11 +17,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-;; URL: https://github.com/emacs-lsp/dap-mode
-;; Package-Requires: ((emacs "25.1") (hydra "0.14.0"))
-;; Version: 0.2
-;; Hydra
 
 ;;; Commentary:
 ;; Defines hydra for `dap-mode' operations

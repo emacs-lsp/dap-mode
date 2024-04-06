@@ -72,7 +72,7 @@ With prefix, FORCED to redownload the extension."
 
       ;; This may become unnecessary once https://github.com/WebFreak001/code-debug/issues/344 is resolved.
       (dap--put-if-absent :valuesFormatting "prettyPrinters")))
-      
+
 
 (dap-register-debug-provider "gdb" 'dap-gdb-lldb--populate-gdb)
 (dap-register-debug-template "GDB Run Configuration"
@@ -96,7 +96,7 @@ With prefix, FORCED to redownload the extension."
 
       ;; This may become unnecessary once https://github.com/WebFreak001/code-debug/issues/344 is resolved.
       (dap--put-if-absent :valuesFormatting "prettyPrinters")))
-      
+
 
 (dap-register-debug-provider "gdbserver" 'dap-gdb-lldb--populate-gdbserver)
 (dap-register-debug-template "GDBServer Connect Configuration"
@@ -110,7 +110,7 @@ With prefix, FORCED to redownload the extension."
                                    :env nil
                                    :showDevDebugOutput :json-false
                                    :printCalls :json-false))
-                                   
+
 
 (defcustom dap-gdb-lldb-path-lldb `("node" ,(expand-file-name (f-join dap-gdb-lldb-path "extension/out/src/lldb.js")))
   "The path to the LLDB debugger."
@@ -128,7 +128,7 @@ With prefix, FORCED to redownload the extension."
 
       ;; This may become unnecessary once https://github.com/WebFreak001/code-debug/issues/344 is resolved.
       (dap--put-if-absent :valuesFormatting "prettyPrinters")))
-      
+
 
 (dap-register-debug-provider "lldb-mi" 'dap-gdb-lldb--populate-lldb)
 (dap-register-debug-template "LLDB Run Configuration"
