@@ -18,17 +18,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;; URL: https://github.com/emacs-lsp/dap-mode
-;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0"))
-;; Version: 0.2
-
 ;;; Code:
 
 (require 'dap-mode)
 (require 'dap-utils)
 
 (defcustom dap-edge-debug-path (expand-file-name "vscode/msjsdiag.debugger-for-edge"
-                                                   dap-utils-extension-path)
+                                                 dap-utils-extension-path)
   "The path to edge vscode extension."
   :group 'dap-edge
   :type 'string)

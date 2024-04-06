@@ -106,10 +106,10 @@ and not from the current buffer."
 The return value of a VAR-CB invocation is ignored.
 
 Special case: if TREE (or one of its subtrees) is cons whose
-`cdr' does not satisfy `listp' (e.g. '(\"foo\" . \"bar\")), its
+`cdr' does not satisfy `listp' (e.g. `(\"foo\" . \"bar\")), its
 `car' is left as is and its `cdr' is expanded recursively. Note
 that a dotted pair whose `cdr' is a list cannot be told from a
-list. So, '(4 5) and '(4 . (5)) are `equal'. As such, you should
+list. So, `(4 5) and `(4 . (5)) are `equal'. As such, you should
 use plists when parsing from JSON.
 
 TREE can be a ...:

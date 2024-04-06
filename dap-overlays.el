@@ -91,7 +91,7 @@ Never throws errors, and can be used in an overlay's modification-hooks."
   "Place an overlay between L and R and return it.
 TYPE is a symbol put on the overlay's category property.  It is used to
 easily remove all overlays from a region with:
-    (remove-overlays start end 'category TYPE)
+    (remove-overlays start end `category TYPE)
 PROPS is a plist of properties and values to add to the overlay."
   (let ((o (make-overlay l (or r l) (current-buffer))))
     (overlay-put o 'category type)

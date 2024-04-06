@@ -18,10 +18,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;; URL: https://github.com/emacs-lsp/dap-mode
-;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0"))
-;; Version: 0.2
-
 ;;; Commentary:
 ;; Adapter for https://github.com/llvm-mirror/lldb/tree/master/tools/lldb-vscode
 
@@ -54,11 +50,11 @@
   '(progn
      (dap-register-debug-provider "lldb-vscode" 'dap-lldb--populate-start-file-args)
      (dap-register-debug-template "LLDB (VS Code) :: Run Configuration"
-                             (list :type "lldb-vscode"
-                                   :cwd nil
-                                   :request "launch"
-                                   :program nil
-                                   :name "LLDB::Run"))))
+                                  (list :type "lldb-vscode"
+                                        :cwd nil
+                                        :request "launch"
+                                        :program nil
+                                        :name "LLDB::Run"))))
 
 (provide 'dap-lldb)
 ;;; dap-lldb.el ends here
