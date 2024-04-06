@@ -18,10 +18,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;; URL: https://github.com/emacs-lsp/dap-mode
-;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0"))
-;; Version: 0.2
-
 ;;; Commentary:
 ;; Adapter for https://marketplace.visualstudio.com/items?itemName=Unity.unity-debug
 
@@ -31,24 +27,24 @@
 (require 'dap-utils)
 
 (defcustom dap-unity-debug-path (expand-file-name "vscode/Unity.unity-debug"
-                                                   dap-utils-extension-path)
+                                                  dap-utils-extension-path)
   "The path to unity-debug vscode extension."
   :group 'dap-unity
   :type 'string)
 
 (defcustom dap-unity-debug-program (expand-file-name "extension/bin/UnityDebug.exe"
-						     dap-unity-debug-path)
+                                                     dap-unity-debug-path)
   "The path to the unity debugger."
   :group 'dap-unity
   :type 'string)
 
 (dap-utils-vscode-setup-function "dap-unity" "Unity" "unity-debug"
                                  dap-unity-debug-path
-				 nil
-				 (lambda () ;; After adapter is downloaded, flag the debugger as executable
-				   (unless (eq system-type 'windows-nt)
-				     (shell-command
-				      (concat "chmod u+x " dap-unity-debug-program)))))
+                                 nil
+                                 (lambda () ;; After adapter is downloaded, flag the debugger as executable
+                                   (unless (eq system-type 'windows-nt)
+                                     (shell-command
+                                      (concat "chmod u+x " dap-unity-debug-program)))))
 
 (defun dap-unity--populate-start-file-args (conf)
   "Populate CONF with the required arguments."

@@ -16,10 +16,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; URL: https://github.com/emacs-lsp/dap-mode
-;; Package-Requires: ((emacs "25.1"))
-;; Version: 0.2
-
 ;;; Commentary:
 ;; Use `dap-overlays--make-overlay' to place a generic overlay at point. Or use
 ;; `dap-overlays--make-result-overlay' to place an interactive eval result overlay at
@@ -113,9 +109,9 @@ This function also removes itself from `post-command-hook'."
   (add-hook 'post-command-hook #'dap-overlays--remove-result-overlay nil 'local))
 
 (cl-defun dap-overlays--make-result-overlay (value &rest props &key where duration (type 'result)
-                                        (format (concat " " dap-overlays-eval-result-prefix "%s "))
-                                        (prepend-face 'dap-result-overlay-face)
-                                        &allow-other-keys)
+                                                   (format (concat " " dap-overlays-eval-result-prefix "%s "))
+                                                   (prepend-face 'dap-result-overlay-face)
+                                                   &allow-other-keys)
   "Place an overlay displaying VALUE at the end of line.
 VALUE is used as the overlay's after-string property, meaning it is
 displayed at the end of the overlay.  The overlay itself is placed from

@@ -18,9 +18,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;; URL: https://github.com/emacs-lsp/dap-mode
-;; Version: 0.2
-
 ;;; Commentary:
 ;; Adapter for https://github.com/WebFreak001/code-debug
 

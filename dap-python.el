@@ -18,10 +18,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;; URL: https://github.com/emacs-lsp/dap-mode
-;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0"))
-;; Version: 0.2
-
 ;;; Commentary:
 ;; Adapter for ptvsd (https://github.com/Microsoft/ptvsd)
 
@@ -89,9 +85,9 @@ https://github.com/pyenv/pyenv-which-ext."
   ((&DocumentSymbol
     :name :kind
     :range (&Range :start (&Position :line start-line
-                                               :character start-character)
-                             :end (&Position :line end-line
-                                             :character end-character))))
+                                     :character start-character)
+                   :end (&Position :line end-line
+                                   :character end-character))))
   (make-dap-python--symbol
    :name name
    :type (alist-get kind lsp-symbol-kinds)

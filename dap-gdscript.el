@@ -36,22 +36,22 @@
 (defun dap-gdscript--populate-start-file-args (conf)
   "Populate CONF with the required arguments."
   (let ((conf (-> conf
-				  (dap--put-if-absent :host dap-gdscript-debug-host)
-				  (dap--put-if-absent :debugServer dap-gdscript-debug-port)
-				  (dap--put-if-absent :type "gdscript")
-				  (dap--put-if-absent :cwd default-directory)
-				  (dap--put-if-absent :name "Gdscript Debug")
-				  (dap--put-if-absent :args ""))))
-	conf))
+                  (dap--put-if-absent :host dap-gdscript-debug-host)
+                  (dap--put-if-absent :debugServer dap-gdscript-debug-port)
+                  (dap--put-if-absent :type "gdscript")
+                  (dap--put-if-absent :cwd default-directory)
+                  (dap--put-if-absent :name "Gdscript Debug")
+                  (dap--put-if-absent :args ""))))
+    conf))
 
 (dap-register-debug-provider "gdscript" #'dap-gdscript--populate-start-file-args)
 
 (dap-register-debug-template "Gdscript Run Configuration"
-							 (list :type "gdscript"
-								   :cwd nil
-								   :request "launch"
-								   :program nil
-								   :name "Gdscript::Run"))
+                             (list :type "gdscript"
+                                   :cwd nil
+                                   :request "launch"
+                                   :program nil
+                                   :name "Gdscript::Run"))
 
 (provide 'dap-gdscript)
 ;;; dap-gdscript.el ends here

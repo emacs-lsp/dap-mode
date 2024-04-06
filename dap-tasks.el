@@ -105,22 +105,22 @@ The order of presedence within vscode is:
 (defun dap-tasks-configuration-get-depends (conf)
   "Given a debug CONF, get an ordered list of all the dependant tasks."
   (cl-labels ((loop-fn (confs tasks)
-                       "Loop through TASKS to find all dependants."
-                       (-when-let* ((deps (-mapcat (lambda (task)
-                                                     (-if-let* (((&plist :dependsOn) task))
-                                                         (if (stringp dependsOn)
-                                                             (loop-fn
-                                                              (list (dap-tasks-get-configuration-by-label dependsOn))
-                                                              (append (list (dap-tasks-get-configuration-by-label dependsOn)) tasks))
-                                                           (loop-fn
-                                                            (cl-map 'list #'dap-tasks-get-configuration-by-label (append dependsOn nil))
-                                                            (append (cl-map 'list #'dap-tasks-get-configuration-by-label (append dependsOn nil)) tasks)))
-                                                       task))
-                                                   confs)))
-                         (cl-remove-duplicates
-                          (append deps tasks)
-                          :test (lambda (lhs rhs)
-                                  (string= (plist-get lhs :label) (plist-get rhs :label)))))))
+                "Loop through TASKS to find all dependants."
+                (-when-let* ((deps (-mapcat (lambda (task)
+                                              (-if-let* (((&plist :dependsOn) task))
+                                                  (if (stringp dependsOn)
+                                                      (loop-fn
+                                                       (list (dap-tasks-get-configuration-by-label dependsOn))
+                                                       (append (list (dap-tasks-get-configuration-by-label dependsOn)) tasks))
+                                                    (loop-fn
+                                                     (cl-map 'list #'dap-tasks-get-configuration-by-label (append dependsOn nil))
+                                                     (append (cl-map 'list #'dap-tasks-get-configuration-by-label (append dependsOn nil)) tasks)))
+                                                task))
+                                            confs)))
+                  (cl-remove-duplicates
+                   (append deps tasks)
+                   :test (lambda (lhs rhs)
+                           (string= (plist-get lhs :label) (plist-get rhs :label)))))))
     (-filter #'listp (loop-fn `(,conf) `(,conf)))))
 
 (defun dap-tasks-configuration-prepend-name (conf)
