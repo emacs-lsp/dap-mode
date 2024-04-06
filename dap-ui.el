@@ -57,6 +57,16 @@ number - expand N levels."
                  (number :tag "Expand level"))
   :group 'dap-ui)
 
+(defcustom dap-ui-sessions-expand-depth nil
+  "Sessions expand strategy.
+When nil - do not expand.
+t - expand recursively
+number - expand N levels."
+  :type '(choice (const :tag "Do not expand" nil)
+                 (const :tag "Expand recursively" t)
+                 (number :tag "Expand level"))
+  :group 'dap-ui)
+
 (defcustom dap-ui-overlay-priority 100
   "Overlay's base prioirty."
   :type 'integer
@@ -810,7 +820,7 @@ DEBUG-SESSION is the debug session triggering the event."
   (dap-ui--show-buffer
    (lsp-treemacs-render
     (dap-ui--sessions-tree)
-    " Debug Sessions " nil
+    " Debug Sessions " dap-ui-sessions-expand-depth
     dap-ui--sessions-buffer
     '(["Delete All Sessions" dap-delete-all-sessions])))
   (dap-ui-sessions-mode)
