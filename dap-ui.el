@@ -18,10 +18,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;; URL: https://github.com/emacs-lsp/dap-mode
-;; Package-Requires: ((emacs "25.1") (tree-mode "1.1.1.1") (bui "1.1.0"))
-;; Version: 0.2
-
 ;;; Commentary:
 ;; DAP Windows/overlays
 
@@ -447,15 +443,15 @@ DEBUG-SESSION is the debug session triggering the event."
         'point (cl-second file-data)))
 
 (bui-define-interface dap-ui-breakpoints-ui list
-                      :buffer-name "*Breakpoints*"
-                      :get-entries-function 'dap-ui--breakpoints-entries
-                      :format '((file-name dap-ui--get-file-info 30 t)
-                                (line nil 8 bui-list-sort-numerically-2)
-                                (verified  nil 8 t)
-                                (condition nil 25 t)
-                                (hit-condition nil 20 t)
-                                (log-message nil 15 t))
-                      :sort-key '(file-name))
+  :buffer-name "*Breakpoints*"
+  :get-entries-function 'dap-ui--breakpoints-entries
+  :format '((file-name dap-ui--get-file-info 30 t)
+            (line nil 8 bui-list-sort-numerically-2)
+            (verified  nil 8 t)
+            (condition nil 25 t)
+            (hit-condition nil 20 t)
+            (log-message nil 15 t))
+  :sort-key '(file-name))
 
 (defun dap-ui-breakpoints-goto ()
   "Go to breakpoint under cursor."
@@ -645,32 +641,32 @@ DEBUG-SESSION is the debug session triggering the event."
        (treemacs-pulse-on-failure "No node at point"))))
 
 (dap-ui-define-action dap-ui-session-select (:session)
-                      (dap--switch-to-session session))
+  (dap--switch-to-session session))
 
 (dap-ui-define-action dap-ui-thread-select (:session :thread-id)
-                      (setf (dap--debug-session-thread-id session) thread-id)
-                      (dap--switch-to-session session)
-                      (dap--select-thread-id session thread-id))
+  (setf (dap--debug-session-thread-id session) thread-id)
+  (dap--switch-to-session session)
+  (dap--select-thread-id session thread-id))
 
 (dap-ui-define-action dap-ui-delete-session (:session)
-                      (dap-delete-session session))
+  (dap-delete-session session))
 
 (dap-ui-define-action dap-ui-disconnect (:session)
-                      (dap-disconnect session))
+  (dap-disconnect session))
 
 (dap-ui-define-action dap-ui-continue (:session :thread-id)
-                      (dap-continue session thread-id))
+  (dap-continue session thread-id))
 
 (dap-ui-define-action dap-ui-restart-frame (:session :stack-frame)
-                      (dap-restart-frame session (gethash "id" stack-frame)))
+  (dap-restart-frame session (gethash "id" stack-frame)))
 
 (dap-ui-define-action dap-ui-select-stack-frame (:session :thread-id :stack-frame)
-                      (setf (dap--debug-session-thread-id session) thread-id
-                            (dap--debug-session-active-frame session) stack-frame)
-                      (dap--switch-to-session session))
+  (setf (dap--debug-session-thread-id session) thread-id
+        (dap--debug-session-active-frame session) stack-frame)
+  (dap--switch-to-session session))
 
 (dap-ui-define-action dap-ui-thread-stop (:session :thread-id)
-                      (dap-stop-thread-1 session thread-id))
+  (dap-stop-thread-1 session thread-id))
 
 (defvar dap-ui-session-mode-map
   (-doto (make-sparse-keymap)
@@ -840,13 +836,13 @@ array variables."
   :type 'number)
 
 (dap-ui-define-action dap-ui-set-variable-value (:session :variables-reference :value :name)
-                      (dap--send-message
-                       (dap--make-request "setVariable"
-                                          (list :variablesReference variables-reference
-                                                :name name
-                                                :value (read-string (format "Enter value for %s: " name ) value)))
-                       (dap--resp-handler)
-                       session))
+  (dap--send-message
+   (dap--make-request "setVariable"
+                      (list :variablesReference variables-reference
+                            :name name
+                            :value (read-string (format "Enter value for %s: " name ) value)))
+   (dap--resp-handler)
+   session))
 
 (defun dap-ui-render-variables (debug-session variables-reference &optional indexed-variables named-variables _node)
   "Render hierarchical variables for treemacs.
@@ -1032,7 +1028,7 @@ request."
   (dap-ui-expressions-refresh))
 
 (dap-ui-define-action dap-ui-expressions-mouse-remove (:expression)
-                      (dap-ui-expressions-remove expression))
+  (dap-ui-expressions-remove expression))
 
 (defun dap-ui-expressions-refresh ()
   (interactive)
@@ -1128,34 +1124,34 @@ request."
 (defvar dap-exception-breakpoints nil)
 
 (dap-ui-define-action dap-ui-breakpoints-toggle (:filter :session :default)
-                      (let ((type (plist-get (dap--debug-session-launch-args session) :type)))
-                        (setf (alist-get
-                               filter
-                               (alist-get type dap-exception-breakpoints nil nil #'string=)
-                               nil nil #'string=)
-                              (not (dap--breakpoint-filter-enabled
-                                    filter
-                                    type
-                                    default))))
-                      (dap--set-exception-breakpoints session #'dap-ui-breakpoints--refresh))
+  (let ((type (plist-get (dap--debug-session-launch-args session) :type)))
+    (setf (alist-get
+           filter
+           (alist-get type dap-exception-breakpoints nil nil #'string=)
+           nil nil #'string=)
+          (not (dap--breakpoint-filter-enabled
+                filter
+                type
+                default))))
+  (dap--set-exception-breakpoints session #'dap-ui-breakpoints--refresh))
 
 (dap-ui-define-action dap-ui-breakpoints-goto-breakpoint (:file-name :point)
-                      (select-window (get-mru-window (selected-frame) nil))
-                      (find-file file-name)
-                      (goto-char point))
+  (select-window (get-mru-window (selected-frame) nil))
+  (find-file file-name)
+  (goto-char point))
 
 (dap-ui-define-action dap-ui-breakpoint-delete (:file-name :breakpoint)
-                      (with-current-buffer (find-file-noselect file-name)
-                        (dap-breakpoint-delete breakpoint file-name)))
+  (with-current-buffer (find-file-noselect file-name)
+    (dap-breakpoint-delete breakpoint file-name)))
 
 (dap-ui-define-action dap-ui-breakpoint-condition (:file-name :breakpoint)
-                      (dap-breakpoint-condition file-name breakpoint))
+  (dap-breakpoint-condition file-name breakpoint))
 
 (dap-ui-define-action dap-ui-breakpoint-hit-condition (:file-name :breakpoint)
-                      (dap-breakpoint-hit-condition file-name breakpoint))
+  (dap-breakpoint-hit-condition file-name breakpoint))
 
 (dap-ui-define-action dap-ui-breakpoint-log-message (:file-name :breakpoint)
-                      (dap-breakpoint-log-message file-name breakpoint))
+  (dap-breakpoint-log-message file-name breakpoint))
 
 (defun dap-ui--breakpoints-data ()
   (-let (((debug-session &as &dap-session 'launch-args 'current-capabilities 'breakpoints all-session-breakpoints)
