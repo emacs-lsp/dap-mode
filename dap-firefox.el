@@ -48,7 +48,7 @@
       (dap--put-if-absent :dap-server-path dap-firefox-debug-program)
       (dap--put-if-absent :type "Firefox")
       (dap--put-if-absent :cwd default-directory)
-      (dap--put-if-absent :file (read-file-name "Select the file to open in the browser:" nil (buffer-file-name) t))
+      (dap--put-if-absent :file (expand-file-name (read-file-name "Select the file to open in the browser:" nil (buffer-file-name) t)))
       (dap--put-if-absent :name "Firefox Debug")))
 
 (dap-register-debug-provider "firefox" 'dap-firefox--populate-start-file-args)
