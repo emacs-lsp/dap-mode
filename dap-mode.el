@@ -456,7 +456,11 @@ This is in contrast to merely setting it to 0."
     (make-directory (file-name-directory file) t)
     (with-temp-file file
       (erase-buffer)
-      (insert (prin1-to-string to-persist)))))
+      ;; Starting with Emacs 29, `prin1' takes an optional third argument
+      ;; which removes the need for these default bindings.
+      (let ((print-length nil)
+            (print-level nil))
+        (insert (prin1-to-string to-persist))))))
 
 (defun dap--set-sessions (debug-sessions)
   "Update list of debug sessions for WORKSPACE to DEBUG-SESSIONS."
