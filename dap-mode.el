@@ -455,12 +455,11 @@ This is in contrast to merely setting it to 0."
       "Failed to persist file: %S"
     (make-directory (file-name-directory file) t)
     (with-temp-file file
-      (erase-buffer)
       ;; Starting with Emacs 29, `prin1' takes an optional third argument
       ;; which removes the need for these default bindings.
       (let ((print-length nil)
             (print-level nil))
-        (insert (prin1-to-string to-persist))))))
+        (prin1 to-persist (current-buffer))))))
 
 (defun dap--set-sessions (debug-sessions)
   "Update list of debug sessions for WORKSPACE to DEBUG-SESSIONS."
@@ -921,14 +920,13 @@ an OUTPUT-BODY."
 (defun dap--print-to-output-buffer (debug-session str)
   "Insert content from STR into the output buffer associated with DEBUG-SESSION."
   (with-current-buffer (get-buffer-create (dap--debug-session-output-buffer debug-session))
-    (font-lock-mode t)
-    (setq-local buffer-read-only nil)
-    (if (and (eq (current-buffer) (window-buffer (selected-window)))
-             (not (= (point) (point-max))))
-        (save-excursion
-          (dap--insert-at-point-max str))
-      (dap--insert-at-point-max str))
-    (setq-local buffer-read-only t))
+    (turn-on-font-lock)
+    (let ((inhibit-read-only t))
+      (if (and (eq (current-buffer) (window-buffer))
+               (not (eobp)))
+          (save-excursion
+            (dap--insert-at-point-max str))
+        (dap--insert-at-point-max str))))
   (when (and dap-auto-show-output
              (not (dap--debug-session-output-displayed debug-session)))
     (setf (dap--debug-session-output-displayed debug-session) t)
@@ -1917,7 +1915,7 @@ the new template can be used normally with `dap-debug'"
                              (emacs-lisp-mode)
                              (current-buffer)))
     (goto-char (point-max))
-    (when (s-blank? (buffer-string))
+    (when (bobp) ;; Empty (accessible portion of) buffer.
       (insert ";; Eval Buffer with `M-x eval-buffer' to register the newly created template."))
     (insert
      (format "\n\n(dap-register-debug-template\n  \"%s%s\"\n"
@@ -1926,13 +1924,12 @@ the new template can be used normally with `dap-debug'"
     (insert "  (list ")
     (-let ((column (current-column))
            ((fst snd . rst) debug-args))
-      (insert (format "%s %s" fst (prin1-to-string snd)))
+      (insert (format "%s %s" fst snd))
       (cl-loop for (k v) on rst by #'cddr
-               do (if (not (equal k :program-to-start))
-                      (progn
-                        (insert "\n")
-                        (--dotimes column (insert " "))
-                        (insert (format "%s %s" k (prin1-to-string v)))))))
+               do (unless (eq k :program-to-start)
+                    (insert "\n")
+                    (insert-char ?\s column)
+                    (insert (format "%s %s" k v)))))
     (insert "))"))
   (pop-to-buffer "*DAP Templates*")
   (goto-char (point-max)))
