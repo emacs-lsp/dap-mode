@@ -221,10 +221,22 @@ strings, for the sake of launch.json feature parity."
        ;; them to unspecified instead. Some templates in this file set such
        ;; properties (e.g. :module) to nil instead of leaving them undefined. To
        ;; support them, sanitize CONF before passing it on.
-       (when program
-         (if module
-             (push program python-args)
-           (plist-put conf :program program)))
+       (if (string-equal module "flask")
+           ;; For flask module we need to strip filename from launch parameters
+           ;; parameters are mostly ("<pathToFile/file.py", "parameters")
+           ;; but when you launch flask, you should only launch run in the directory
+           ;; with flask app
+           ;; So in the next code we search for run in the array and everything before
+           ;; will be deleted. Else run original code
+           (catch 'found
+             (dolist (p python-args)
+               (when (equal p "run")
+                 (throw 'found p))
+               (cdr python-args)))
+           (when program
+             (if module
+                 (push program python-args)
+                 (plist-put conf :program program))))
 
        (cl-remf conf :args)
        (plist-put conf :args (or python-args []))
