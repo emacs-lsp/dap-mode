@@ -1,8 +1,8 @@
 ;;; dap-julia.el --- Debug Adapter Protocol mode for Julia      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018  Ivan Yonchovski
+;; Copyright (C) 2024  Michael Kovarik
 
-;; Author: Ivan Yonchovski <yyoncho@gmail.com>
+;; Author: Michael Kovarik <michaelkovarik@outlook.com>
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
