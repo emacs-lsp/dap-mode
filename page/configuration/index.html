@@ -568,6 +568,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#julia" class="md-nav__link">
+    Julia
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -987,6 +994,13 @@
         <li class="md-nav__item">
   <a href="#ocaml" class="md-nav__link">
     OCaml
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#julia" class="md-nav__link">
+    Julia
   </a>
   
 </li>
@@ -1757,6 +1771,15 @@ Core Attach (Console)" from <code>dap-debug</code> menu.</p>
 Note that this debugger <em>only</em> works with bytecode compiled OCaml programs.</p>
 </li>
 </ol>
+<h2 id="julia">Julia<a class="headerlink" href="#julia" title="Permanent link">#</a></h2>
+<p><a href="https://github.com/julia-vscode/DebugAdapter.jl">DebugAdapter.jl</a> is DAP-compatible server built on top of <a href="https://github.com/JuliaDebug/Debugger.jl">Debugger.jl</a>.</p>
+<p>To setup, first install <code>DebugAdapter.jl</code>:</p>
+<div class="highlight"><pre><span></span><code>$ julia -e &#39;import Pkg; Pkg.add(&quot;DebugAdapter&quot;)&#39;
+</code></pre></div>
+<p>Then add the following to your configuration:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-julia</span><span class="p">)</span>
+</code></pre></div>
+<p>To launch a debug session, call <code>dap-debug</code> with the <code>Julia Run Configuration</code> template.</p>
 
   <hr>
 <div class="md-source-file">
