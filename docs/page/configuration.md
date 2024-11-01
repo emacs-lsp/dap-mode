@@ -696,4 +696,23 @@ Core Attach (Console)" from `dap-debug` menu.
 
     Call `dap-debug` and edit the "OCaml Debug Template". Make sure to set the program field as the path of your *byte-code* compiled program.
     Note that this debugger _only_ works with bytecode compiled OCaml programs.
-  
+
+
+## Julia
+
+[DebugAdapter.jl](https://github.com/julia-vscode/DebugAdapter.jl) is DAP-compatible server built on top of [Debugger.jl](https://github.com/JuliaDebug/Debugger.jl).
+
+To setup, first install `DebugAdapter.jl`:
+
+```
+$ julia -e 'import Pkg; Pkg.add("DebugAdapter")'
+```
+
+Then add the following to your configuration:
+
+
+``` elisp
+(require 'dap-julia)
+```
+
+To launch a debug session, call `dap-debug` with the `Julia Run Configuration` template.
