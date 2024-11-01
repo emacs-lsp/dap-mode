@@ -27,7 +27,7 @@
 (require 'dap-utils)
 
 (defun dap-julia--find-project-root (dir)
-  "Search upwards from DIR to find the closest Project.toml or JuliaProject.toml file."
+  "Search upwards from DIR to find Julia project root."
   (let ((parent (file-name-directory (directory-file-name dir))))
     (cond
      ((or (file-exists-p (expand-file-name "Project.toml" dir))
@@ -49,7 +49,7 @@ session = DebugSession(conn); run(session); close(conn); end; end;\"" project-ro
         (dap--put-if-absent :cwd project-root)
         (dap--put-if-absent :name "Julia Debug")
         (dap--put-if-absent :debugServer port)
-        (dap--put-if-absent :host "localhost"1)
+        (dap--put-if-absent :host "localhost")
         (dap--put-if-absent :type "Julia")
         (dap--put-if-absent :program (buffer-file-name))
         (dap--put-if-absent :program-to-start command))))
