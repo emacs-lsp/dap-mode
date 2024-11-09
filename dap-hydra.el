@@ -62,7 +62,7 @@ _Q_: Disconnect     _sl_: List locals        _bl_: Set log message
   ("dr" dap-debug-recent)
   ("ds" dap-debug-restart)
   ("dl" dap-debug-last)
-  ("de" dap-debug-edit-template)
+  ("de" dap-debug-edit-template :exit t)
   ("ee" dap-eval)
   ("ea" dap-ui-expressions-add)
   ("er" dap-eval-region)
