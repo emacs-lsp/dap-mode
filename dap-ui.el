@@ -64,7 +64,7 @@ number - expand N levels."
   :group 'dap-ui)
 
 (defcustom dap-ui-overlay-priority 100
-  "Overlay's base prioirty."
+  "Overlay's base priority."
   :type 'integer
   :group 'dap-ui)
 
