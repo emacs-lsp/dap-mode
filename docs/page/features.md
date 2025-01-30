@@ -85,7 +85,7 @@ Breakpoints can be viewed after invoking `dap-ui-breakpoints`.
 
 ## Loaded sources
 
-Loaded sources can be viewed by invoking `dap-tm-loaded-sources`.
+Loaded sources can be viewed by requiring `dapui` and invoking `dapui-loaded-sources`.
 
 ## DAP debug REPL
 
