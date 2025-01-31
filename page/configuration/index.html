@@ -458,15 +458,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#lldb" class="md-nav__link">
-    LLDB
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#vscode-cpptools" class="md-nav__link">
-    vscode-cpptools
+  <a href="#c-and-c" class="md-nav__link">
+    C and C++
   </a>
   
 </li>
@@ -500,22 +493,50 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#native-debug-gdblldb" class="md-nav__link">
-    Native Debug (GDB/LLDB)
+  <a href="#native-debuging-c-c-rust-etc" class="md-nav__link">
+    Native Debuging (C, C++, Rust etc)
   </a>
   
-    <nav class="md-nav" aria-label="Native Debug (GDB/LLDB)">
+    <nav class="md-nav" aria-label="Native Debuging (C, C++, Rust etc)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#rust" class="md-nav__link">
-    Rust
+  <a href="#dap-gdb" class="md-nav__link">
+    dap-gdb
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dap-lldb" class="md-nav__link">
+    dap-lldb
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dap-cpptools" class="md-nav__link">
+    dap-cpptools
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dap-gdb-lldb" class="md-nav__link">
+    dap-gdb-lldb
   </a>
   
 </li>
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rust" class="md-nav__link">
+    Rust
+  </a>
   
 </li>
       
@@ -888,15 +909,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#lldb" class="md-nav__link">
-    LLDB
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#vscode-cpptools" class="md-nav__link">
-    vscode-cpptools
+  <a href="#c-and-c" class="md-nav__link">
+    C and C++
   </a>
   
 </li>
@@ -930,22 +944,50 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#native-debug-gdblldb" class="md-nav__link">
-    Native Debug (GDB/LLDB)
+  <a href="#native-debuging-c-c-rust-etc" class="md-nav__link">
+    Native Debuging (C, C++, Rust etc)
   </a>
   
-    <nav class="md-nav" aria-label="Native Debug (GDB/LLDB)">
+    <nav class="md-nav" aria-label="Native Debuging (C, C++, Rust etc)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#rust" class="md-nav__link">
-    Rust
+  <a href="#dap-gdb" class="md-nav__link">
+    dap-gdb
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dap-lldb" class="md-nav__link">
+    dap-lldb
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dap-cpptools" class="md-nav__link">
+    dap-cpptools
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dap-gdb-lldb" class="md-nav__link">
+    dap-gdb-lldb
   </a>
   
 </li>
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rust" class="md-nav__link">
+    Rust
+  </a>
   
 </li>
       
@@ -1272,48 +1314,8 @@ you are good to debug dart.</p>
 options to debug a device or emulator.</p>
 </li>
 </ol>
-<h2 id="lldb">LLDB<a class="headerlink" href="#lldb" title="Permanent link">#</a></h2>
-<ol>
-<li>
-<p>Installation</p>
-<p>LLDB is a debugger that supports, among others, C, C++, Objective-C
-and Swift.</p>
-<ul>
-<li>
-<p>Clone and follow the instructions to compile lldb-vscode from
-    <a href="https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-vscode">https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-vscode</a></p>
-</li>
-<li>
-<p>Put in your emacs configuration.</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-lldb</span><span class="p">)</span>
-</code></pre></div>
-</li>
-</ul>
-<p><strong>Note</strong>: For proper Swift support, you need to compile LLDB from
-<a href="https://github.com/apple/swift-lldb">https://github.com/apple/swift-lldb</a> and put the compiled LLDB
-library/framework in the "extensions" folder.</p>
-</li>
-</ol>
-<h2 id="vscode-cpptools">vscode-cpptools<a class="headerlink" href="#vscode-cpptools" title="Permanent link">#</a></h2>
-<ol>
-<li>Installation</li>
-</ol>
-<p>You only need to run <code>dap-cpptools-setup</code> to setup automatically and then
-you are good start debugging.</p>
-<div class="codehilite"><pre><span></span><code><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Clone</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="n">follow</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">instructions</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">compile</span><span class="w"> </span><span class="n">lldb</span><span class="o">-</span><span class="n">vscode</span><span class="w"> </span><span class="n">from</span><span class="w"></span>
-<span class="w">    </span><span class="o">&lt;</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">llvm</span><span class="o">/</span><span class="n">llvm</span><span class="o">-</span><span class="n">project</span><span class="o">/</span><span class="n">tree</span><span class="o">/</span><span class="n">main</span><span class="o">/</span><span class="n">lldb</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">lldb</span><span class="o">-</span><span class="n">vscode</span><span class="o">&gt;</span><span class="w"></span>
-
-<span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Put</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">your</span><span class="w"> </span><span class="n">emacs</span><span class="w"> </span><span class="n">configuration</span><span class="o">.</span><span class="w"></span>
-
-<span class="w">    </span><span class="err">```</span><span class="w"> </span><span class="n">elisp</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">require</span><span class="w"> </span><span class="s1">&#39;dap-cpptools)</span>
-<span class="w">    </span><span class="err">```</span><span class="w"></span>
-</code></pre></div>
-
-<ol>
-<li>Usage <code>dap-debug-edit-template</code> and select template "cpptools" prefixed
-    configuration.</li>
-</ol>
+<h2 id="c-and-c">C and C++<a class="headerlink" href="#c-and-c" title="Permanent link">#</a></h2>
+<p>Please see the <a href="#native_debugging">Native Debugging</a> section.</p>
 <h2 id="elixir">Elixir<a class="headerlink" href="#elixir" title="Permanent link">#</a></h2>
 <p>Make sure that you have properly configured <code>Elixir</code> and that you have
 <a href="https://github.com/elixir-lsp/elixir-ls">Elixir LS</a> binaries on the
@@ -1357,32 +1359,207 @@ the running thread (<code>dap-switch-thread</code>) and then <code>dap-step-in</
 </code></pre></div></li>
 <li>Run <code>dap-debug</code> in a Prolog buffer and start debugging.</li>
 </ol>
-<h2 id="native-debug-gdblldb">Native Debug (GDB/LLDB)<a class="headerlink" href="#native-debug-gdblldb" title="Permanent link">#</a></h2>
-<p>Using <a href="https://github.com/WebFreak001/code-debug">https://github.com/WebFreak001/code-debug</a></p>
+<h2 id="native-debuging-c-c-rust-etc"><a name="native_debugging"></a>Native Debuging (C, C++, Rust etc)<a class="headerlink" href="#native-debuging-c-c-rust-etc" title="Permanent link">#</a></h2>
+<p>There are a number of options for using <code>dap-mode</code> with languages which compile
+to native code. All of these use the <a href="https://sourceware.org/gdb/">GDB</a> or
+<a href="https://lldb.llvm.org/">LLDB</a> debuggers in one way or another.</p>
+<h3 id="dap-gdb"><code>dap-gdb</code><a class="headerlink" href="#dap-gdb" title="Permanent link">#</a></h3>
+<p>This package requires GDB version 14 or later. It communicates directly with the
+debugger using DAP JSON (without the need for an adapter layer), and there is no
+directly equivalent VSCode extension.</p>
+<p>This package registers two types of debugger:</p>
+<ul>
+<li><code>:type "gdb"</code></li>
+<li><code>:type "gdbserver"</code></li>
+</ul>
+<p>The latter allows debugging of programs which are running (usually remotely)
+under the
+<a href="https://sourceware.org/gdb/current/onlinedocs/gdb.html/Server.html"><code>gdbserver</code></a>
+program.</p>
 <ol>
 <li>
-<p>Configuration</p>
-<p>For easier of setting up vscode extension, you only need call
-<code>dap-gdb-lldb-setup</code> after requiring <code>dap-gdb-lldb</code>.</p>
-<p>Or download and extract <a href="https://marketplace.visualstudio.com/items?itemName=webfreak.debug">VSCode
+<p>Installation</p>
+<p>Please ensure that you have GDB version 14 or later installed on your
+system, and add the following line to your Emacs setup:
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-gdb</span><span class="p">)</span>
+</code></pre></div>
+If <code>gdb</code> is not on your <code>PATH</code>, set or customize <code>dap-gdb-debug-program</code> with
+the flags requried to start it in DAP mode, e.g.:
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">setq</span> <span class="nv">dap-gdb-debug-program</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;/path/to/gdb&quot;</span> <span class="s">&quot;-i&quot;</span> <span class="s">&quot;dap&quot;</span><span class="p">))</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Usage</p>
+<p>Create a configuration with <kbd>M-x</kbd> <code>dap-debug-edit-template</code>, using
+either "GDB Run Configuration" or "GDBServer Connect Configuration" as the
+base settings. See the <a href="https://sourceware.org/gdb/current/onlinedocs/gdb.html/Debugger-Adapter-Protocol.html">GDB
+documentation</a>
+for full descriptions of launch configuration options.</p>
+<p><strong>Note</strong> you must set the <code>:program</code> property in your debug template,
+otherwise you will get an error when the debugger attempts to execute your
+source file.</p>
+</li>
+</ol>
+<h3 id="dap-lldb"><code>dap-lldb</code><a class="headerlink" href="#dap-lldb" title="Permanent link">#</a></h3>
+<p>LLDB is a debugger that supports, among others, C, C++, Objective-C and
+Swift. LLDB supports direct communication with the debugger using DAP JSON,
+without an adapter layer, similar to newer versions of GDB. Unlike GDB, the DAP
+server is provided by a separate binary which ships with the main LLDB command
+tool. The binary is called <code>lldb-vscode</code> on older versions, and is called
+<code>lldb-dap</code> since version 18.</p>
+<p>This package registers a single debugger type:</p>
+<ul>
+<li><code>:type lldb-vscode</code></li>
+</ul>
+<p>The official VSCode extension is <a href="https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.lldb-dap">LLDB
+DAP</a>,
+although it is not necessary to install this to use <code>dap-lldb</code> in Emacs.</p>
+<ol>
+<li>
+<p>Installation</p>
+<p>Ensure that you have the command-line program <code>lldb-dap</code> (or <code>lldb-vscode</code>)
+installed on your system. If you want to build the tool from scratch, clone
+and follow the instructions to compile lldb-dap from:</p>
+<p><a href="https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-dap">https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-dap</a></p>
+<p><strong>Note</strong>: For proper Swift support, you need to compile LLDB from
+<a href="https://github.com/apple/swift-lldb">https://github.com/apple/swift-lldb</a>.</p>
+<p>Then put the following in your emacs configuration:
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-lldb</span><span class="p">)</span>
+</code></pre></div></p>
+<p>This package expects to find the <code>lldb-vscode</code> program in the extensions
+folder used by VSCode. If you have this installed elsewhere, or are using
+the more modern <code>lldb-dap</code> version, you will need to set or customize
+<code>dap-lldb-debug-program</code> appropriately:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">setq</span> <span class="nv">dap-lldb-debug-program</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;/path/to/lldb-dap&quot;</span><span class="p">))</span>
+</code></pre></div>
+</li>
+<li>
+<p>Usage</p>
+<p>Create a configuration with <kbd>M-x</kbd> <code>dap-debug-edit-template</code>,
+selecting the template prefixed "LLDB (VS Code)" for the base
+settings. Detailed descriptions of the launch configuration options are
+provided in the <a href="https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-dap">LLDB DAP
+README</a>. Remember
+to set the <code>:program</code> property to the path to the binary you wish to debug.</p>
+</li>
+</ol>
+<h3 id="dap-cpptools"><code>dap-cpptools</code><a class="headerlink" href="#dap-cpptools" title="Permanent link">#</a></h3>
+<p>This package utilizes the official Microsoft extension <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools">VSCode
+CPPTools</a>,
+which ships with a debug adapter which translates DAP JSON into GDB's <a href="https://sourceware.org/gdb/current/onlinedocs/gdb.html/GDB_002fMI.html">Machine
+Interface (MI)
+protocol</a>,
+(used by many debugger GUIs, including Emacs' built-in gud debugger). It
+therefore works with older versions of GDB which do not support the DAP protocol
+directly. The adapter is written in C# and is called
+<a href="https://github.com/microsoft/MIEngine/wiki/Architecture-of-OpenDebugAD7">OpenDebugAD7</a>. The
+installation steps below will install this program as an executable binary on
+your system, so it can be used by this package.</p>
+<p>This package registers a single debugger type:</p>
+<ul>
+<li><code>:type cpptools</code></li>
+</ul>
+<p>which uses the OpenDebugAD7 adapter to run GDB debugging sessions.</p>
+<ol>
+<li>
+<p>Installation</p>
+<p>Add the following to your Emacs configuration:
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-cpptools</span><span class="p">)</span>
+</code></pre></div></p>
+<p>A one-time step is required to download the extension and set it up
+automatically - <kbd>M-x</kbd> <code>dap-cpptools-setup</code> - then you are good
+start debugging. Note that this will download the extension from the address
+specified in <code>dap-cpptools-download-url</code>, which is by default set to a
+specific release under
+<a href="https://github.com/microsoft/vscode-cpptools/releases">https://github.com/microsoft/vscode-cpptools/releases</a>.</p>
+<p>The location of the OpenDebugAD7 binary is specified by
+<code>dap-cpptools-debug-program</code>, which can be customized if needed.</p>
+</li>
+<li>
+<p>Usage</p>
+<p>Run <kbd>M-x</kbd> <code>dap-debug-edit-template</code> and select the "cpptools"
+prefixed template as a base. Additional configuration options are documented
+on the extension's <a href="https://code.visualstudio.com/docs/cpp/launch-json-reference">official
+page</a>.</p>
+</li>
+</ol>
+<h3 id="dap-gdb-lldb"><code>dap-gdb-lldb</code><a class="headerlink" href="#dap-gdb-lldb" title="Permanent link">#</a></h3>
+<p>This package uses the VSCode extension <a href="https://marketplace.visualstudio.com/items?itemName=webfreak.debug">WebFreak Native
+Debug</a>. This
+extension is written in Typescript and implements a DAP JSON to MI
+translation layer, similar to the CPPTools extension. The extension advertizes
+support for both GDB and LLDB - LLDB support requires the additional binary
+<code>lldb-mi</code>; to install this follow the instructions in the link above.</p>
+<p>This package registers several debugger types:</p>
+<ul>
+<li><code>:type gdb</code></li>
+<li><code>:type gdbserver</code></li>
+<li><code>:type lldb-mi</code></li>
+</ul>
+<p>Note that the first two conflict with the types registered by the <code>dap-gdb</code>
+package, so you must avoid adding both <code>dap-gdb</code> and <code>dap-gdb-lldb</code> to your
+Emacs configuration.</p>
+<p>The source code for the extension may be found at
+<a href="https://github.com/WebFreak001/code-debug">https://github.com/WebFreak001/code-debug</a>.</p>
+<ol>
+<li>
+<p>Installation</p>
+<p>Add the following to your Emacs configuration:
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-gdb-lldb</span><span class="p">)</span>
+</code></pre></div></p>
+<p>If you do not have the VSCode extension installed already, you can install it with
+<kbd>M-x</kbd> <code>dap-gdb-lldb-setup</code>. Or download and extract <a href="https://marketplace.visualstudio.com/items?itemName=webfreak.debug">VSCode
 extension</a>
 (make sure that <code>dap-gdb-lldb-path</code> is pointing to the extract
 location).</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-gdb-lldb</span><span class="p">)</span>
-</code></pre></div>
-<p>Then do <code>dap-debug</code> or <code>dap-debug-edit-template</code> and selet GBD or
-LLDB configuration.</p>
+<p>You will also need to have <a href="https://nodejs.org/">NodeJS</a> installed on your
+system, to run the adapter.</p>
+</li>
+<li>
+<p>Usage</p>
+<p>Run <kbd>M-x</kbd> <code>dap-debug-edit-template</code> and select one of the following
+base templates, depending on your needs:</p>
+<ul>
+<li>"GDB Run Configuration"</li>
+<li>"GDBServer Connect Configuration"</li>
+<li>"LLDB Run Configuration"</li>
+</ul>
+<p>See the project's <a href="https://github.com/WebFreak001/code-debug">README</a> for
+additional documentation on the launch configurations. <strong>Note</strong> - be sure to
+set the working directory (<code>:cwd</code> property) to an absolute path - the
+default may insert a tilde (~) shortcut for your home directory (which the
+adapter does not understand) and this will cause a launch failure with a
+misleading error message questioning the existence of the target binary.</p>
 </li>
 </ol>
-<h3 id="rust">Rust<a class="headerlink" href="#rust" title="Permanent link">#</a></h3>
-<p>To fully support rust and pretty printing of strings when debugging, remember to add set <code>gdbpath</code> to <code>rust-gdb</code> in your debug template. An example template would be</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-register-debug-template</span> <span class="s">&quot;Rust::GDB Run Configuration&quot;</span>
-                             <span class="p">(</span><span class="nf">list</span> <span class="nb">:type</span> <span class="s">&quot;gdb&quot;</span>
-                                   <span class="nb">:request</span> <span class="s">&quot;launch&quot;</span>
-                                   <span class="nb">:name</span> <span class="s">&quot;GDB::Run&quot;</span>
-                           <span class="nb">:gdbpath</span> <span class="s">&quot;rust-gdb&quot;</span>
-                                   <span class="nb">:target</span> <span class="no">nil</span>
-                                   <span class="nb">:cwd</span> <span class="no">nil</span><span class="p">))</span>
+<h2 id="rust">Rust<a class="headerlink" href="#rust" title="Permanent link">#</a></h2>
+<p>First, please see the <a href="#native_debugging">Native Debugging</a> section.</p>
+<p>The rustup tool (at least for the x86_64 toolchain) provides additional
+configuration for both GDB and LLDB to provide pretty-printers for standard Rust
+types. The most straightforward way to use this functionality is to configure
+the debug adapters to pick up these scripts rather than the debugger
+directly. For <code>dap-gdb</code>, you can configure the GDB debug program as follows
+(assuming <code>~/.cargo/bin</code> is in your <code>$PATH</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">setq</span> <span class="nv">dap-gdb-debug-program</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;rust-gdb&quot;</span> <span class="s">&quot;-i&quot;</span> <span class="s">&quot;dap&quot;</span><span class="p">))</span>
+</code></pre></div>
+<p>For the MI debug adapters, you can supply the debugger program as part of the
+launch configuration - for <code>dap-cpptools</code> the relevant property is
+<code>:miDebuggerPath</code>, and for <code>dap-gdb-lldb</code> it is <code>:gdbpath</code>.</p>
+<p>Another way to enable pretty-printing is to specify the relevant configuration
+steps as part of the launch intialization (and this is the only option for
+<code>dap-lldb</code>). Looking at the <code>rust-lldb</code> script in
+<code>~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin</code>, we see that it
+sources a python file to define the pretty printers, and then a command file to
+register them. The same things can be done as an initialization step when
+launching the DAP debugger, for example:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">dap-register-debug-template</span>
+ <span class="s">&quot;MyProgram&quot;</span>
+ <span class="p">(</span><span class="nf">list</span> <span class="nb">:type</span> <span class="s">&quot;lldb-vscode&quot;</span>
+       <span class="nb">:initCommands</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;command script import ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/etc/lldb_lookup.py&quot;</span>
+                       <span class="s">&quot;command source ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/etc/lldb_commands&quot;</span><span class="p">)</span>
+       <span class="nb">:request</span> <span class="s">&quot;launch&quot;</span>
+       <span class="o">...</span>
+ <span class="p">))</span>
 </code></pre></div>
 <h2 id="go">Go<a class="headerlink" href="#go" title="Permanent link">#</a></h2>
 <ol>
