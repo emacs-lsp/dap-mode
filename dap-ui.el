@@ -349,7 +349,7 @@ DEBUG-SESSION is the debug session triggering the event."
     ["Sessions" dap-ui-sessions]
     ["Locals" dap-ui-locals]
     ["Expressions" dap-ui-expressions]
-    ["Sources" dapui-loaded-sources]
+    ["Sources" dap-ui-loaded-sources]
     ["Output" dap-go-to-output-buffer]
     ["Breakpoints" dap-ui-breakpoints]
     "---"
@@ -1119,7 +1119,132 @@ request."
 (make-obsolete 'dap-ui-inspect-thing-at-point 'dap-ui-expressions-add "dap-mode 0.2")
 
 
+;; Loaded sources
+(defun dap-ui--loaded-sources-children (item)
+  (let ((children (cl-second item)))
+    (when (cl-first children)
+      (->> children
+           (dap-ui--sources-group-by-map #'cl-first #'cl-rest)
+           (-sort #'dap-ui--compare-source)))))
 
+(defun dap-ui--loaded-symbols-goto-path (&rest _args)
+  (-let* ((node (-some-> (treemacs-node-at-point)
+                         (button-get :key)))
+          ((source &as &hash "sourceReference" "path") (get-text-property 0 'source node)))
+    (if (f-exists? path)
+        (progn
+          (select-window (get-lru-window nil nil t))
+          (switch-to-buffer (find-file path)))
+      (dap--send-message
+       (dap--make-request "source"
+                          (list :source source
+                                :sourceReference sourceReference))
+       (-lambda ((&hash? "body" (&hash "content")))
+         (select-window (get-lru-window nil nil t))
+         (switch-to-buffer (get-buffer-create path))
+         (let ((inhibit-read-only t))
+           (erase-buffer)
+           (insert content)
+           (goto-char (point-min))
+           (setq-local buffer-file-name path)
+           (delay-mode-hooks (set-auto-mode))
+           (font-lock-ensure)))
+       (dap--cur-session)))))
+
+(defun dap-ui--loaded-sources-root ()
+  (let ((lsp-file-truename-cache (ht)))
+    (lsp-with-cached-filetrue-name
+     (let ((session (dap--cur-session)))
+       (when (dap--session-running session)
+         (->> (dap--debug-session-loaded-sources session)
+              (-filter (-lambda ((source &as &hash  "path")) path))
+              (-map (-lambda ((source &as &hash "path"))
+                      (let ((parts (f-split (if (f-absolute? path)
+                                                (let ((relativized (f-relative path (lsp-workspace-root path))))
+                                                  (if (string-prefix-p ".." relativized) ; do not relativize paths outside the workspace
+                                                      path
+                                                    relativized))
+                                              path))))
+                        (append (-butlast parts)
+                                (list (propertize (-last-item parts) 'source source))))))
+              (dap-ui--sources-group-by-map #'cl-first #'cl-rest)
+              (-sort 'dap-ui--compare-source)))))))
+
+(treemacs-define-variadic-entry-node-type dap-loaded-sources
+  :key 'DAP-Loaded-Sources
+  :label (propertize "DAP-Loaded-Sources" 'face 'font-lock-keyword-face)
+  :open-icon (dap-ui--calculate-sources-icon item t)
+  :closed-icon (dap-ui--calculate-sources-icon item nil)
+  :children (dap-ui--loaded-sources-root)
+  :child-type 'dap-loaded-sources-node
+  :more-properties `(:pth ,item))
+
+(treemacs-define-expandable-node-type dap-loaded-sources-node
+  :open-icon (dap-ui--calculate-sources-icon item t)
+  :closed-icon (dap-ui--calculate-sources-icon item nil)
+  :label (propertize (cl-first item) 'face 'default)
+  :key (cl-first item)
+  :children (dap-ui--loaded-sources-children (treemacs-button-get btn :pth))
+  :child-type 'dap-loaded-sources-node
+  :more-properties `(:pth ,item)
+  :ret-action 'dap-ui--loaded-symbols-goto-path)
+
+(defun dap-ui--sources-group-by-map (fn map-fn list)
+  (->> list
+       (-group-by fn)
+       (-map (-lambda ((fst . rst))
+               (list fst (-map map-fn rst))))))
+
+(defun dap-ui--compare-source (left right)
+  (if (dap-ui--source-is-dir? left)
+      (or (not (dap-ui--source-is-dir? right))
+          (string< (cl-first left)
+                   (cl-first right)))
+    (not (or (dap-ui--source-is-dir? right)
+             (string< (cl-first left)
+                      (cl-first right))))))
+
+(defun dap-ui--calculate-sources-icon (item open?)
+  (let ((dir? (dap-ui--source-is-dir? item)))
+    (concat
+     (cond
+      ((and dir? open?) " ▾ ")
+      (dir? " ▸ ")
+      (t "   "))
+     (if dir?
+         (treemacs-get-icon-value 'dir-open)
+       (treemacs-icon-for-file (cl-first item))))))
+
+
+(defun dap-ui--source-is-dir? (item)
+  (cl-first (cl-second item)))
+
+(defun dap-ui-sources-refresh (&rest _args)
+  (condition-case _err
+      (let ((inhibit-read-only t))
+        (with-current-buffer "*DAP Loaded Sources*"
+          (treemacs-update-node 'DAP-Loaded-Sources t)))
+    (error)))
+
+(defun dap-ui--cleanup-sources-hook ()
+  (remove-hook 'dap-terminated-hook 'dap-ui-sources-refresh)
+  (remove-hook 'dap-session-changed-hook 'dap-ui-sources-refresh))
+
+;;;###autoload
+(defun dap-ui-loaded-sources ()
+  (interactive)
+  (let* ((buffer (get-buffer-create "*DAP Loaded Sources*"))
+         (window (display-buffer-in-side-window buffer nil)))
+    (select-window window)
+    (set-window-dedicated-p window t)
+    (treemacs-initialize dap-loaded-sources
+      :and-do (setf treemacs-space-between-root-nodes t))
+    (add-hook 'dap-terminated-hook 'dap-ui-sources-refresh)
+    (add-hook 'dap-session-changed-hook 'dap-ui-sources-refresh)
+    (add-hook 'dap-loaded-sources-changed-hook 'dap-ui-sources-refresh)
+    (add-hook 'kill-buffer-hook 'dap-ui--cleanup-sources-hook nil t)))
+
+
 ;; Breakpoints - new
 (defvar dap-exception-breakpoints nil)
 
