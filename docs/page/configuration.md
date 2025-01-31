@@ -242,43 +242,9 @@ you are good to debug dart.
     [Flutter debug](https://github.com/emacs-lsp/lsp-dart#flutter) with
     options to debug a device or emulator.
 
-## LLDB
+## C and C++
 
-1.  Installation
-
-    LLDB is a debugger that supports, among others, C, C++, Objective-C
-    and Swift.
-
-      - Clone and follow the instructions to compile lldb-vscode from
-        <https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-vscode>
-
-      - Put in your emacs configuration.
-
-        ``` elisp
-        (require 'dap-lldb)
-        ```
-
-    **Note**: For proper Swift support, you need to compile LLDB from
-    <https://github.com/apple/swift-lldb> and put the compiled LLDB
-    library/framework in the "extensions" folder.
-
-## vscode-cpptools
-
-1.  Installation
-
-You only need to run `dap-cpptools-setup` to setup automatically and then
-you are good start debugging.
-
-      - Clone and follow the instructions to compile lldb-vscode from
-        <https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-vscode>
-
-      - Put in your emacs configuration.
-
-        ``` elisp
-        (require 'dap-cpptools)
-        ```
-2.  Usage `dap-debug-edit-template` and select template "cpptools" prefixed
-    configuration.
+Please see the [Native Debugging](#native_debugging) section.
 
 ## Elixir
 
@@ -341,38 +307,240 @@ the running thread (`dap-switch-thread`) and then `dap-step-in`.
    ```
 3. Run `dap-debug` in a Prolog buffer and start debugging.
 
-## Native Debug (GDB/LLDB)
+## <a name="native_debugging"></a>Native Debuging (C, C++, Rust etc)
 
-Using <https://github.com/WebFreak001/code-debug>
+There are a number of options for using `dap-mode` with languages which compile
+to native code. All of these use the [GDB](https://sourceware.org/gdb/) or
+[LLDB](https://lldb.llvm.org/) debuggers in one way or another.
 
-1.  Configuration
+### `dap-gdb`
 
-    For easier of setting up vscode extension, you only need call
-    `dap-gdb-lldb-setup` after requiring `dap-gdb-lldb`.
+This package requires GDB version 14 or later. It communicates directly with the
+debugger using DAP JSON (without the need for an adapter layer), and there is no
+directly equivalent VSCode extension.
 
-    Or download and extract [VSCode
-    extension](https://marketplace.visualstudio.com/items?itemName=webfreak.debug)
-    (make sure that `dap-gdb-lldb-path` is pointing to the extract
-    location).
+This package registers two types of debugger:
 
+* `:type "gdb"`
+* `:type "gdbserver"`
+
+The latter allows debugging of programs which are running (usually remotely)
+under the
+[`gdbserver`](https://sourceware.org/gdb/current/onlinedocs/gdb.html/Server.html)
+program.
+
+1.  Installation
+
+    Please ensure that you have GDB version 14 or later installed on your
+    system, and add the following line to your Emacs setup:
+    ``` elisp
+    (require 'dap-gdb)
+    ```
+    If `gdb` is not on your `PATH`, set or customize `dap-gdb-debug-program` with
+    the flags requried to start it in DAP mode, e.g.:
+    ``` elisp
+    (setq dap-gdb-debug-program '("/path/to/gdb" "-i" "dap"))
+    ```
+
+2.  Usage
+
+    Create a configuration with <kbd>M-x</kbd> `dap-debug-edit-template`, using
+    either "GDB Run Configuration" or "GDBServer Connect Configuration" as the
+    base settings. See the [GDB
+    documentation](https://sourceware.org/gdb/current/onlinedocs/gdb.html/Debugger-Adapter-Protocol.html)
+    for full descriptions of launch configuration options.
+
+    **Note** you must set the `:program` property in your debug template,
+    otherwise you will get an error when the debugger attempts to execute your
+    source file.
+
+### `dap-lldb`
+
+LLDB is a debugger that supports, among others, C, C++, Objective-C and
+Swift. LLDB supports direct communication with the debugger using DAP JSON,
+without an adapter layer, similar to newer versions of GDB. Unlike GDB, the DAP
+server is provided by a separate binary which ships with the main LLDB command
+tool. The binary is called `lldb-vscode` on older versions, and is called
+`lldb-dap` since version 18.
+
+This package registers a single debugger type:
+
+* `:type lldb-vscode`
+
+The official VSCode extension is [LLDB
+DAP](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.lldb-dap),
+although it is not necessary to install this to use `dap-lldb` in Emacs.
+
+1.  Installation
+
+    Ensure that you have the command-line program `lldb-dap` (or `lldb-vscode`)
+    installed on your system. If you want to build the tool from scratch, clone
+    and follow the instructions to compile lldb-dap from:
+
+    <https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-dap>
+
+    **Note**: For proper Swift support, you need to compile LLDB from
+    <https://github.com/apple/swift-lldb>.
+
+    Then put the following in your emacs configuration:
+    ``` elisp
+    (require 'dap-lldb)
+    ```
+
+    This package expects to find the `lldb-vscode` program in the extensions
+    folder used by VSCode. If you have this installed elsewhere, or are using
+    the more modern `lldb-dap` version, you will need to set or customize
+    `dap-lldb-debug-program` appropriately:
+
+    ``` elisp
+    (setq dap-lldb-debug-program '("/path/to/lldb-dap"))
+    ```
+
+2.  Usage
+
+    Create a configuration with <kbd>M-x</kbd> `dap-debug-edit-template`,
+    selecting the template prefixed "LLDB (VS Code)" for the base
+    settings. Detailed descriptions of the launch configuration options are
+    provided in the [LLDB DAP
+    README](https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-dap). Remember
+    to set the `:program` property to the path to the binary you wish to debug.
+
+
+### `dap-cpptools`
+
+This package utilizes the official Microsoft extension [VSCode
+CPPTools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools),
+which ships with a debug adapter which translates DAP JSON into GDB's [Machine
+Interface (MI)
+protocol](https://sourceware.org/gdb/current/onlinedocs/gdb.html/GDB_002fMI.html),
+(used by many debugger GUIs, including Emacs' built-in gud debugger). It
+therefore works with older versions of GDB which do not support the DAP protocol
+directly. The adapter is written in C# and is called
+[OpenDebugAD7](https://github.com/microsoft/MIEngine/wiki/Architecture-of-OpenDebugAD7). The
+installation steps below will install this program as an executable binary on
+your system, so it can be used by this package.
+
+This package registers a single debugger type:
+
+* `:type cpptools`
+
+which uses the OpenDebugAD7 adapter to run GDB debugging sessions.
+
+1.  Installation
+
+    Add the following to your Emacs configuration:
+    ``` elisp
+    (require 'dap-cpptools)
+    ```
+
+    A one-time step is required to download the extension and set it up
+    automatically - <kbd>M-x</kbd> `dap-cpptools-setup` - then you are good
+    start debugging. Note that this will download the extension from the address
+    specified in `dap-cpptools-download-url`, which is by default set to a
+    specific release under
+    <https://github.com/microsoft/vscode-cpptools/releases>.
+
+    The location of the OpenDebugAD7 binary is specified by
+    `dap-cpptools-debug-program`, which can be customized if needed.
+
+2.  Usage
+
+    Run <kbd>M-x</kbd> `dap-debug-edit-template` and select the "cpptools"
+    prefixed template as a base. Additional configuration options are documented
+    on the extension's [official
+    page](https://code.visualstudio.com/docs/cpp/launch-json-reference).
+
+
+### `dap-gdb-lldb`
+
+This package uses the VSCode extension [WebFreak Native
+Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug). This
+extension is written in Typescript and implements a DAP JSON to MI
+translation layer, similar to the CPPTools extension. The extension advertizes
+support for both GDB and LLDB - LLDB support requires the additional binary
+`lldb-mi`; to install this follow the instructions in the link above.
+
+This package registers several debugger types:
+
+* `:type gdb`
+* `:type gdbserver`
+* `:type lldb-mi`
+
+Note that the first two conflict with the types registered by the `dap-gdb`
+package, so you must avoid adding both `dap-gdb` and `dap-gdb-lldb` to your
+Emacs configuration.
+
+The source code for the extension may be found at
+<https://github.com/WebFreak001/code-debug>.
+
+1.  Installation
+
+    Add the following to your Emacs configuration:
     ``` elisp
     (require 'dap-gdb-lldb)
     ```
 
-    Then do `dap-debug` or `dap-debug-edit-template` and selet GBD or
-    LLDB configuration.
-    
-### Rust
-To fully support rust and pretty printing of strings when debugging, remember to add set `gdbpath` to `rust-gdb` in your debug template. An example template would be
+    If you do not have the VSCode extension installed already, you can install it with
+    <kbd>M-x</kbd> `dap-gdb-lldb-setup`. Or download and extract [VSCode
+    extension](https://marketplace.visualstudio.com/items?itemName=webfreak.debug)
+    (make sure that `dap-gdb-lldb-path` is pointing to the extract
+    location).
+
+    You will also need to have [NodeJS](https://nodejs.org/) installed on your
+    system, to run the adapter.
+
+2.  Usage
+
+    Run <kbd>M-x</kbd> `dap-debug-edit-template` and select one of the following
+    base templates, depending on your needs:
+
+    * "GDB Run Configuration"
+    * "GDBServer Connect Configuration"
+    * "LLDB Run Configuration"
+
+    See the project's [README](https://github.com/WebFreak001/code-debug) for
+    additional documentation on the launch configurations. **Note** - be sure to
+    set the working directory (`:cwd` property) to an absolute path - the
+    default may insert a tilde (~) shortcut for your home directory (which the
+    adapter does not understand) and this will cause a launch failure with a
+    misleading error message questioning the existence of the target binary.
+
+## Rust
+
+First, please see the [Native Debugging](#native_debugging) section.
+
+The rustup tool (at least for the x86_64 toolchain) provides additional
+configuration for both GDB and LLDB to provide pretty-printers for standard Rust
+types. The most straightforward way to use this functionality is to configure
+the debug adapters to pick up these scripts rather than the debugger
+directly. For `dap-gdb`, you can configure the GDB debug program as follows
+(assuming `~/.cargo/bin` is in your `$PATH`):
 
 ```elisp
-(dap-register-debug-template "Rust::GDB Run Configuration"
-                             (list :type "gdb"
-                                   :request "launch"
-                                   :name "GDB::Run"
-                		   :gdbpath "rust-gdb"
-                                   :target nil
-                                   :cwd nil))
+(setq dap-gdb-debug-program '("rust-gdb" "-i" "dap"))
+```
+
+For the MI debug adapters, you can supply the debugger program as part of the
+launch configuration - for `dap-cpptools` the relevant property is
+`:miDebuggerPath`, and for `dap-gdb-lldb` it is `:gdbpath`.
+
+Another way to enable pretty-printing is to specify the relevant configuration
+steps as part of the launch intialization (and this is the only option for
+`dap-lldb`). Looking at the `rust-lldb` script in
+`~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin`, we see that it
+sources a python file to define the pretty printers, and then a command file to
+register them. The same things can be done as an initialization step when
+launching the DAP debugger, for example:
+
+```elisp
+(dap-register-debug-template
+ "MyProgram"
+ (list :type "lldb-vscode"
+       :initCommands '("command script import ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/etc/lldb_lookup.py"
+                       "command source ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/etc/lldb_commands")
+       :request "launch"
+       ...
+ ))
 ```
 
 ## Go
