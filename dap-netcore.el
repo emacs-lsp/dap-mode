@@ -255,5 +255,16 @@ the function needs to examine, starting with FILE."
              (message "Process exited with status: %d" (process-exit-status process))
              (display-buffer attach-buffer))))))))
 
+(defun dap-netcore-debug-test (&optional directory)
+  "Debug .NET tests with optional params."
+  (interactive)
+  (let ((params '())
+        (filter (read-string "Filter: ")))
+    (unless (string-empty-p filter)
+      (push (concat params " --filter=" filter) params))
+    (when directory
+      (push directory params))
+    (dap-netcore-debug-test-init (string-join (reverse params) " "))))
+
 (provide 'dap-netcore)
 ;;; dap-netcore.el ends here
