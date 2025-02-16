@@ -195,5 +195,23 @@ the function needs to examine, starting with FILE."
                                    :name "NetCoreDbg::Launch"
                                    :dap-compilation "dotnet build"))
 
+(defun dap-netcore-debug-attach (pid)
+  "Attach the debugger to a .NET process with a given PID using the registered template."
+  (let* ((config-name ".Net Core Attach (Console)")
+         (config-cell (assoc config-name dap-debug-template-configurations))
+         (config-plist (cdr config-cell)))
+    (setcdr config-cell (plist-put config-plist :processId pid))
+    (dap-debug (cdr config-cell))))
+
+(defun dap-netcore-test-run (attach-buffer &optional args-string)
+  "Run .NET tests process to obtain PID to attach for debugging."
+  (with-environment-variables (("VSTEST_HOST_DEBUG" "1"))
+    (start-process "dap-netcore-attach-process"
+                   attach-buffer
+                   "dotnet"
+                   "test"
+                   "--verbosity=Quiet"
+                   (concat "" args-string))))
+
 (provide 'dap-netcore)
 ;;; dap-netcore.el ends here
