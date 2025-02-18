@@ -195,5 +195,76 @@ the function needs to examine, starting with FILE."
                                    :name "NetCoreDbg::Launch"
                                    :dap-compilation "dotnet build"))
 
+(defun dap-netcore-debug-attach (pid)
+  "Attach the debugger to a .NET process with a given PID using the registered template."
+  (let* ((config-name ".Net Core Attach (Console)")
+         (config-cell (assoc config-name dap-debug-template-configurations))
+         (config-plist (cdr config-cell)))
+    (setcdr config-cell (plist-put config-plist :processId pid))
+    (dap-debug (cdr config-cell))))
+
+(defun dap-netcore-test-run (attach-buffer &optional args-string)
+  "Run .NET tests process to obtain PID to attach for debugging."
+  (with-environment-variables (("VSTEST_HOST_DEBUG" "1"))
+    (start-process "dap-netcore-attach-process"
+                   attach-buffer
+                   "dotnet"
+                   "test"
+                   "--verbosity=Quiet"
+                   (concat "" args-string))))
+
+(defun dap-netcore-debug-tests-filter-pid (process output)
+  "Custom filter to extract PID from the process output in real-time."
+  (let ((buffer (process-buffer process)))
+    ;; Insert the output into the buffer
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        (let ((moving (= (point) (process-mark process))))
+          (save-excursion
+            (goto-char (process-mark process))
+            (insert output)
+            (set-marker (process-mark process) (point)))
+          (if moving (goto-char (process-mark process))))))
+    ;; Check for PID in the buffer
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        (save-excursion
+          (goto-char (point-min))
+          (when (search-forward "Process Id: " nil t)
+            (let ((pid-string (buffer-substring (point) (line-end-position))))
+              ;; Debug with PID
+              (dap-netcore-debug-attach (string-to-number pid-string))
+              ;; Remove the filter to avoid further checks
+              (set-process-filter process nil))))))))
+
+(defun dap-netcore-debug-test-init (&optional args-string)
+  "Prepare .NET process to attach its PID for debugging."
+  (let ((attach-buffer "*dap-netcore-attach*"))
+    ;; Kill existing buffer if it exists
+    (when (get-buffer attach-buffer)
+      (kill-buffer attach-buffer))
+    ;; Run dotnet process
+    (let ((dotnet-process (dap-netcore-test-run attach-buffer args-string)))
+      (when dotnet-process
+        (set-process-filter dotnet-process #'dap-netcore-debug-tests-filter-pid)
+        ;; Set process finalization event
+        (set-process-sentinel
+         dotnet-process
+         (lambda (process event)
+           (when (string-match "exited\\|finished" event)
+             (message "Process exited with status: %d" (process-exit-status process))
+             (display-buffer attach-buffer))))))))
+
+(defun dap-netcore-debug-test (&optional directory)
+  "Debug .NET tests with optional params."
+  (interactive)
+  (let ((params '())
+        (filter (read-string "Filter: ")))
+    (unless (string-empty-p filter)
+      (push (concat params " --filter=" filter) params))
+    (when directory
+      (push directory params))
+    (dap-netcore-debug-test-init (string-join (reverse params) " "))))
+
 (provide 'dap-netcore)
 ;;; dap-netcore.el ends here
