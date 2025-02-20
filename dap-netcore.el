@@ -207,15 +207,18 @@ the function needs to examine, starting with FILE."
     (setcdr config-cell (plist-put config-plist :processId pid))
     (dap-debug (cdr config-cell))))
 
-(defun dap-netcore-test-run (attach-buffer &optional args-string)
+(defun dap-netcore-test-run (attach-buffer &optional args-string directory)
   "Run .NET tests process to obtain PID to attach for debugging."
   (with-environment-variables (("VSTEST_HOST_DEBUG" "1"))
-    (start-process "dap-netcore-attach-process"
-                   attach-buffer
-                   "dotnet"
-                   "test"
-                   "--verbosity=Quiet"
-                   (concat "" args-string))))
+    (let ((args-list (append (list "dotnet"
+                                   "test"
+                                   "--configuration=Debug"
+                                   "--verbosity=Quiet"
+                                   "--nologo")
+                             (split-string-shell-command args-string))))
+      (when directory
+        (push directory args-list))
+      (apply #'start-process "dap-netcore-attach-process" attach-buffer args-list))))
 
 (defun dap-netcore-debug-tests-filter-pid (process output)
   "Custom filter to extract PID from the process output in real-time."
@@ -241,14 +244,14 @@ the function needs to examine, starting with FILE."
               ;; Remove the filter to avoid further checks
               (set-process-filter process nil))))))))
 
-(defun dap-netcore-debug-test-init (&optional args-string)
+(defun dap-netcore-debug-test-init (&optional args-string directory)
   "Prepare .NET process to attach its PID for debugging."
   (let ((attach-buffer "*dap-netcore-attach*"))
     ;; Kill existing buffer if it exists
     (when (get-buffer attach-buffer)
       (kill-buffer attach-buffer))
     ;; Run dotnet process
-    (let ((dotnet-process (dap-netcore-test-run attach-buffer args-string)))
+    (let ((dotnet-process (dap-netcore-test-run attach-buffer args-string directory)))
       (when dotnet-process
         (set-process-filter dotnet-process #'dap-netcore-debug-tests-filter-pid)
         ;; Set process finalization event
@@ -265,10 +268,9 @@ the function needs to examine, starting with FILE."
   (let ((params '())
         (filter (read-string "Filter: ")))
     (unless (string-empty-p filter)
-      (push (concat params " --filter=" filter) params))
-    (when directory
-      (push directory params))
-    (dap-netcore-debug-test-init (string-join (reverse params) " "))))
+      (push (concat "--filter=" filter) params))
+    (dap-netcore-debug-test-init (string-join params " ") directory)))
+
 
 (provide 'dap-netcore)
 ;;; dap-netcore.el ends here
