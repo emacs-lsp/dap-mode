@@ -152,6 +152,14 @@ the function needs to examine, starting with FILE."
              (setq file nil))))
     (if root (file-name-as-directory root))))
 
+(defun dap-netcore--locate-project-dir ()
+  "Locate .NET project directory."
+  (f-full
+   (or
+    (dap-netcore--locate-dominating-file-wildcard
+     default-directory "*.*proj")
+    (lsp-workspace-root))))
+
 (defun dap-netcore--populate-args (conf)
   "Populate CONF with arguments to launch or attach netcoredbg."
   (dap--put-if-absent conf :dap-server-path (list (dap-netcore--debugger-locate-or-install) "--interpreter=vscode"))
@@ -160,11 +168,7 @@ the function needs to examine, starting with FILE."
      (dap--put-if-absent
       conf
       :program
-      (let ((project-dir (f-full
-                          (or
-                           (dap-netcore--locate-dominating-file-wildcard
-                            default-directory "*.*proj")
-                           (lsp-workspace-root)))))
+      (let ((project-dir (dap-netcore--locate-project-dir)))
         (save-mark-and-excursion
           (find-file (concat (f-slash project-dir) "*.*proj") t)
           (let ((res (if (libxml-available-p)
