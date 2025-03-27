@@ -49,9 +49,15 @@ you are debugging."
 (defun dap-python--pyenv-executable-find (command)
   "Find executable COMMAND, taking pyenv shims into account.
 If the executable is a system executable and not in the same path
-as the pyenv version then also return nil. This works around
-https://github.com/pyenv/pyenv-which-ext."
-  (if (executable-find "pyenv")
+as the pyenv version then also return nil.  This works around
+https://github.com/pyenv/pyenv-which-ext.
+
+If pyenv is not installed or if pyenv has no \"local\" version defined
+for the cwd, then fallback to `(executable-find)`, which see."
+  (if (and
+       (executable-find "pyenv")
+       (not (string-match "no local" (shell-command-to-string "pyenv local")))
+       )
       (progn
         (let ((pyenv-string (shell-command-to-string (concat "pyenv which " command)))
               (pyenv-version-names (split-string (string-trim (shell-command-to-string "pyenv version-name")) ":"))
