@@ -1838,6 +1838,15 @@ it would not make sense to kill the buffer and leave the window open."
   :type 'boolean
   :group 'dap-mode)
 
+(defcustom dap-debug-compilation-same-buffer nil
+  "If non-nil commands run by `:dap-compilation' will run in the same buffer
+without clearing the buffer.
+
+This only works if the buffers share the same name.
+This variable is passed to `compilation-start' as the CONTINUE argument."
+  :type 'boolean
+  :group 'dap-mode)
+
 (defun dap-debug-run-task--cf (buf status)
   (let* ((buffer-name (get 'dap-debug-run-task--cf :buffer-name))
          (window (display-buffer (get-buffer buffer-name)))
@@ -1886,7 +1895,7 @@ and a string describing how the process finished."
     (put 'dap-debug-run-task--cf :cb cb)
     (put 'dap-debug-run-task--cf :buffer-name (format "*DAP compilation:%s*" name))
 
-    (compilation-start command t (lambda (&rest _) (format "*DAP compilation:%s*" name)) nil nil)))
+    (compilation-start command t (lambda (&rest _) (format "*DAP compilation:%s*" name)) nil dap-debug-compilation-same-buffer)))
 
 ;;;###autoload
 (defun dap-debug (debug-args)
