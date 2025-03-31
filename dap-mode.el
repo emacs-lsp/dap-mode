@@ -1831,6 +1831,13 @@ If non-nil the window will remain open."
   :type 'boolean
   :group 'dap-mode)
 
+(defcustom dap-debug-compilation-keep-buffer t
+  "Whether `dap-debug' should keep the compile buffer on success. If this
+is non-nil it will assume `dap-debug-compilation-keep-window' as `nil'. Because
+it would not make sense to kill the buffer and leave the window open."
+  :type 'boolean
+  :group 'dap-mode)
+
 (defun dap-debug-run-task--cf (buf status)
   (let* ((buffer-name (get 'dap-debug-run-task--cf :buffer-name))
          (window (display-buffer (get-buffer buffer-name)))
@@ -1844,6 +1851,10 @@ If non-nil the window will remain open."
             (when (and (not dap-debug-compilation-keep-window)
                        (window-live-p window))
               (delete-window window))
+            
+            (unless dap-debug-compilation-keep-buffer
+              (delete-window window)
+              (kill-buffer buffer-name))
 
             (if (and (listp (car tasks))
                      (cdr tasks))
