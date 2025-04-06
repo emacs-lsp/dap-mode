@@ -1172,12 +1172,8 @@ request."
 
 (treemacs-define-variadic-entry-node-type dap-loaded-sources
   :key 'DAP-Loaded-Sources
-  :label (propertize "DAP-Loaded-Sources" 'face 'font-lock-keyword-face)
-  :open-icon (dap-ui--calculate-sources-icon item t)
-  :closed-icon (dap-ui--calculate-sources-icon item nil)
   :children (dap-ui--loaded-sources-root)
-  :child-type 'dap-loaded-sources-node
-  :more-properties `(:pth ,item))
+  :child-type 'dap-loaded-sources-node)
 
 (treemacs-define-expandable-node-type dap-loaded-sources-node
   :open-icon (dap-ui--calculate-sources-icon item t)
