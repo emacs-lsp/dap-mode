@@ -1,3 +1,5 @@
+;; -*- mode: eask; lexical-binding: t -*-
+
 (package "dap-mode"
          "0.8"
          "Debug Adapter Protocol mode")
