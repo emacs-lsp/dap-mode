@@ -940,6 +940,43 @@ request."
       (dap-ui-eval-in-buffer sym)
     (user-error "`dap-ui-eval-variable-in-buffer': no symbol at point")))
 
+(defun dap-ui--most-specific-locals (session &optional parent-variables-reference)
+  ""
+  (if parent-variables-reference
+      (when (and (dap--session-running session)
+                 parent-variables-reference
+                 (not (zerop parent-variables-reference)))
+        (->> parent-variables-reference
+             (dap-request session "variables" :variablesReference)
+             (gethash "variables")
+             (-filter (-lambda ((&hash "expensive"))
+                        (or (null expensive) (not expensive))))
+             (-map (-lambda ((&hash "name" "value" "line" "column" "variablesReference" variables-reference))
+                     (if-let ((children (dap-ui--most-specific-locals session variables-reference)))
+                         (ht ("name" name)
+                             ("value" value)
+                             ("line" line)
+                             ("column" column)
+                             ("children" children))
+                       (ht ("name" name)
+                           ("line" line)
+                           ("column" column)
+                           ("value" value)))))))
+    (-some->> session
+      (dap--debug-session-active-frame)
+      (gethash "id")
+      (dap-request session "scopes" :frameId)
+      (gethash "scopes")
+      (-map (-lambda ((&hash "variablesReference" variables-reference))
+              (dap-ui--most-specific-locals session variables-reference)))
+      (-flatten))))
+
+(defun dap-ui-refresh-inline-locals ()
+  ""
+  (-when-let* ((session (dap--cur-session))
+               (specific-locals (dap-ui--most-specific-locals session)))
+    (message "%s" (dap--json-encode specific-locals))))
+
 (defvar dap-ui--locals-timer nil)
 
 (defun dap-ui-locals-get-data ()
@@ -962,7 +999,9 @@ request."
                 :icon :empty))))
 
 (defun dap-ui-locals--refresh (&rest _)
+  "Refresh local variables from current debug session."
   (save-excursion
+    (dap-ui-refresh-inline-locals)
     (setq dap-ui--locals-timer nil)
     (lsp-treemacs-wcb-unless-killed dap-ui--locals-buffer
       (lsp-treemacs-generic-update (dap-ui-locals-get-data)))))
