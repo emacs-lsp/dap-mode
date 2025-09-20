@@ -108,6 +108,17 @@ This is intended to be run on a list of configurations."
 (defun dap-launch-parse-launch-json (json)
   "Return a list of all launch configurations in JSON.
 JSON must have been acquired with `dap-launch--get-launch-json'."
+
+  ;; map 'env' to 'environment-variables'
+  (mapc (lambda (conf)
+          (if-let ((env (plist-get conf :env))
+                   (json-object-type 'alist)
+                   (json-key-type 'string)
+                   (environment-variables (json-read-from-string (json-encode env))))
+              (plist-put conf :environment-variables environment-variables)
+            (dap--plist-delete conf :env)))
+        (plist-get json :configurations))
+
   (mapcar #'dap-launch-configuration-prepend-name
 		  (dap--launch-extract-environments
 		   (or (plist-get json :configurations) (list json)))))
