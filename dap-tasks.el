@@ -34,6 +34,8 @@ Yields nil if it cannot be found or there is no project."
     (require 'dap-variables)
     (dap-variables-find-vscode-config "tasks.json" root)))
 
+
+(declare-function dap-utils-sanitize-json "dap-utils")
 (defun dap-tasks-get-tasks-json ()
   "Parse the project's launch.json as json data and return the result."
   (when-let ((tasks-json (dap-tasks-find-tasks-json))
@@ -65,29 +67,26 @@ Yields nil if it cannot be found or there is no project."
              ;;     }
              (json-array-type 'vector))
     (require 'dap-utils)
-    (if (fboundp 'dap-utils-sanitize-json)
-        (with-temp-buffer
-          ;; NOTE: insert-file-contents does not move point
-          (insert-file-contents tasks-json)
-          (dap-utils-sanitize-json)
-          ;; dap-tasks-remove-comments does move point
-          (goto-char (point-min))
+    (with-temp-buffer
+      ;; NOTE: insert-file-contents does not move point
+      (insert-file-contents tasks-json)
+      (dap-utils-sanitize-json)
+      ;; dap-tasks-remove-comments does move point
+      (goto-char (point-min))
 
-          (json-read))
-      (error "dap-utils not loaded"))))
+      (json-read))))
 
+(declare-function dap-utils-string-to-keyword "dap-utils")
+(declare-function dap-utils-get-os-key "dap-utils")
 (defun dap-tasks--get-key (key conf)
   "Given a KEY, attempt to get a value from a debug CONF.
 The order of presedence within vscode is:
 - OS properties
 - Global properties
 - Local properties"
-  (if (and (fboundp 'dap-utils-string-to-keyword)
-           (fboundp 'dap-utils-get-os-key))
-      (or (plist-get (plist-get conf (dap-utils-string-to-keyword (dap-utils-get-os-key))) key)
-          (plist-get (dap-tasks-configuration-get-all) key)
-          (plist-get conf key))
-    (error "dap-utils not loaded")))
+  (or (plist-get (plist-get conf (dap-utils-string-to-keyword (dap-utils-get-os-key))) key)
+      (plist-get (dap-tasks-configuration-get-all) key)
+      (plist-get conf key)))
 
 (defun dap-tasks-configuration-get-name (conf)
   "Return the name of launch configuration CONF."
