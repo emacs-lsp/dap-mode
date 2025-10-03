@@ -120,7 +120,7 @@ also `dap--make-terminal-buffer'."
 (defcustom dap-output-buffer-filter '("stdout" "stderr")
   "If non-nil, a list of output types to display in the debug output buffer."
   :group 'dap-mode
-  :type 'list)
+  :type '(repeat string))
 
 (defcustom dap-label-output-buffer-category nil
   "If non-nil, content that is printed to the output buffer will be labelled
