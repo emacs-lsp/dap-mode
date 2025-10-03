@@ -37,42 +37,44 @@ Yields nil if it cannot be found or there is no project."
 (defun dap-launch-get-launch-json ()
   "Parse the project's launch.json as json data and return the result."
   (require 'dap-utils)
-  (when-let ((launch-json (dap-launch-find-launch-json))
-			 (json-object-type 'plist)
-			 ;; Use 'vector instead of 'list. With 'list for array type,
-			 ;; json-encode-list interpreted a list with one plist element as
-			 ;; an alist. Using 'list, it turned the following value of
-			 ;; pathMappings:
-			 ;;
-			 ;;     "pathMappings": [
-			 ;;         {
-			 ;;             "localRoot": "${workspaceFolder}",
-			 ;;             "remoteRoot": "."
-			 ;;         }
-			 ;;     ]
-			 ;;
-			 ;; into:
-			 ;;
-			 ;;     ((:localRoot "${workspaceFolder}" :remoteRoot "."))
-			 ;;
-			 ;; and then into:
-			 ;;
-			 ;;     "pathMappings": {
-			 ;;         "localRoot": [
-			 ;;             "${workspaceFolder}",
-			 ;;             "remoteRoot",
-			 ;;             "."
-			 ;;         ]
-			 ;;     }
-			 (json-array-type 'vector))
-	(with-temp-buffer
-	  ;; NOTE: insert-file-contents does not move point
-	  (insert-file-contents launch-json)
-	  (dap-utils-sanitize-json)
-	  ;; dap-launch-remove-comments does move point
-	  (goto-char (point-min))
+  (if (fboundp 'dap-utils-sanitize-json)
+      (when-let ((launch-json (dap-launch-find-launch-json))
+	         (json-object-type 'plist)
+	         ;; Use 'vector instead of 'list. With 'list for array type,
+	         ;; json-encode-list interpreted a list with one plist element as
+	         ;; an alist. Using 'list, it turned the following value of
+	         ;; pathMappings:
+	         ;;
+	         ;;     "pathMappings": [
+	         ;;         {
+	         ;;             "localRoot": "${workspaceFolder}",
+	         ;;             "remoteRoot": "."
+	         ;;         }
+	         ;;     ]
+	         ;;
+	         ;; into:
+	         ;;
+	         ;;     ((:localRoot "${workspaceFolder}" :remoteRoot "."))
+	         ;;
+	         ;; and then into:
+	         ;;
+	         ;;     "pathMappings": {
+	         ;;         "localRoot": [
+	         ;;             "${workspaceFolder}",
+	         ;;             "remoteRoot",
+	         ;;             "."
+	         ;;         ]
+	         ;;     }
+	         (json-array-type 'vector))
+        (with-temp-buffer
+          ;; NOTE: insert-file-contents does not move point
+          (insert-file-contents launch-json)
+          (dap-utils-sanitize-json)
+          ;; dap-launch-remove-comments does move point
+          (goto-char (point-min))
 
-	  (json-read))))
+          (json-read)))
+    (error "dap-utils not loaded")))
 
 (defun dap-launch-configuration-get-name (conf)
   "Return the name of launch configuration CONF."

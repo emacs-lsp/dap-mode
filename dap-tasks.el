@@ -65,14 +65,16 @@ Yields nil if it cannot be found or there is no project."
              ;;     }
              (json-array-type 'vector))
     (require 'dap-utils)
-    (with-temp-buffer
-      ;; NOTE: insert-file-contents does not move point
-      (insert-file-contents tasks-json)
-      (dap-utils-sanitize-json)
-      ;; dap-tasks-remove-comments does move point
-      (goto-char (point-min))
+    (if (fboundp 'dap-utils-sanitize-json)
+        (with-temp-buffer
+          ;; NOTE: insert-file-contents does not move point
+          (insert-file-contents tasks-json)
+          (dap-utils-sanitize-json)
+          ;; dap-tasks-remove-comments does move point
+          (goto-char (point-min))
 
-      (json-read))))
+          (json-read))
+      (error "dap-utils not loaded"))))
 
 (defun dap-tasks--get-key (key conf)
   "Given a KEY, attempt to get a value from a debug CONF.
@@ -80,9 +82,12 @@ The order of presedence within vscode is:
 - OS properties
 - Global properties
 - Local properties"
-  (or (plist-get (plist-get conf (dap-utils-string-to-keyword (dap-utils-get-os-key))) key)
-      (plist-get (dap-tasks-configuration-get-all) key)
-      (plist-get conf key)))
+  (if (and (fboundp 'dap-utils-string-to-keyword)
+           (fboundp 'dap-utils-get-os-key))
+      (or (plist-get (plist-get conf (dap-utils-string-to-keyword (dap-utils-get-os-key))) key)
+          (plist-get (dap-tasks-configuration-get-all) key)
+          (plist-get conf key))
+    (error "dap-utils not loaded")))
 
 (defun dap-tasks-configuration-get-name (conf)
   "Return the name of launch configuration CONF."
