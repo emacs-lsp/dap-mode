@@ -34,6 +34,8 @@ Yields nil if it cannot be found or there is no project."
     (require 'dap-variables)
     (dap-variables-find-vscode-config "tasks.json" root)))
 
+
+(declare-function dap-utils-sanitize-json "dap-utils")
 (defun dap-tasks-get-tasks-json ()
   "Parse the project's launch.json as json data and return the result."
   (when-let ((tasks-json (dap-tasks-find-tasks-json))
@@ -74,6 +76,8 @@ Yields nil if it cannot be found or there is no project."
 
       (json-read))))
 
+(declare-function dap-utils-string-to-keyword "dap-utils")
+(declare-function dap-utils-get-os-key "dap-utils")
 (defun dap-tasks--get-key (key conf)
   "Given a KEY, attempt to get a value from a debug CONF.
 The order of presedence within vscode is:
