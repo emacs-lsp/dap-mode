@@ -784,7 +784,7 @@ will be reversed."
   (-when-let* ((source (gethash "source" stack-frame))
                (sourceReference (gethash "sourceReference" source))
                (sourceReferenceKey (format "%s-%s" name sourceReference)))
-    (select-window (get-mru-window (selected-frame) nil))
+    (select-window (get-mru-window (dap--selected-frame) nil))
     (if-let* ((existing-buffer (get-buffer sourceReferenceKey)))
         (switch-to-buffer existing-buffer)
       (dap--send-message
@@ -810,6 +810,15 @@ will be reversed."
                          path)))
       (--> debug-session (dap--debug-session-remote-to-local-path-fn it) (funcall it remote-path)))))
 
+(defun dap--selected-frame ()
+  "Select the 'main' frame when we have a utility/subframe selected"
+  (cl-labels ((helper (f)
+                (let ((parent-frame (frame-parameter f 'parent-frame)))
+                  (if parent-frame
+                      (helper parent-frame)
+                    f))))
+    (helper (selected-frame))))
+
 (defun dap--go-to-stack-frame (debug-session stack-frame)
   "Make STACK-FRAME the active STACK-FRAME of DEBUG-SESSION."
   (when stack-frame
@@ -821,7 +830,7 @@ will be reversed."
       ;; stack trace.
       (if (and path (file-exists-p path))
           (progn
-            (select-window (get-mru-window (selected-frame) nil))
+            (select-window (get-mru-window (dap--selected-frame) nil))
             (find-file path)
             (goto-char (point-min))
             (forward-line (1- line))
