@@ -811,7 +811,7 @@ will be reversed."
       (--> debug-session (dap--debug-session-remote-to-local-path-fn it) (funcall it remote-path)))))
 
 (defun dap--selected-frame ()
-  "Select the 'main' frame when we have a utility/subframe selected"
+  "Select the `main' frame when we have a utility/subframe selected."
   (cl-labels ((helper (f)
                 (let ((parent-frame (frame-parameter f 'parent-frame)))
                   (if parent-frame
