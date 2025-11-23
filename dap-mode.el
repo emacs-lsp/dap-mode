@@ -1829,41 +1829,82 @@ before starting the debug process."
         (push (cons session-name launch-args) dap--debug-configuration)
         (run-hook-with-args 'dap-session-created-hook debug-session)))))
 
-(defcustom dap-debug-compilation-keep nil
-  "Whether `dap-debug' should keep the compile window on success.
-By default, it is hidden."
+(define-obsolete-variable-alias
+  'dap-debug-compilation-keep 'dap-debug-compilation-keep-window
+  "dap-mode 0.9"
+  "Replaced by a variable with a more descriptive name.")
+
+(defcustom dap-debug-compilation-keep-window nil
+  "Whether `dap-debug' should keep the compile window open on success.
+If non-nil the window will remain open."
   :type 'boolean
   :group 'dap-mode)
 
+(defcustom dap-debug-compilation-keep-buffer t
+  "Whether `dap-debug' should keep the compile buffer on success. If this
+is non-nil it will assume `dap-debug-compilation-keep-window' as `nil'. Because
+it would not make sense to kill the buffer and leave the window open."
+  :type 'boolean
+  :group 'dap-mode)
+
+(defcustom dap-debug-compilation-same-buffer nil
+  "If non-nil commands run by `:dap-compilation' will run in the same buffer
+without clearing the buffer.
+
+This only works if the buffers share the same name.
+This variable is passed to `compilation-start' as the CONTINUE argument."
+  :type 'boolean
+  :group 'dap-mode)
+
+(defun dap-debug-run-task--cf (buf status)
+  (let* ((buffer-name (get 'dap-debug-run-task--cf :buffer-name))
+         (window (display-buffer (get-buffer buffer-name)))
+         (cb (get 'dap-debug-run-task--cf :cb))
+         (tasks (get 'dap-debug-run-task--cf :tasks)))
+    
+    (with-current-buffer buf
+      (remove-hook 'compilation-finish-functions #'dap-debug-run-task--cf nil)
+      (if (string= "finished\n" status)
+          (progn
+            (when (and (not dap-debug-compilation-keep-window)
+                       (window-live-p window))
+              (delete-window window))
+            
+            (unless dap-debug-compilation-keep-buffer
+              (delete-window window)
+              (kill-buffer buffer-name))
+
+            (if (and (listp (car tasks))
+                     (cdr tasks))
+                (dap-debug-run-task (cdr tasks) cb)
+              (funcall cb)))
+        (lsp--error "Compilation step failed")))))
+
 (defun dap-debug-run-task (tasks cb)
-  "Given either a task or list of task TASKS, attempt to execute them in sequence.
-If all succeed, then run CB."
-  (let* ((task (if (listp tasks)
+  "Runs the callback function CB after all tasks executed successfuly.
+
+A task, is a plist composed of a `:cwd', a `:command' and a `:label'.
+E.g. (:cwd \"/folder/to/run/task\" :command \"make\" :label \"Run make\")
+
+TASKS can be a task or it can be a list of tasks.
+
+CB function is called with two arguments: the compilation buffer,
+and a string describing how the process finished."
+  (let* ((task (if (listp (car tasks))
                    (car tasks)
                  tasks))
-         (default-directory (or (dap-tasks--get-key :cwd task)
-                                (lsp-workspace-root)
-                                default-directory))
+         (default-directory (or (dap-tasks--get-key :cwd task) (lsp-workspace-root) default-directory))
          (command (dap-tasks-configuration-get-command task))
          (name (dap-tasks-configuration-get-name task)))
-    (with-current-buffer
-        (compilation-start command t (lambda (&rest _) (format "*DAP compilation:%s*" name)))
-      (let (window)
-        (cl-labels ((cf (buf status &rest _)
-                      (with-current-buffer buf
-                        (remove-hook 'compilation-finish-functions #'cf t)
-                        (if (string= "finished\n" status)
-                            (progn
-                              (when (and (not dap-debug-compilation-keep)
-                                         (window-live-p window)
-                                         (eq buf (window-buffer window)))
-                                (delete-window window))
-                              (if (length= tasks 0)
-                                  (funcall cb)
-                                (dap-debug-run-task (cdr tasks) cb)))
-                          (lsp--error "Compilation step failed")))))
-          (add-hook 'compilation-finish-functions #'cf nil t)
-          (setq window (display-buffer (current-buffer))))))))
+    
+    (add-hook 'compilation-finish-functions #'dap-debug-run-task--cf nil nil)
+    
+    ;; Populate the state variables of `dap-debug-run-task--cf'
+    (put 'dap-debug-run-task--cf :tasks tasks)
+    (put 'dap-debug-run-task--cf :cb cb)
+    (put 'dap-debug-run-task--cf :buffer-name (format "*DAP compilation:%s*" name))
+
+    (compilation-start command t (lambda (&rest _) (format "*DAP compilation:%s*" name)) nil dap-debug-compilation-same-buffer)))
 
 ;;;###autoload
 (defun dap-debug (debug-args)
