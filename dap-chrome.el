@@ -1,6 +1,7 @@
 ;;; dap-chrome.el --- Debug Adapter Protocol mode for Chrome      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019  Ivan Yonchovski
+;; Copyright (C) 2019-2026 emacs-lsp maintainers
 
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords: languages

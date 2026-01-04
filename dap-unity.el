@@ -1,6 +1,7 @@
 ;;; dap-unity.el --- Debug Adapter Protocol mode for Unity      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022  Owen Robertson
+;; Copyright (C) 2022-2026 emacs-lsp maintainers
 
 ;; Author: Owen Robertson
 ;; Keywords: languages

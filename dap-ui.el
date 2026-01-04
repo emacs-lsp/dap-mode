@@ -1,6 +1,7 @@
 ;;; dap-ui.el --- Debug Adapter Protocol UI -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018  Ivan Yonchovski
+;; Copyright (C) 2018-2026 emacs-lsp maintainers
 
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords: languages, debug

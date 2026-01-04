@@ -1,6 +1,7 @@
 ;;; dap-lldb.el --- Debug Adapter Protocol mode for LLDB      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018  Daniel Martín
+;; Copyright (C) 2018-2026 emacs-lsp maintainers
 
 ;; Author: Daniel Martín <mardani29@yahoo.es>
 ;; Keywords: languages

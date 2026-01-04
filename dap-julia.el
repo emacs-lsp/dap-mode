@@ -1,6 +1,7 @@
 ;;; dap-julia.el --- Debug Adapter Protocol mode for Julia      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2024  Michael Kovarik
+;; Copyright (C) 2024-2026 emacs-lsp maintainers
 
 ;; Author: Michael Kovarik <michaelkovarik@outlook.com>
 ;; Keywords: languages

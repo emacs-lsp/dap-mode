@@ -1,6 +1,7 @@
 ;;; dap-netcore.el --- Debug Adapter Protocol mode for .NET Core -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019  Reed Mullanix
+;; Copyright (C) 2019-2026 emacs-lsp maintainers
 
 ;; Author: Reed Mullanix <reedmullanix@gmail.com>
 ;; Keywords: languages

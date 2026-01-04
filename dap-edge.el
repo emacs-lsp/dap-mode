@@ -1,6 +1,7 @@
 ;;; dap-edge.el --- Debug Adapter Protocol mode for Edge      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019  Kien Nguyen
+;; Copyright (C) 2019-2026 emacs-lsp maintainers
 
 ;; Author: Kien Nguyen <kien.n.quang@gmail.com>
 ;; Keywords: languages

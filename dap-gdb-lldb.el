@@ -1,6 +1,7 @@
 ;;; dap-gdb-lldb.el --- Debug Adapter Protocol mode for LLDB/GDB      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019  Ivan Yonchovski
+;; Copyright (C) 2019-2026 emacs-lsp maintainers
 
 ;; Author: Ivan Yonchovski yyoncho@gmail.com
 ;; Keywords: languages

@@ -1,6 +1,7 @@
 ;;; dap-variables.el --- VSCode variables -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Nikita Bloshchanevich
+;; Copyright (C) 2020-2026 emacs-lsp maintainers
 
 ;; Author: Nikita Bloshchanevich <nikblos@outlook.com>
 ;; Keywords: emulations

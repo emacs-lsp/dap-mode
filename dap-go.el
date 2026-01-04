@@ -1,6 +1,7 @@
 ;;; dap-go.el --- Debug Adapter Protocol mode for Go      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018  Aya Igarashi
+;; Copyright (C) 2018-2026 emacs-lsp maintainers
 
 ;; Author: Aya Igarashi <ladiclexxx@gmail.com>
 ;; Keywords: languages

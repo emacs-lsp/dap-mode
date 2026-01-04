@@ -1,6 +1,7 @@
 ;;; dap-cpptools.el --- Debug Adapter Protocol mode for cpptools      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2021  Ivan Yonchovski
+;; Copyright (C) 2021-2026 emacs-lsp maintainers
 
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords: language, tools

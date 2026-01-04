@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 2019  Ivan Yonchovski
 ;; Copyright (C) 2024  Danny Milosavljevic
+;; Copyright (C) 2019-2026 emacs-lsp maintainers
 
 ;; Author: Danny Milosavljevic <dannym@scratchpost.org>
 ;; Keywords: languages

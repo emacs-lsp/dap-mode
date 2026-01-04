@@ -1,6 +1,7 @@
 ;;; dap-mode/dap-ocaml.el -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018  Austin Theriault
+;; Copyright (C) 2018-2026 emacs-lsp maintainers
 
 ;; Author: Austin Theriault <austin@cutedogs.org>
 ;; Keywords: languages

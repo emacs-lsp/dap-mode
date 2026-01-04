@@ -1,6 +1,7 @@
 ;;; dap-ruby.el --- Debug Adapter Protocol mode for Ruby      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018  Ivan Yonchovski
+;; Copyright (C) 2018-2026 emacs-lsp maintainers
 
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords: languages

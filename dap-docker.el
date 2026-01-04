@@ -1,6 +1,7 @@
 ;;; dap-docker.el --- Debug Adapter Protocol mode for docker-wrapped servers      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022  Andrei Mochalov
+;; Copyright (C) 2022-2026 emacs-lsp maintainers
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

@@ -1,6 +1,7 @@
 ;;; dap-php.el --- Debug Adapter Protocol mode for Php      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018  Ivan Yonchovski
+;; Copyright (C) 2018-2026 emacs-lsp maintainers
 
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Author: Thomas Regner <tom@tomsdiner.org>

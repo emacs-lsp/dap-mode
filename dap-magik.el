@@ -1,6 +1,7 @@
 ;;; dap-magik.el --- Debug Adapter Protocol mode for Magik -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Steven Looman
+;; Copyright (C) 2022-2026 emacs-lsp maintainers
 
 ;; Author: Steven Looman <steven.looman@gmail.com>
 ;; Keywords: dap, magik

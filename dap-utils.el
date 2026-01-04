@@ -1,6 +1,7 @@
 ;;; dap-utils.el --- DAP UTILS -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019  Kien Nguyen
+;; Copyright (C) 2019-2026 emacs-lsp maintainers
 
 ;; Author: Kien Nguyen <kien.n.quang@gmail.com>
 ;; Keywords: languages, utils

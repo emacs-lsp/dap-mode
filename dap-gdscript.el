@@ -1,6 +1,7 @@
 ;;; dap-gdscript.el --- Debug Adapter Protocol mode for gdscript      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023  xiliuya
+;; Copyright (C) 2023-2026 emacs-lsp maintainers
 
 ;; Author:  xiliuya <xiliuya@aliyun.com>
 ;; Keywords: languages

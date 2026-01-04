@@ -1,6 +1,7 @@
 ;;; dap-swi-prolog.el --- Debug Adapter Protocol mode for SWI-Prolog      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Eshel Yaron
+;; Copyright (C) 2022-2026 emacs-lsp maintainers
 
 ;; Author: Eshel Yaron <eshelshay.yaron@gmail.com>
 ;; Keywords: languages

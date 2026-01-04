@@ -1,6 +1,7 @@
 ;;; dap-java-steps.el --- Step definitions for dap-java  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018  Ivan Yonchovski
+;; Copyright (C) 2018-2026 emacs-lsp maintainers
 
 ;; Author: Ivan Yonchovski <ivan.yonchovski@tick42.com>
 

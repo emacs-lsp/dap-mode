@@ -1,6 +1,7 @@
 ;;; dap-tasks.el --- support tasks.json -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022 Ellis Kenyo
+;; Copyright (C) 2022-2026 emacs-lsp maintainers
 
 ;; Author: Ellis Kenyo <me@elken.dev>
 ;; Keywords: languages
