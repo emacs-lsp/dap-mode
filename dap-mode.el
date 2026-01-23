@@ -1283,13 +1283,16 @@ ADAPTER-ID the id of the adapter."
 
 (defun dap--send-configuration-done (debug-session)
   "Send `configurationDone' message for DEBUG-SESSION."
-  (dap--send-message (dap--make-request "configurationDone")
-                     (dap--resp-handler
-                      (lambda (_)
-                        (when (eq 'pending (dap--debug-session-state debug-session))
-                          (setf (dap--debug-session-state debug-session) 'running)
-                          (run-hook-with-args 'dap-session-changed-hook))))
-                     debug-session))
+  (let ((callback (lambda (_)
+                    (when (eq 'pending (dap--debug-session-state debug-session))
+                      (setf (dap--debug-session-state debug-session) 'running)
+                      (run-hook-with-args 'dap-session-changed-hook)))))
+    (if (gethash "supportsConfigurationDoneRequest" (dap--debug-session-current-capabilities (dap--cur-session)))
+        (dap--send-message (dap--make-request "configurationDone")
+                           (dap--resp-handler
+                            callback)
+                           debug-session)
+      (funcall callback 'ok))))
 
 (defun dap--set-breakpoints-request (debug-session file-name file-breakpoints)
   "Make `setBreakpoints' request for FILE-NAME.
