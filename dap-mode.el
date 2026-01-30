@@ -1282,7 +1282,7 @@ ADAPTER-ID the id of the adapter."
     debug-session))
 
 (defun dap--send-configuration-done (debug-session)
-  "Send `configurationDone' message for DEBUG-SESSION."
+  "Send `configurationDone' message for DEBUG-SESSION if supported by server."
   (let ((callback (lambda (_)
                     (when (eq 'pending (dap--debug-session-state debug-session))
                       (setf (dap--debug-session-state debug-session) 'running)
