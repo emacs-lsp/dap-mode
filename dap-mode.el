@@ -1939,6 +1939,7 @@ the new template can be used normally with `dap-debug'"
                do (unless (eq k :program-to-start)
                     (insert "\n")
                     (insert-char ?\s column)
+                    (when (listp v) (setq v (list 'quote v))) ; :args is often a list of strings
                     (insert (format "%s %S" k v)))))
     (insert "))"))
   (pop-to-buffer "*DAP Templates*")
