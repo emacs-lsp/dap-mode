@@ -387,9 +387,9 @@ although it is not necessary to install this to use `dap-lldb` in Emacs.
     (require 'dap-lldb)
     ```
 
-    This package expects to find the `lldb-vscode` program in the extensions
-    folder used by VSCode. If you have this installed elsewhere, or are using
-    the more modern `lldb-dap` version, you will need to set or customize
+    This package looks for the `lldb-dap` (or the older `lldb-vscode`) program
+    on your `PATH`, falling back to the extensions folder used by VSCode. If
+    you have it installed somewhere else, you will need to set or customize
     `dap-lldb-debug-program` appropriately:
 
     ``` elisp
