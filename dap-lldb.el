@@ -20,14 +20,21 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; Adapter for https://github.com/llvm-mirror/lldb/tree/master/tools/lldb-vscode
+;; Adapter for https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-dap
 
 ;;; Code:
 
 (require 'dap-mode)
 
-(defcustom dap-lldb-debug-program `(,(expand-file-name "~/.vscode/extensions/llvm-org.lldb-vscode-0.1.0/bin/lldb-vscode"))
-  "The path to the LLDB debugger."
+(defcustom dap-lldb-debug-program
+  `(,(or (executable-find "lldb-dap")
+         (executable-find "lldb-vscode")
+         (expand-file-name "~/.vscode/extensions/llvm-org.lldb-vscode-0.1.0/bin/lldb-vscode")))
+  "The path to the LLDB debugger.
+
+Defaults to the first of \"lldb-dap\" (its name since LLVM 18) or
+\"lldb-vscode\" (its name before that) found via `executable-find',
+falling back to the historical VSCode extension location."
   :group 'dap-lldb
   :type '(repeat string))
 
