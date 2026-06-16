@@ -1426,9 +1426,9 @@ and follow the instructions to compile lldb-dap from:</p>
 <p>Then put the following in your emacs configuration:
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;dap-lldb</span><span class="p">)</span>
 </code></pre></div></p>
-<p>This package expects to find the <code>lldb-vscode</code> program in the extensions
-folder used by VSCode. If you have this installed elsewhere, or are using
-the more modern <code>lldb-dap</code> version, you will need to set or customize
+<p>This package looks for the <code>lldb-dap</code> (or the older <code>lldb-vscode</code>) program
+on your <code>PATH</code>, falling back to the extensions folder used by VSCode. If
+you have it installed somewhere else, you will need to set or customize
 <code>dap-lldb-debug-program</code> appropriately:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">setq</span> <span class="nv">dap-lldb-debug-program</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;/path/to/lldb-dap&quot;</span><span class="p">))</span>
 </code></pre></div>
@@ -1963,7 +1963,7 @@ Note that this debugger <em>only</em> works with bytecode compiled OCaml program
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 23, 2026</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">June 16, 2026</span>
       
     
   </small>
