@@ -163,6 +163,33 @@ settings.
             :request "launch"
             :name "My App"))
     ```
+    2.1 Flask app
+
+    Default template from vscode can be used to launch flask app. Please create file **launch.json** in **.vscode** subfolder of project's root folder. And the contents can look like this example.
+    ```
+    {
+      "version": "0.2.0",
+      "configurations": [
+        {
+          "name": "<ProjectName>",
+          "type": "python",
+          "request": "launch",
+          "module": "flask",
+          "env": {
+            "FLASK_APP": "<location of app.py file>",
+            "FLASK_DEBUG": "1"
+          },
+          "args": [
+            "run",
+            "--no-debugger",
+            "--no-reload"
+          ],
+          "jinja": true,
+          "justMyCode": true
+        }
+      ]
+    }
+    ```
 
 3. Template parameters
 
